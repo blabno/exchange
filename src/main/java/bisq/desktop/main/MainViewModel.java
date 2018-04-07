@@ -578,8 +578,8 @@ public class MainViewModel implements ViewModel {
             btcInfo.set(newValue);
         });
 
-        walletsSetup.initialize(null,
-                () -> {
+        walletsSetup.initialize(null)
+                .thenRun(() -> {
                     log.debug("walletsSetup.onInitialized");
                     numBtcPeers = walletsSetup.numPeersProperty().get();
 
@@ -606,8 +606,11 @@ public class MainViewModel implements ViewModel {
                             walletInitialized.set(true);
                         }
                     }
-                },
-                walletServiceException::set);
+                })
+                .exceptionally(e -> {
+                    walletServiceException.set(e);
+                    return null;
+                });
     }
 
     private void onBasicServicesInitialized() {

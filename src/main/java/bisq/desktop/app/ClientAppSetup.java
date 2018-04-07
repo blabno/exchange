@@ -164,12 +164,13 @@ public class ClientAppSetup extends AppSetupWithP2P {
     }
 
     private void initWalletService() {
-        walletsSetup.initialize(null,
-                () -> {
-                    log.debug("walletsSetup.onInitialized");
-                    walletInitialized.set(true);
-                },
-                walletServiceException::set);
+        walletsSetup.initialize(null).thenRun(() -> {
+            log.debug("walletsSetup.onInitialized");
+            walletInitialized.set(true);
+        }).exceptionally(e -> {
+            walletServiceException.set(e);
+            return null;
+        });
     }
 
     @Override
@@ -238,7 +239,13 @@ public class ClientAppSetup extends AppSetupWithP2P {
         });
 
         final BooleanProperty p2pNetworkInitialized = new SimpleBooleanProperty();
-        p2PService.start(new P2PServiceListener() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            p2PService.start(new P2PServiceListener() {
             @Override
             public void onTorNodeReady() {
                 log.info("onTorNodeReady");
@@ -282,7 +289,7 @@ public class ClientAppSetup extends AppSetupWithP2P {
                 log.info("onRequestCustomBridges");
             }
         });
-
+        }).start();
         return p2pNetworkInitialized;
     }
 }

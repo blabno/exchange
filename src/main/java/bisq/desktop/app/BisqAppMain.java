@@ -105,7 +105,7 @@ public class BisqAppMain extends BisqExecutable {
         final Injector injector = Guice.createInjector(new BisqAppModule(bisqEnvironment));
         BisqApp.setInjector(injector);
 //        REFACTOR just testing pure core mode; restore that javafx launch once wallet init is refactored
-//        javafx.application.Application.launch(BisqApp.class);
-        injector.getInstance(ClientAppSetup.class).start();
+        javafx.application.Application.launch(BisqApp.class);
+//        injector.getInstance(ClientAppSetup.class).start();
     }
 }
