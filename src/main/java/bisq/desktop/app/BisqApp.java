@@ -79,7 +79,6 @@ import bisq.common.util.Utilities;
 
 import org.bitcoinj.store.BlockStoreException;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
@@ -132,15 +131,18 @@ public class BisqApp extends Application {
     private static final long LOG_MEMORY_PERIOD_MIN = 10;
 
     private static BisqEnvironment bisqEnvironment;
+    private static Injector injector;
     public static Runnable shutDownHandler;
     private static Stage primaryStage;
 
-    protected static void setEnvironment(BisqEnvironment bisqEnvironment) {
+    public static void setEnvironment(BisqEnvironment bisqEnvironment) {
         BisqApp.bisqEnvironment = bisqEnvironment;
     }
 
-    private BisqAppModule bisqAppModule;
-    private Injector injector;
+    public static void setInjector(Injector injector) {
+        BisqApp.injector = injector;
+    }
+
     private boolean popupOpened;
     private Scene scene;
     private final List<String> corruptedDatabaseFiles = new ArrayList<>();
@@ -213,8 +215,6 @@ public class BisqApp extends Application {
 
         try {
             // Guice
-            bisqAppModule = new BisqAppModule(bisqEnvironment, primaryStage);
-            injector = Guice.createInjector(bisqAppModule);
             injector.getInstance(InjectorViewFactory.class).setInjector(injector);
 
             // All classes which are persisting objects need to be added here
@@ -487,7 +487,8 @@ public class BisqApp extends Application {
                 injector.getInstance(OpenOfferManager.class).shutDown(() -> {
                     injector.getInstance(P2PService.class).shutDown(() -> {
                         injector.getInstance(WalletsSetup.class).shutDownComplete.addListener((ov, o, n) -> {
-                            bisqAppModule.close(injector);
+//                            TODO figure out how to request main module close
+//                            bisqAppModule.close(injector);
                             log.debug("Graceful shutdown completed");
                             resultHandler.handleResult();
                         });
