@@ -155,7 +155,6 @@ public class ClientAppSetup extends AppSetup {
     @Override
     protected CompletableFuture<Void> doInitBasicServices() {
         final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-        completableFuture.thenRun(this::onBasicServicesInitialized);
 
         SetupUtils.readFromResources(p2PService.getP2PDataStorage()).addListener((observable, oldValue, newValue) -> {
             if (!newValue) return;

@@ -625,7 +625,6 @@ public class MainViewModel implements ViewModel {
         PaymentMethod.onAllServicesInitialized();
 
         // disputeManager
-        disputeManager.onAllServicesInitialized();
         disputeManager.getDisputesAsObservableList().addListener((ListChangeListener<Dispute>) change -> {
             change.next();
             onDisputesChangeListener(change.getAddedSubList(), change.getRemoved());
@@ -633,7 +632,6 @@ public class MainViewModel implements ViewModel {
         onDisputesChangeListener(disputeManager.getDisputesAsObservableList(), null);
 
         // tradeManager
-        tradeManager.onAllServicesInitialized();
         tradeManager.getTradableList().addListener((ListChangeListener<Trade>) c -> updateBalance());
         tradeManager.getTradableList().addListener((ListChangeListener<Trade>) change -> onTradesChanged());
         onTradesChanged();
@@ -657,28 +655,22 @@ public class MainViewModel implements ViewModel {
 
         openOfferManager.getObservableList().addListener((ListChangeListener<OpenOffer>) c -> updateBalance());
         tradeManager.getTradableList().addListener((ListChangeListener<Trade>) c -> updateBalance());
-        openOfferManager.onAllServicesInitialized();
         removeOffersWithoutAccountAgeWitness();
 
-        arbitratorManager.onAllServicesInitialized();
         alertManager.alertMessageProperty().addListener((observable, oldValue, newValue) -> displayAlertIfPresent(newValue, false));
         privateNotificationManager.privateNotificationProperty().addListener((observable, oldValue, newValue) -> displayPrivateNotification(newValue));
         displayAlertIfPresent(alertManager.alertMessageProperty().get(), false);
 
-        p2PService.onAllServicesInitialized();
 
-        feeService.onAllServicesInitialized();
         GUIUtil.setFeeService(feeService);
 
+//        REFACTOR why is this different than other services? they don't need to show any errors
         daoSetup.onAllServicesInitialized(errorMessage -> new Popup<>().error(errorMessage).show());
 
-        tradeStatisticsManager.onAllServicesInitialized();
 
-        accountAgeWitnessService.onAllServicesInitialized();
 
         priceFeedService.setCurrencyCodeOnInit();
 
-        filterManager.onAllServicesInitialized();
         filterManager.addListener(filter -> {
             if (filter != null) {
                 if (filter.getSeedNodes() != null && !filter.getSeedNodes().isEmpty())

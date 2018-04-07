@@ -76,12 +76,12 @@ public abstract class AppSetup {
         if (null != initBasicServicesResult)
             return initBasicServicesResult;
         initBasicServicesResult = initPersistedDataHosts()
-                .thenApply(r -> this.doInitBasicServices())
+                .thenCompose(r -> this.doInitBasicServices())
                 .thenRun(this::onBasicServicesInitialized);
         return initBasicServicesResult;
     }
 
-    protected abstract <U> U doInitBasicServices();
+    protected abstract CompletableFuture<Void> doInitBasicServices();
 
     protected abstract void onBasicServicesInitialized();
 

@@ -206,7 +206,7 @@ public class BisqApp extends Application {
             // Guice
             injector.getInstance(InjectorViewFactory.class).setInjector(injector);
 
-            injector.getInstance(ClientAppSetup.class).initPersistedDataHosts();
+            injector.getInstance(ClientAppSetup.class).initPersistedDataHosts().get();
 
             boolean useDevMode = injector.getInstance(Key.get(Boolean.class, Names.named(AppOptionKeys.USE_DEV_MODE)));
             DevEnv.setDevMode(useDevMode);
