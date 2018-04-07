@@ -26,6 +26,7 @@ import bisq.core.arbitration.DisputeManager;
 import bisq.core.btc.AddressEntry;
 import bisq.core.btc.AddressEntryList;
 import bisq.core.btc.wallet.BtcWalletService;
+import bisq.core.btc.wallet.WalletsSetup;
 import bisq.core.dao.param.DaoParamService;
 import bisq.core.dao.vote.blindvote.BlindVoteService;
 import bisq.core.dao.vote.myvote.MyVoteService;
@@ -59,7 +60,9 @@ import javax.inject.Inject;
 import org.fxmisc.easybind.EasyBind;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,6 +80,10 @@ public class ClientAppSetup extends AppSetupWithP2P {
     private final FeeService feeService;
     private final PriceFeedService priceFeedService;
     private final BtcWalletService btcWalletService;
+    private final WalletsSetup walletsSetup;
+
+    private BooleanProperty walletInitialized;
+    private ObjectProperty<Throwable> walletServiceException;
 
     @Inject
     public ClientAppSetup(EncryptionService encryptionService,
@@ -101,6 +108,7 @@ public class ClientAppSetup extends AppSetupWithP2P {
                           BlindVoteService blindVoteService,
                           MyVoteService myVoteService,
                           DaoParamService daoParamService,
+                          WalletsSetup walletsSetup,
                           Navigation navigation
     ) {
         super(encryptionService, keyRing, p2PService, tradeStatisticsManager, accountAgeWitnessService, filterManager);
@@ -111,6 +119,7 @@ public class ClientAppSetup extends AppSetupWithP2P {
         this.feeService = feeService;
         this.priceFeedService = priceFeedService;
         this.btcWalletService = btcWalletService;
+        this.walletsSetup = walletsSetup;
 
         persistedDataHosts.add(preferences);
         persistedDataHosts.add(user);
@@ -126,16 +135,41 @@ public class ClientAppSetup extends AppSetupWithP2P {
         persistedDataHosts.add(blindVoteService);
         persistedDataHosts.add(myVoteService);
         persistedDataHosts.add(daoParamService);
-//        REFACTOR add loading of more
+
+        walletInitialized = new SimpleBooleanProperty();
+        walletServiceException = new SimpleObjectProperty<>();
     }
 
     @Override
     protected void initBasicServices() {
 //        checkCryptoSetup();
         SetupUtils.readFromResources(p2PService.getP2PDataStorage()).addListener((observable, oldValue, newValue) -> {
-            if (newValue)
-                startInitP2PNetwork();
+            if (!newValue) return;
+            startInitP2PNetwork();
+            p2pNetWorkReady.addListener((observable1, oldValue1, newValue1) -> {
+                if (!newValue1) return;
+                initWalletService();
+            });
+            EasyBind.combine(walletInitialized, p2pNetWorkReady,
+                    (a, b) -> {
+                        log.debug("\nwalletInitialized={}\n" +
+                                        "p2pNetWorkReady={}",
+                                a, b);
+                        return a && b;
+                    }).addListener((observable1, oldValue1, newValue1) -> {
+                if (newValue1)
+                    onBasicServicesInitialized();
+            });
         });
+    }
+
+    private void initWalletService() {
+        walletsSetup.initialize(null,
+                () -> {
+                    log.debug("walletsSetup.onInitialized");
+                    walletInitialized.set(true);
+                },
+                walletServiceException::set);
     }
 
     @Override
@@ -178,19 +212,6 @@ public class ClientAppSetup extends AppSetupWithP2P {
 
     private void startInitP2PNetwork() {
         p2pNetWorkReady = initP2PNetwork();
-        final SimpleBooleanProperty walletInitialized = new SimpleBooleanProperty();
-//        REFACTOR initialize wallet here
-        walletInitialized.set(true);
-        EasyBind.combine(walletInitialized, p2pNetWorkReady,
-                (a, b) -> {
-                    log.debug("\nwalletInitialized={}\n" +
-                                    "p2pNetWorkReady={}",
-                            a, b);
-                    return a && b;
-                }).addListener((observable, oldValue, newValue) -> {
-            if (newValue)
-                onBasicServicesInitialized();
-        });
     }
 
     private BooleanProperty initP2PNetwork() {

@@ -20,7 +20,11 @@ package bisq.desktop.app;
 import bisq.core.app.AppOptionKeys;
 import bisq.core.app.BisqEnvironment;
 import bisq.core.app.BisqExecutable;
+import bisq.core.btc.BaseCurrencyNetwork;
+import bisq.core.locale.CurrencyUtil;
+import bisq.core.locale.Res;
 
+import bisq.common.app.Capabilities;
 import bisq.common.util.Utilities;
 
 import joptsimple.OptionException;
@@ -28,6 +32,14 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.Security;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static bisq.core.app.BisqEnvironment.DEFAULT_APP_NAME;
 import static bisq.core.app.BisqEnvironment.DEFAULT_USER_DATA_DIR;
@@ -72,9 +84,28 @@ public class BisqAppMain extends BisqExecutable {
 
     @Override
     protected void doExecute(OptionSet options) {
+        if (null == Security.getProvider(BouncyCastleProvider.PROVIDER_NAME))
+            Security.addProvider(new BouncyCastleProvider());
+        final BaseCurrencyNetwork baseCurrencyNetwork = BisqEnvironment.getBaseCurrencyNetwork();
+        final String currencyCode = baseCurrencyNetwork.getCurrencyCode();
+        Res.setBaseCurrencyCode(currencyCode);
+        Res.setBaseCurrencyName(baseCurrencyNetwork.getCurrencyName());
+        CurrencyUtil.setBaseCurrencyCode(currencyCode);
+
+        Capabilities.setSupportedCapabilities(new ArrayList<>(Arrays.asList(
+                Capabilities.Capability.TRADE_STATISTICS.ordinal(),
+                Capabilities.Capability.TRADE_STATISTICS_2.ordinal(),
+                Capabilities.Capability.ACCOUNT_AGE_WITNESS.ordinal(),
+                Capabilities.Capability.COMP_REQUEST.ordinal(),
+                Capabilities.Capability.VOTE.ordinal()
+        )));
+
         final BisqEnvironment bisqEnvironment = getBisqEnvironment(options);
         BisqApp.setEnvironment(bisqEnvironment);
-        BisqApp.setInjector(Guice.createInjector(new BisqAppModule(bisqEnvironment)));
-        javafx.application.Application.launch(BisqApp.class);
+        final Injector injector = Guice.createInjector(new BisqAppModule(bisqEnvironment));
+        BisqApp.setInjector(injector);
+//        REFACTOR just testing pure core mode; restore that javafx launch once wallet init is refactored
+//        javafx.application.Application.launch(BisqApp.class);
+        injector.getInstance(ClientAppSetup.class).start();
     }
 }
