@@ -69,6 +69,7 @@ public class BisqAppModule extends AppModule {
     protected void configure() {
         bind(BisqEnvironment.class).toInstance((BisqEnvironment) environment);
 
+        bind(ClientAppSetup.class).in(Singleton.class);
         bind(CachingViewLoader.class).in(Singleton.class);
         bind(KeyStorage.class).in(Singleton.class);
         bind(KeyRing.class).in(Singleton.class);

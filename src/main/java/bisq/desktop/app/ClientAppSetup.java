@@ -19,7 +19,6 @@ package bisq.desktop.app;
 
 import bisq.desktop.Navigation;
 
-import bisq.core.app.AppSetupWithP2P;
 import bisq.core.app.SetupUtils;
 import bisq.core.arbitration.ArbitratorManager;
 import bisq.core.arbitration.DisputeManager;
@@ -65,12 +64,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ClientAppSetup extends AppSetupWithP2P {
+public class ClientAppSetup extends AppSetup {
 
 
     private final DisputeManager disputeManager;
@@ -81,6 +81,13 @@ public class ClientAppSetup extends AppSetupWithP2P {
     private final PriceFeedService priceFeedService;
     private final BtcWalletService btcWalletService;
     private final WalletsSetup walletsSetup;
+    private final P2PService p2PService;
+    private final TradeStatisticsManager tradeStatisticsManager;
+    private final AccountAgeWitnessService accountAgeWitnessService;
+    private final FilterManager filterManager;
+
+    protected BooleanProperty p2pNetWorkReady;
+
 
     private BooleanProperty walletInitialized;
     private ObjectProperty<Throwable> walletServiceException;
@@ -111,7 +118,11 @@ public class ClientAppSetup extends AppSetupWithP2P {
                           WalletsSetup walletsSetup,
                           Navigation navigation
     ) {
-        super(encryptionService, keyRing, p2PService, tradeStatisticsManager, accountAgeWitnessService, filterManager);
+        super(encryptionService, keyRing);
+        this.p2PService = p2PService;
+        this.tradeStatisticsManager = tradeStatisticsManager;
+        this.accountAgeWitnessService = accountAgeWitnessService;
+        this.filterManager = filterManager;
         this.disputeManager = disputeManager;
         this.tradeManager = tradeManager;
         this.openOfferManager = openOfferManager;
@@ -121,6 +132,7 @@ public class ClientAppSetup extends AppSetupWithP2P {
         this.btcWalletService = btcWalletService;
         this.walletsSetup = walletsSetup;
 
+        persistedDataHosts.add(p2PService);
         persistedDataHosts.add(preferences);
         persistedDataHosts.add(user);
         persistedDataHosts.add(navigation);
@@ -141,8 +153,10 @@ public class ClientAppSetup extends AppSetupWithP2P {
     }
 
     @Override
-    protected void initBasicServices() {
-//        checkCryptoSetup();
+    protected CompletableFuture<Void> doInitBasicServices() {
+        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        completableFuture.thenRun(this::onBasicServicesInitialized);
+
         SetupUtils.readFromResources(p2PService.getP2PDataStorage()).addListener((observable, oldValue, newValue) -> {
             if (!newValue) return;
             startInitP2PNetwork();
@@ -158,9 +172,10 @@ public class ClientAppSetup extends AppSetupWithP2P {
                         return a && b;
                     }).addListener((observable1, oldValue1, newValue1) -> {
                 if (newValue1)
-                    onBasicServicesInitialized();
+                    completableFuture.complete(null);
             });
         });
+        return completableFuture;
     }
 
     private void initWalletService() {
