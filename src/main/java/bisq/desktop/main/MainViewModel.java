@@ -433,7 +433,7 @@ public class MainViewModel implements ViewModel {
         });
 
         final BooleanProperty p2pNetworkInitialized = new SimpleBooleanProperty();
-        p2PService.start(new P2PServiceListener() {
+        p2PService.addP2PServiceListener(new P2PServiceListener() {
             @Override
             public void onTorNodeReady() {
                 log.debug("onTorNodeReady");
@@ -444,6 +444,7 @@ public class MainViewModel implements ViewModel {
                     initWalletService();
 
                 // We want to get early connected to the price relay so we call it already now
+//                REFACTOR: move priceFeedService init so separate listener out of MainViewModel
                 priceFeedService.setCurrencyCodeOnInit();
                 priceFeedService.initialRequestPriceFeed();
             }
