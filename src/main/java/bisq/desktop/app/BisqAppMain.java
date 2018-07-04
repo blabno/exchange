@@ -28,6 +28,9 @@ import bisq.common.app.AppModule;
 import bisq.common.proto.persistable.PersistedDataHost;
 import bisq.common.setup.CommonSetup;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
 import com.google.inject.Injector;
 
 import javafx.application.Application;
@@ -35,9 +38,16 @@ import javafx.application.Platform;
 
 import lombok.extern.slf4j.Slf4j;
 
+
+
+import network.bisq.api.app.ApiEnvironment;
+import network.bisq.api.app.ApiOptionCustomizer;
+import network.bisq.api.service.BisqHttpApiServer;
+
 @Slf4j
 public class BisqAppMain extends BisqExecutable {
     private BisqApp application;
+    private ApiEnvironment apiEnvironment;
 
     public static void main(String[] args) throws Exception {
         if (BisqExecutable.setupInitialOptionParser(args)) {
@@ -53,6 +63,18 @@ public class BisqAppMain extends BisqExecutable {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // First synchronous execution tasks
     ///////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void customizeOptionParsing(OptionParser parser) {
+        super.customizeOptionParsing(parser);
+        ApiOptionCustomizer.customizeOptionParsing(parser);
+    }
+
+    @Override
+    protected void setupEnvironment(OptionSet options) {
+        super.setupEnvironment(options);
+        apiEnvironment = new ApiEnvironment(options);
+    }
 
     @Override
     protected void configUserThread() {
@@ -90,7 +112,7 @@ public class BisqAppMain extends BisqExecutable {
 
     @Override
     protected AppModule getModule() {
-        return new BisqAppModule(bisqEnvironment);
+        return new BisqAppModule(bisqEnvironment, apiEnvironment);
     }
 
     @Override
@@ -111,5 +133,19 @@ public class BisqAppMain extends BisqExecutable {
     protected void startApplication() {
         // We need to be in user thread! We mapped at launchApplication already...
         application.startApplication();
+        if (runWithHttpApi()) {
+            final BisqHttpApiServer bisqHttpApiServer = injector.getInstance(BisqHttpApiServer.class);
+            bisqHttpApiServer.setShutdown(() -> gracefulShutDown(() -> log.debug("App shutdown complete")));
+            try {
+                bisqHttpApiServer.run("server", "bisq-api.yml");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private boolean runWithHttpApi() {
+        return true;
+//        return bisqEnvironment.getDesktopWithHttpApi().toLowerCase().equals("true");
     }
 }

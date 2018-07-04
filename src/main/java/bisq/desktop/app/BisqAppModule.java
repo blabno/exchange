@@ -25,16 +25,29 @@ import bisq.common.app.AppModule;
 
 import org.springframework.core.env.Environment;
 
+
+
+import network.bisq.api.app.ApiEnvironment;
+import network.bisq.api.app.ApiModule;
+
 public class BisqAppModule extends AppModule {
 
-    public BisqAppModule(Environment environment) {
+    private final ApiEnvironment apiEnvironment;
+
+    public BisqAppModule(Environment environment, ApiEnvironment apiEnvironment) {
         super(environment);
+        this.apiEnvironment = apiEnvironment;
     }
 
     @Override
     protected void configure() {
         install(coreModule());
         install(desktopModule());
+        install(httpApiModule());
+    }
+
+    private ApiModule httpApiModule() {
+        return new ApiModule(apiEnvironment);
     }
 
     private CoreModule coreModule() {
