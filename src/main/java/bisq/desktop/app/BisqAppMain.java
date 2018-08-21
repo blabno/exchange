@@ -28,12 +28,19 @@ import bisq.common.app.AppModule;
 import bisq.common.proto.persistable.PersistedDataHost;
 import bisq.common.setup.CommonSetup;
 
+import joptsimple.OptionSet;
+
 import com.google.inject.Injector;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 
 import lombok.extern.slf4j.Slf4j;
+
+
+
+import network.bisq.api.app.ApiEnvironment;
+import network.bisq.api.service.BisqApiApplication;
 
 @Slf4j
 public class BisqAppMain extends BisqExecutable {
@@ -100,6 +107,11 @@ public class BisqAppMain extends BisqExecutable {
     }
 
     @Override
+    protected void setupEnvironment(OptionSet options) {
+        bisqEnvironment = new ApiEnvironment(options);
+    }
+
+    @Override
     protected void applyInjector() {
         super.applyInjector();
 
@@ -125,10 +137,15 @@ public class BisqAppMain extends BisqExecutable {
     protected void onApplicationStarted() {
         super.onApplicationStarted();
 
-       /* if (runWithHttpApi()) {
-            final BisqFacade bisqFacade = injector.getInstance(BisqFacade.class);
-            bisqHttpApiServer = new BisqHttpApiServer(bisqFacade);
-        }*/
+        if (true || runWithHttpApi()) {
+            final BisqApiApplication bisqApiApplication = injector.getInstance(BisqApiApplication.class);
+//            bisqApiApplication.setShutdown(this::stop);
+            try {
+                bisqApiApplication.run("server", "bisq-api.yml");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         /*
         if (runWithGrpcApi()) {
             final BisqFacade bisqFacade = injector.getInstance(BisqFacade.class);
