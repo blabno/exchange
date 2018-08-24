@@ -35,6 +35,8 @@ import com.google.inject.Injector;
 import javafx.application.Application;
 import javafx.application.Platform;
 
+import java.util.concurrent.TimeUnit;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -137,9 +139,9 @@ public class BisqAppMain extends BisqExecutable {
     protected void onApplicationStarted() {
         super.onApplicationStarted();
 
-        if (true || runWithHttpApi()) {
+        if (runWithHttpApi()) {
             final BisqApiApplication bisqApiApplication = injector.getInstance(BisqApiApplication.class);
-//            bisqApiApplication.setShutdown(this::stop);
+            bisqApiApplication.setShutdown(() -> UserThread.runAfter(this.gracefulShutDown(() -> log.debug("App shutdown complete")), 200, TimeUnit.MILLISECONDS));
             try {
                 bisqApiApplication.run("server", "bisq-api.yml");
             } catch (Exception e) {
