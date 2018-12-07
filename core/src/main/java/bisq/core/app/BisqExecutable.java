@@ -75,7 +75,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 @Slf4j
-public abstract class BisqExecutable implements GracefulShutDownHandler {
+public abstract class BisqExecutable implements GracefulShutDownHandler, BisqSetup.BisqSetupCompleteListener {
 
     private final String fullName;
     private final String scriptName;
@@ -271,9 +271,11 @@ public abstract class BisqExecutable implements GracefulShutDownHandler {
 
     protected void startAppSetup() {
         BisqSetup bisqSetup = injector.getInstance(BisqSetup.class);
+        bisqSetup.addBisqSetupCompleteListener(this);
         bisqSetup.start();
     }
 
+    public abstract void onSetupComplete();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // GracefulShutDownHandler implementation
@@ -454,6 +456,15 @@ public abstract class BisqExecutable implements GracefulShutDownHandler {
         parser.accepts(AppOptionKeys.REFERRAL_ID,
                 "Optional Referral ID (e.g. for API users or pro market makers)")
                 .withRequiredArg();
+
+        parser.accepts(AppOptionKeys.HTTP_API_EXPERIMENTAL_FEATURES_ENABLED, "Enable experimental features of HTTP API (disabled by default)");
+        parser.accepts(AppOptionKeys.HTTP_API_HOST, "Optional HTTP API host")
+                .withRequiredArg()
+                .defaultsTo("127.0.0.1");
+        parser.accepts(AppOptionKeys.HTTP_API_PORT, "Optional HTTP API port")
+                .withRequiredArg()
+                .ofType(int.class)
+                .defaultsTo(8080);
 
         parser.accepts(CommonOptionKeys.USE_DEV_MODE,
                 format("Enables dev mode which is used for convenience for developer testing (default: %s)", "false"))
