@@ -2,19 +2,22 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
+import javax.inject.Inject;
+
+
+
 import bisq.httpapi.facade.UserFacade;
 import bisq.httpapi.model.AuthForm;
 import bisq.httpapi.model.AuthResult;
 import bisq.httpapi.model.ChangePassword;
 import bisq.httpapi.service.ExperimentalFeature;
-
-import javax.inject.Inject;
-
-
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,7 +27,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-@Api(value = "user")
+@Tag(name = "user")
+@Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserEndpoint {
 
@@ -37,7 +41,7 @@ public class UserEndpoint {
         this.userFacade = userFacade;
     }
 
-    @ApiOperation(value = "Exchange password for access token", response = AuthResult.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Exchange password for access token", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =AuthResult.class))), description = ExperimentalFeature.NOTE)
     @POST
     @Path("/authenticate")
     public void authenticate(@Suspended final AsyncResponse asyncResponse, @Valid AuthForm authForm) {
@@ -52,7 +56,7 @@ public class UserEndpoint {
         });
     }
 
-    @ApiOperation(value = "Change password", response = AuthResult.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Change password", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =AuthResult.class))), description = ExperimentalFeature.NOTE)
     @POST
     @Path("/password")
     public void changePassword(@Suspended final AsyncResponse asyncResponse, @Valid ChangePassword data) {

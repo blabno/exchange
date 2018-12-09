@@ -2,18 +2,19 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.PriceFeedFacade;
-import bisq.httpapi.model.CurrencyList;
-import bisq.httpapi.model.PriceFeed;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.facade.PriceFeedFacade;
+import bisq.httpapi.model.CurrencyList;
+import bisq.httpapi.model.PriceFeed;
+import bisq.httpapi.service.ExperimentalFeature;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -22,7 +23,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
-@Api(value = "currencies", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "currencies")
 @Produces(MediaType.APPLICATION_JSON)
 public class CurrencyEndpoint {
 
@@ -35,7 +36,7 @@ public class CurrencyEndpoint {
         this.priceFeedFacade = priceFeedFacade;
     }
 
-    @ApiOperation(value = "List available currencies", response = CurrencyList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "List available currencies", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =CurrencyList.class))), description = ExperimentalFeature.NOTE)
     @GET
     public void getCurrencyList(@Suspended final AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -48,7 +49,7 @@ public class CurrencyEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get market prices", notes = ExperimentalFeature.NOTE + "If currencyCodes is not provided then currencies from preferences are used.", response = PriceFeed.class)
+    @Operation(summary = "Get market prices", description = ExperimentalFeature.NOTE + "If currencyCodes is not provided then currencies from preferences are used.", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =PriceFeed.class))))
     @GET
     @Path("/prices")
     public void getPriceFeed(@Suspended final AsyncResponse asyncResponse, @QueryParam("currencyCodes") String currencyCodes) {

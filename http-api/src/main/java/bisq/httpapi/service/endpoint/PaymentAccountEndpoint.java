@@ -2,20 +2,22 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
+import javax.inject.Inject;
+
+
+
 import bisq.httpapi.facade.PaymentAccountFacade;
 import bisq.httpapi.model.PaymentAccountList;
 import bisq.httpapi.model.payment.PaymentAccount;
 import bisq.httpapi.model.payment.PaymentAccountHelper;
 import bisq.httpapi.service.ExperimentalFeature;
-
-import javax.inject.Inject;
-
-
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -27,7 +29,8 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "payment-accounts", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "payment-accounts")
+@Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class PaymentAccountEndpoint {
 
@@ -40,7 +43,7 @@ public class PaymentAccountEndpoint {
         this.paymentAccountFacade = paymentAccountFacade;
     }
 
-    @ApiOperation(value = "Remove payment account", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Remove payment account", description = ExperimentalFeature.NOTE)
     @DELETE
     @Path("/{id}")
     public void removeById(@Suspended final AsyncResponse asyncResponse, @PathParam("id") String id) {
@@ -55,7 +58,7 @@ public class PaymentAccountEndpoint {
         });
     }
 
-    @ApiOperation(value = "Create payment account", notes = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", response = PaymentAccount.class)
+    @Operation(summary = "Create payment account", description = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =PaymentAccount.class))))
     @POST
     public void create(@Suspended final AsyncResponse asyncResponse, @Valid PaymentAccount account) {
         UserThread.execute(() -> {
@@ -70,7 +73,7 @@ public class PaymentAccountEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get existing payment accounts", response = PaymentAccountList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get existing payment accounts", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =PaymentAccountList.class))), description = ExperimentalFeature.NOTE)
     @GET
     public void find(@Suspended final AsyncResponse asyncResponse) {
         UserThread.execute(() -> {

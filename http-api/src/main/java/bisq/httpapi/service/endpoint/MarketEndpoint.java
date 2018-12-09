@@ -2,11 +2,6 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.core.locale.CurrencyUtil;
 
-import bisq.httpapi.model.CurrencyList;
-import bisq.httpapi.model.Market;
-import bisq.httpapi.model.MarketList;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 import java.util.Comparator;
@@ -16,14 +11,17 @@ import static java.util.stream.Collectors.toList;
 
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.model.CurrencyList;
+import bisq.httpapi.model.Market;
+import bisq.httpapi.model.MarketList;
+import bisq.httpapi.service.ExperimentalFeature;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Api(value = "markets", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "markets")
 @Produces(MediaType.APPLICATION_JSON)
 public class MarketEndpoint {
     private static MarketList marketList;
@@ -36,7 +34,7 @@ public class MarketEndpoint {
         this.experimentalFeature = experimentalFeature;
     }
 
-    @ApiOperation(value = "List markets", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "List markets", description = ExperimentalFeature.NOTE)
     @GET
     public MarketList find() {
         experimentalFeature.assertEnabled();

@@ -2,19 +2,20 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.ClosedTradableFacade;
-import bisq.httpapi.model.ClosedTradableList;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.facade.ClosedTradableFacade;
+import bisq.httpapi.model.ClosedTradableList;
+import bisq.httpapi.service.ExperimentalFeature;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
@@ -22,7 +23,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
 @Slf4j
-@Api(value = "closed-tradables", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "closed-tradables")
 @Produces(MediaType.APPLICATION_JSON)
 public class ClosedTradableEndpoint {
 
@@ -35,7 +36,7 @@ public class ClosedTradableEndpoint {
         this.experimentalFeature = experimentalFeature;
     }
 
-    @ApiOperation(value = "List portfolio history", response = ClosedTradableList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "List portfolio history", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =ClosedTradableList.class))), description = ExperimentalFeature.NOTE)
     @GET
     public void listClosedTrades(@Suspended final AsyncResponse asyncResponse) {
         UserThread.execute(() -> {

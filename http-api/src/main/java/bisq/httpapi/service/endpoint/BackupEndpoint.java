@@ -2,13 +2,6 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.exceptions.NotFoundException;
-import bisq.httpapi.facade.BackupFacade;
-import bisq.httpapi.model.BackupList;
-import bisq.httpapi.model.CreatedBackup;
-import bisq.httpapi.service.ExperimentalFeature;
-import bisq.httpapi.util.ResourceHelper;
-
 import javax.inject.Inject;
 
 import java.nio.file.FileAlreadyExistsException;
@@ -18,9 +11,19 @@ import java.io.InputStream;
 
 
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.exceptions.NotFoundException;
+import bisq.httpapi.facade.BackupFacade;
+import bisq.httpapi.model.BackupList;
+import bisq.httpapi.model.CreatedBackup;
+import bisq.httpapi.service.ExperimentalFeature;
+import bisq.httpapi.util.ResourceHelper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.ValidationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,7 +40,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 
-@Api(value = "backups", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "backups")
 @Produces(MediaType.APPLICATION_JSON)
 public class BackupEndpoint {
 
@@ -50,7 +53,7 @@ public class BackupEndpoint {
         this.experimentalFeature = experimentalFeature;
     }
 
-    @ApiOperation(value = "List backups", response = BackupList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "List backups", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = BackupList.class))), description = ExperimentalFeature.NOTE)
     @GET
     public void getBackupList(@Suspended final AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -64,7 +67,8 @@ public class BackupEndpoint {
         });
     }
 
-    @ApiOperation(value = "Create backup", response = CreatedBackup.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Create backup", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = CreatedBackup.class))), description = ExperimentalFeature.NOTE)
+    @Consumes(MediaType.WILDCARD)
     @POST
     public void createBackup(@Suspended final AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -78,12 +82,14 @@ public class BackupEndpoint {
         });
     }
 
-    @ApiOperation(value = "Upload backup", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Upload backup", requestBody = @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadedFile.class), encoding = @Encoding(name = "file", contentType = MediaType.APPLICATION_OCTET_STREAM))), description = ExperimentalFeature.NOTE)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @POST
     @Path("/upload")
-    public void uploadBackup(@Suspended final AsyncResponse asyncResponse, @FormDataParam("file") InputStream uploadedInputStream,
-                             @FormDataParam("file") FormDataContentDisposition fileDetail) {
+    public void uploadBackup(@Suspended final AsyncResponse asyncResponse,
+                             @FormDataParam("file") InputStream uploadedInputStream,
+                             @FormDataParam("file") FormDataContentDisposition fileDetail
+    ) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -99,8 +105,8 @@ public class BackupEndpoint {
         });
     }
 
+    @Operation(summary = "Get backup", description = ExperimentalFeature.NOTE)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Get backup", notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/{path}")
     public void getBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
@@ -122,7 +128,8 @@ public class BackupEndpoint {
         });
     }
 
-    @ApiOperation(value = "Restore backup", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Restore backup", description = ExperimentalFeature.NOTE)
+    @Consumes(MediaType.WILDCARD)
     @POST
     @Path("/{path}/restore")
     public void restoreBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
@@ -141,7 +148,8 @@ public class BackupEndpoint {
         });
     }
 
-    @ApiOperation(value = "Remove backup", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Remove backup", description = ExperimentalFeature.NOTE)
+    @Consumes(MediaType.WILDCARD)
     @DELETE
     @Path("/{path}")
     public void removeBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
@@ -160,5 +168,11 @@ public class BackupEndpoint {
                 asyncResponse.resume(e);
             }
         });
+    }
+
+    public static class UploadedFile {
+
+        @Schema(format = "binary")
+        public String file;
     }
 }

@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 import bisq.httpapi.exceptions.NotFoundException;
-import io.dropwizard.jersey.validation.ValidationErrorMessage;
+import bisq.httpapi.service.ValidationErrorMessage;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
