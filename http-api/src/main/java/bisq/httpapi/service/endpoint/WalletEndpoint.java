@@ -28,13 +28,16 @@ import bisq.httpapi.model.WalletAddressList;
 import bisq.httpapi.model.WalletTransactionList;
 import bisq.httpapi.model.WithdrawFundsForm;
 import bisq.httpapi.service.ExperimentalFeature;
-import io.dropwizard.jersey.validation.ValidationErrorMessage;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.service.ValidationErrorMessage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -46,9 +49,10 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "wallet", authorizations = @Authorization(value = "accessToken"))
-@Produces(MediaType.APPLICATION_JSON)
 @Slf4j
+@Tag(name = "wallet")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class WalletEndpoint {
 
     private final Balances balances;
@@ -62,7 +66,7 @@ public class WalletEndpoint {
         this.walletFacade = walletFacade;
     }
 
-    @ApiOperation(value = "Get wallet details", response = bisq.httpapi.model.Balances.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get wallet details", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =bisq.httpapi.model.Balances.class))), description = ExperimentalFeature.NOTE)
     @GET
     public void getWalletDetails(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -81,7 +85,7 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get wallet addresses", response = WalletAddressList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get wallet addresses", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =WalletAddressList.class))), description = ExperimentalFeature.NOTE)
     @GET
     @Path("/addresses")
     public void getAddresses(@Suspended AsyncResponse asyncResponse, @QueryParam("purpose") WalletFacade.WalletAddressPurpose purpose) {
@@ -96,9 +100,10 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get or create wallet address", response = WalletAddress.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get or create wallet address", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =WalletAddress.class))), description = ExperimentalFeature.NOTE)
+    @Consumes(MediaType.WILDCARD)
     @POST
-    @Path("/addresses")
+    @Path("/addresses") //TODO should path be "addresses" ?
     public void getOrCreateAvailableUnusedWalletAddresses(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
@@ -111,7 +116,7 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get wallet seed words", response = SeedWords.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get wallet seed words", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =SeedWords.class))), description = ExperimentalFeature.NOTE)
     @POST
     @Path("/seed-words/retrieve")
     public void getSeedWords(@Suspended AsyncResponse asyncResponse, AuthForm form) {
@@ -127,7 +132,7 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Restore wallet from seed words", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Restore wallet from seed words", description = ExperimentalFeature.NOTE)
     @POST
     @Path("/seed-words/restore")
     public void restoreWalletFromSeedWords(@Suspended AsyncResponse asyncResponse, @Valid @NotNull SeedWordsRestore data) {
@@ -153,7 +158,7 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get wallet transactions", response = WalletTransactionList.class, notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get wallet transactions", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =WalletTransactionList.class))), description = ExperimentalFeature.NOTE)
     @GET
     @Path("/transactions")
     public void getTransactions(@Suspended AsyncResponse asyncResponse) {
@@ -167,10 +172,10 @@ public class WalletEndpoint {
         });
     }
 
-    @ApiOperation(value = "Withdraw funds", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "Withdraw funds", description = ExperimentalFeature.NOTE)
     @POST
     @Path("/withdraw")
-    public void withdrawFunds(@Suspended AsyncResponse asyncResponse, @Valid WithdrawFundsForm data) {
+    public void withdrawFunds(@Suspended AsyncResponse asyncResponse, @Valid @NotNull WithdrawFundsForm data) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();

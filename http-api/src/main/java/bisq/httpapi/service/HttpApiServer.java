@@ -4,37 +4,41 @@ import bisq.core.app.BisqEnvironment;
 import bisq.core.btc.wallet.BtcWalletService;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
 
 import javax.inject.Inject;
 
+import java.net.InetSocketAddress;
+
 import java.util.EnumSet;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 
 import bisq.httpapi.exceptions.ExceptionMappers;
 import bisq.httpapi.service.auth.AuthFilter;
 import bisq.httpapi.service.auth.TokenRegistry;
-import bisq.httpapi.util.CurrencyListHealthCheck;
-import io.dropwizard.Application;
-import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
-import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
-import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.server.SimpleServerFactory;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import io.federecio.dropwizard.swagger.SwaggerBundle;
-import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
-public class HttpApiServer extends Application<HttpApiConfiguration> {
+@SuppressWarnings("Duplicates")
+@Slf4j
+public class HttpApiServer {
     private final BtcWalletService walletService;
     private final HttpApiInterfaceV1 httpApiInterfaceV1;
     private final TokenRegistry tokenRegistry;
     private final BisqEnvironment bisqEnvironment;
+
 
     @Inject
     public HttpApiServer(BtcWalletService walletService, HttpApiInterfaceV1 httpApiInterfaceV1,
@@ -45,71 +49,55 @@ public class HttpApiServer extends Application<HttpApiConfiguration> {
         this.bisqEnvironment = bisqEnvironment;
     }
 
+    private ContextHandler buildAPIHandler() {
+        ResourceConfig resourceConfig = new ResourceConfig();
+        ExceptionMappers.register(resourceConfig);
+        resourceConfig.register(MultiPartFeature.class);
+        resourceConfig.register(httpApiInterfaceV1);
+        resourceConfig.packages("io.swagger.v3.jaxrs2.integration.resources");
+        ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
+        servletContextHandler.setContextPath("/");
+        servletContextHandler.addServlet(new ServletHolder(new ServletContainer(resourceConfig)), "/*");
+        setupAuth(servletContextHandler);
+        return servletContextHandler;
+    }
+
+    private ContextHandler buildSwaggerUIOverrideHandler() throws Exception {
+        ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
+        swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader().getResource("META-INF/custom-swagger-ui").toURI().toString());
+        ContextHandler swaggerUIContext = new ContextHandler();
+        swaggerUIContext.setContextPath("/docs");
+        swaggerUIContext.setHandler(swaggerUIResourceHandler);
+        return swaggerUIContext;
+    }
+
+    private ContextHandler buildSwaggerUIHandler() throws Exception {
+        ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
+        swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader().getResource("META-INF/resources/webjars/swagger-ui/3.20.1").toURI().toString());
+        ContextHandler swaggerUIContext = new ContextHandler();
+        swaggerUIContext.setContextPath("/docs");
+        swaggerUIContext.setHandler(swaggerUIResourceHandler);
+        return swaggerUIContext;
+    }
+
     public void startServer() {
         try {
-            HttpApiServer.this.run("server", "bisq-api.yml");
+            ContextHandlerCollection contextHandlerCollection = new ContextHandlerCollection();
+            contextHandlerCollection.setHandlers(new Handler[]{buildAPIHandler(), buildSwaggerUIOverrideHandler(), buildSwaggerUIHandler()});
+            // Start server
+            InetSocketAddress socketAddress = new InetSocketAddress(bisqEnvironment.getHttpApiHost(), bisqEnvironment.getHttpApiPort());
+            Server server = new Server(socketAddress);
+            server.setHandler(contextHandlerCollection);
+            server.setRequestLog(new Slf4jRequestLog());
+            server.start();
+            log.info("HTTP API started on {}", socketAddress);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public String getName() {
-        return "Bisq API";
-    }
-
-    @Override
-    public void initialize(Bootstrap<HttpApiConfiguration> bootstrap) {
-        bootstrap.setConfigurationSourceProvider(new ResourceConfigurationSourceProvider());
-        bootstrap.addBundle(new SwaggerBundle<HttpApiConfiguration>() {
-            @Override
-            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(HttpApiConfiguration configuration) {
-                return configuration.swaggerBundleConfiguration;
-            }
-        });
-        // Overriding settings through environment variables, added to override the http port from 8080 to something else
-        // See http://www.dropwizard.io/1.1.4/docs/manual/core.html#configuration
-        bootstrap.setConfigurationSourceProvider(
-                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
-                        new EnvironmentVariableSubstitutor(false)
-                )
-        );
-    }
-
-    @Override
-    public void run(HttpApiConfiguration configuration, Environment environment) {
-        setupCrossOriginFilter(environment);
-        setupAuth(environment);
-        environment.jersey().register(MultiPartFeature.class);
-        setupHostAndPort(configuration);
-        JerseyEnvironment jerseyEnvironment = environment.jersey();
-        jerseyEnvironment.register(httpApiInterfaceV1);
-        ExceptionMappers.register(jerseyEnvironment);
-        environment.healthChecks().register("currency list size", new CurrencyListHealthCheck());
-    }
-
-    private void setupCrossOriginFilter(Environment environment) {
-        FilterRegistration.Dynamic crossOriginFilter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
-
-        // Configure CrossOriginFilter parameters
-        crossOriginFilter.setInitParameter("allowedOrigins", "*");
-        crossOriginFilter.setInitParameter("allowedHeaders", "*");
-        crossOriginFilter.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
-
-        // Add URL mapping
-        crossOriginFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-    }
-
-    private void setupAuth(Environment environment) {
+    private void setupAuth(ServletContextHandler appContextHandler) {
         AuthFilter authFilter = new AuthFilter(walletService, tokenRegistry);
-        FilterRegistration.Dynamic auth = environment.servlets().addFilter("Auth", authFilter);
-        auth.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-    }
-
-    private void setupHostAndPort(HttpApiConfiguration configuration) {
-        SimpleServerFactory serverFactory = (SimpleServerFactory) configuration.getServerFactory();
-        HttpConnectorFactory connector = (HttpConnectorFactory) serverFactory.getConnector();
-        connector.setPort(bisqEnvironment.getHttpApiPort());
-        connector.setBindHost(bisqEnvironment.getHttpApiHost());
+        appContextHandler.addFilter(new FilterHolder(authFilter), "/*", EnumSet.allOf(DispatcherType.class));
     }
 }

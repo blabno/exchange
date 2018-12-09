@@ -1,5 +1,9 @@
 package bisq.httpapi.service;
 
+import javax.inject.Inject;
+
+
+
 import bisq.httpapi.service.endpoint.ArbitratorEndpoint;
 import bisq.httpapi.service.endpoint.BackupEndpoint;
 import bisq.httpapi.service.endpoint.ClosedTradableEndpoint;
@@ -13,31 +17,43 @@ import bisq.httpapi.service.endpoint.TradeEndpoint;
 import bisq.httpapi.service.endpoint.UserEndpoint;
 import bisq.httpapi.service.endpoint.VersionEndpoint;
 import bisq.httpapi.service.endpoint.WalletEndpoint;
-
-import javax.inject.Inject;
-
-
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiKeyAuthDefinition;
-import io.swagger.annotations.Authorization;
-import io.swagger.annotations.SecurityDefinition;
-import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.Path;
 
 /**
  * High level API version 1.
  */
-@SwaggerDefinition(
-        securityDefinition = @SecurityDefinition(
-                apiKeyAuthDefinitions = @ApiKeyAuthDefinition(
-                        in = ApiKeyAuthDefinition.ApiKeyLocation.HEADER,
-                        key = "accessToken",
-                        name = "authorization"
-                )
-        )
+@SecurityScheme(
+        type = SecuritySchemeType.APIKEY,
+        in = SecuritySchemeIn.HEADER,
+        name = "authorization",
+        paramName = "accessToken"
 )
-@Api(authorizations = @Authorization(value = "accessToken"))
+@OpenAPIDefinition(
+        info = @Info(version = "0.0.1", title = "Bisq HTTP API"),
+        security = @SecurityRequirement(name = "authorization"),
+        tags = {
+                @Tag(name = "arbitrators"),
+                @Tag(name = "backups"),
+                @Tag(name = "closed-tradables"),
+                @Tag(name = "currencies"),
+                @Tag(name = "markets"),
+                @Tag(name = "network"),
+                @Tag(name = "offers"),
+                @Tag(name = "payment-accounts"),
+                @Tag(name = "preferences"),
+                @Tag(name = "trades"),
+                @Tag(name = "user"),
+                @Tag(name = "version"),
+                @Tag(name = "wallet")
+        }
+)
 @Path("/api/v1")
 public class HttpApiInterfaceV1 {
     private final ArbitratorEndpoint arbitratorEndpoint;
@@ -124,7 +140,7 @@ public class HttpApiInterfaceV1 {
     }
 
     @Path("preferences")
-    public PreferencesEndpoint getSettingsResource() {
+    public PreferencesEndpoint getPreferencesResource() {
         return preferencesEndpoint;
     }
 

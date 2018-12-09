@@ -14,6 +14,7 @@ public class TakeOffer {
     @Min(1)
     public long amount;
 
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     public Long maxFundsForTrade;
 

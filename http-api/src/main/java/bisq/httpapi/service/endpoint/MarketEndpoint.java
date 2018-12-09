@@ -15,14 +15,13 @@ import bisq.httpapi.model.CurrencyList;
 import bisq.httpapi.model.Market;
 import bisq.httpapi.model.MarketList;
 import bisq.httpapi.service.ExperimentalFeature;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Api(value = "markets", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "markets")
 @Produces(MediaType.APPLICATION_JSON)
 public class MarketEndpoint {
     private static MarketList marketList;
@@ -35,7 +34,7 @@ public class MarketEndpoint {
         this.experimentalFeature = experimentalFeature;
     }
 
-    @ApiOperation(value = "List markets", notes = ExperimentalFeature.NOTE)
+    @Operation(summary = "List markets", description = ExperimentalFeature.NOTE)
     @GET
     public MarketList find() {
         experimentalFeature.assertEnabled();
@@ -61,7 +60,7 @@ public class MarketEndpoint {
         return marketList;
     }
 
-    public static CurrencyList getCurrencyList() {
+    static CurrencyList getCurrencyList() {
         if (currencyList == null) {
             currencyList = new CurrencyList();
             CurrencyUtil.getAllSortedCryptoCurrencies().forEach(cryptoCurrency -> currencyList.add(cryptoCurrency.getCode(), cryptoCurrency.getName(), "crypto"));
