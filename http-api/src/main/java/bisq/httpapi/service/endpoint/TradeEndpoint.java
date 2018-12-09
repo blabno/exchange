@@ -19,11 +19,14 @@ import bisq.httpapi.exceptions.NotFoundException;
 import bisq.httpapi.facade.TradeFacade;
 import bisq.httpapi.model.TradeDetails;
 import bisq.httpapi.model.TradeList;
-import io.dropwizard.jersey.validation.ValidationErrorMessage;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import bisq.httpapi.service.ValidationErrorMessage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.ValidationException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -36,7 +39,8 @@ import javax.ws.rs.core.Response;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Slf4j
-@Api(value = "trades", authorizations = @Authorization(value = "accessToken"))
+@Tag(name = "trades")
+@Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class TradeEndpoint {
 
@@ -47,7 +51,7 @@ public class TradeEndpoint {
         this.tradeFacade = tradeFacade;
     }
 
-    @ApiOperation(value = "List trades", response = TradeList.class)
+    @Operation(summary = "List trades", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =TradeList.class))))
     @GET
     public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -62,7 +66,7 @@ public class TradeEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get trade details", response = TradeDetails.class)
+    @Operation(summary = "Get trade details", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =TradeDetails.class))))
     @GET
     @Path("/{id}")
     public void getById(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
@@ -75,7 +79,8 @@ public class TradeEndpoint {
         });
     }
 
-    @ApiOperation("Confirm payment has started")
+    @Operation(summary="Confirm payment has started")
+    @Consumes(MediaType.WILDCARD)
     @POST
     @Path("/{id}/payment-started")
     public void paymentStarted(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
@@ -89,7 +94,8 @@ public class TradeEndpoint {
         });
     }
 
-    @ApiOperation("Confirm payment has been received")
+    @Operation(summary = "Confirm payment has been received")
+    @Consumes(MediaType.WILDCARD)
     @POST
     @Path("/{id}/payment-received")
     public void paymentReceived(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
@@ -103,7 +109,8 @@ public class TradeEndpoint {
         });
     }
 
-    @ApiOperation("Move funds to Bisq wallet")
+    @Operation(summary = "Move funds to Bisq wallet")
+    @Consumes(MediaType.WILDCARD)
     @POST
     @Path("/{id}/move-funds-to-bisq-wallet")
     public void moveFundsToBisqWallet(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {

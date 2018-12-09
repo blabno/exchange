@@ -30,14 +30,17 @@ import bisq.httpapi.model.OfferDetail;
 import bisq.httpapi.model.OfferList;
 import bisq.httpapi.model.TakeOffer;
 import bisq.httpapi.model.TradeDetails;
+import bisq.httpapi.service.ValidationErrorMessage;
 import bisq.httpapi.util.ResourceHelper;
-import io.dropwizard.jersey.validation.ValidationErrorMessage;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
-import io.swagger.util.Json;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,9 +53,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.hibernate.validator.constraints.NotEmpty;
 
-@Api(value = "offers", authorizations = @Authorization(value = "accessToken"))
-@Produces(MediaType.APPLICATION_JSON)
 @Slf4j
+@Tag(name = "offers")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class OfferEndpoint {
 
     private final OfferFacade offerFacade;
@@ -64,7 +68,7 @@ public class OfferEndpoint {
     }
 
 
-    @ApiOperation(value = "Find offers", response = OfferList.class)
+    @Operation(summary = "Find offers", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = OfferList.class))))
     @GET
     public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -77,7 +81,7 @@ public class OfferEndpoint {
         });
     }
 
-    @ApiOperation(value = "Get offer details", response = OfferDetail.class)
+    @Operation(summary = "Get offer details", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = OfferDetail.class))))
     @GET
     @Path("/{id}")
     public void getOfferById(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
@@ -91,7 +95,7 @@ public class OfferEndpoint {
         });
     }
 
-    @ApiOperation("Cancel offer")
+    @Operation(summary = "Cancel offer")
     @DELETE
     @Path("/{id}")
     public void cancelOffer(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
@@ -100,7 +104,7 @@ public class OfferEndpoint {
                 .exceptionally(throwable -> ResourceHelper.handleException(asyncResponse, throwable));
     }
 
-    @ApiOperation(value = "Create offer", response = OfferDetail.class)
+    @Operation(summary = "Create offer", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = OfferDetail.class))))
     @POST
     public void createOffer(@Suspended AsyncResponse asyncResponse, @Valid InputDataForOffer input) {
         CompletableFuture<Offer> completableFuture = offerFacade.createOffer(input);
@@ -131,7 +135,7 @@ public class OfferEndpoint {
                 });
     }
 
-    @ApiOperation(value = "Take offer", response = TradeDetails.class)
+    @Operation(summary = "Take offer", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = TradeDetails.class))))
     @POST
     @Path("/{id}/take")
     public void takeOffer(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id, @Valid TakeOffer data) {

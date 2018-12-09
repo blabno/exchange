@@ -1,31 +1,67 @@
 package bisq.httpapi.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 
-import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.dropwizard.jersey.validation.ValidationErrorMessage;
+
+import bisq.httpapi.service.ValidationErrorMessage;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
 import javax.validation.ValidationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import org.eclipse.jetty.io.EofException;
+import org.glassfish.jersey.server.ResourceConfig;
 
+@Slf4j
 public final class ExceptionMappers {
 
     private ExceptionMappers() {
     }
 
-    public static void register(JerseyEnvironment environment) {
+    public static void register(ResourceConfig environment) {
+        environment.register(new ExceptionMappers.EofExceptionMapper(), 1);
+        environment.register(new ExceptionMappers.JsonParseExceptionMapper(), 1);
         environment.register(new ExceptionMappers.ExperimentalFeatureExceptionMapper());
         environment.register(new ExceptionMappers.InvalidTypeIdExceptionMapper());
         environment.register(new ExceptionMappers.NotFoundExceptionMapper());
         environment.register(new ExceptionMappers.ValidationExceptionMapper());
         environment.register(new ExceptionMappers.WalletNotReadyExceptionMapper());
         environment.register(new ExceptionMappers.UnauthorizedExceptionMapper());
+    }
+
+    private static Response toResponse(Throwable throwable, Response.Status status) {
+        Response.ResponseBuilder responseBuilder = Response.status(status);
+        String message = throwable.getMessage();
+        if (message != null) {
+            responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
+        }
+        return responseBuilder.type(MediaType.APPLICATION_JSON).build();
+    }
+
+    public static class EofExceptionMapper implements ExceptionMapper<EofException> {
+        @Override
+        public Response toResponse(EofException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+    public static class JsonParseExceptionMapper implements ExceptionMapper<JsonParseException> {
+        @Override
+        public Response toResponse(JsonParseException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     public static class InvalidTypeIdExceptionMapper implements ExceptionMapper<InvalidTypeIdException> {
@@ -39,7 +75,7 @@ public final class ExceptionMappers {
                     .append("' is invalid.");
 
             JsonSubTypes annotation = rawClass.getAnnotation(JsonSubTypes.class);
-            if (null != annotation && 0 < annotation.value().length) {
+            if (annotation != null && annotation.value().length > 0) {
                 builder.append(" Allowed values are: ");
                 String separator = ", ";
                 for (JsonSubTypes.Type subType : annotation.value())
@@ -68,7 +104,27 @@ public final class ExceptionMappers {
     public static class ValidationExceptionMapper implements ExceptionMapper<ValidationException> {
         @Override
         public Response toResponse(ValidationException exception) {
-            return Response.status(422).entity(new ValidationErrorMessage(ImmutableList.of(exception.getMessage()))).build();
+            Response.ResponseBuilder responseBuilder = Response.status(422);
+            String message = exception.getMessage();
+            if (exception instanceof ConstraintViolationException) {
+                List<String> messages = ((ConstraintViolationException) exception).getConstraintViolations().stream().map(constraintViolation -> {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    Path propertyPath = constraintViolation.getPropertyPath();
+                    if (propertyPath != null) {
+                        Iterator<Path.Node> pathIterator = constraintViolation.getPropertyPath().iterator();
+                        String node = null;
+                        while (pathIterator.hasNext())
+                            node = pathIterator.next().getName();
+                        if (node != null)
+                            stringBuilder.append(node).append(" ");
+                    }
+                    return stringBuilder.append(constraintViolation.getMessage()).toString();
+                }).collect(Collectors.toList());
+                responseBuilder.entity(new ValidationErrorMessage(ImmutableList.copyOf(messages)));
+            } else if (message != null) {
+                responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
+            }
+            return responseBuilder.build();
         }
     }
 
@@ -84,9 +140,5 @@ public final class ExceptionMappers {
         public Response toResponse(UnauthorizedException exception) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-    }
-
-    private static Response toResponse(Throwable throwable, Response.Status status) {
-        return Response.status(status).entity(new ValidationErrorMessage(ImmutableList.of(throwable.getMessage()))).type(MediaType.APPLICATION_JSON).build();
     }
 }
