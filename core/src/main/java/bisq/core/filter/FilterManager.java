@@ -63,7 +63,6 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static org.bitcoinj.core.Utils.HEX;
@@ -331,7 +330,7 @@ public class FilterManager {
                         .anyMatch(e -> e.equals(currencyCode));
     }
 
-    public boolean isPaymentMethodBanned(@Nonnull PaymentMethod paymentMethod) {
+    public boolean isPaymentMethodBanned(PaymentMethod paymentMethod) {
         return getFilter() != null &&
                 getFilter().getBannedPaymentMethods() != null &&
                 getFilter().getBannedPaymentMethods().stream()
@@ -344,7 +343,7 @@ public class FilterManager {
                         .anyMatch(e -> e.equals(offerId));
     }
 
-    public boolean isNodeAddressBanned(@Nonnull NodeAddress nodeAddress) {
+    public boolean isNodeAddressBanned(NodeAddress nodeAddress) {
         return getFilter() != null &&
                 getFilter().getBannedNodeAddress().stream()
                         .anyMatch(e -> e.equals(nodeAddress.getFullAddress()));
