@@ -20,7 +20,7 @@ public class SpecificBanksAccountPaymentAccountConverter extends AbstractPayment
         paymentAccountPayload.setCountryCode(rest.countryCode);
         paymentAccountPayload.setHolderName(rest.holderName);
         paymentAccountPayload.setHolderTaxId(rest.holderTaxId);
-        rest.acceptedBanks.stream().forEach(paymentAccountPayload::addAcceptedBank);
+        rest.acceptedBanks.forEach(paymentAccountPayload::addAcceptedBank);
         toBusinessModel(business, rest);
         return business;
     }

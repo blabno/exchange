@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("WeakerAccess")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class OfferDetail {
     public List<String> acceptedBankIds;
@@ -54,6 +55,7 @@ public class OfferDetail {
     public String versionNr;
 
 
+    @SuppressWarnings("unused")
     public OfferDetail() {
     }
 

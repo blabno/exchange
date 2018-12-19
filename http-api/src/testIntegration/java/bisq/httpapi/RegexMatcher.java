@@ -7,7 +7,7 @@ public class RegexMatcher extends TypeSafeMatcher<String> {
 
     private final String regex;
 
-    public RegexMatcher(String regex) {
+    private RegexMatcher(String regex) {
         this.regex = regex;
     }
 
@@ -21,7 +21,7 @@ public class RegexMatcher extends TypeSafeMatcher<String> {
         return string.matches(regex);
     }
 
-
+    @SuppressWarnings("WeakerAccess")
     public static RegexMatcher matchesRegex(String regex) {
         return new RegexMatcher(regex);
     }

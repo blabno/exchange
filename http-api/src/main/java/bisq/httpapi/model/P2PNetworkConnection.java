@@ -4,6 +4,7 @@ import bisq.network.p2p.network.Connection;
 import bisq.network.p2p.network.OutboundConnection;
 import bisq.network.p2p.network.Statistic;
 
+@SuppressWarnings("WeakerAccess")
 public class P2PNetworkConnection {
 
     public String nodeAddress;
@@ -14,6 +15,7 @@ public class P2PNetworkConnection {
     public long creationDate;
     public int roundTripTime;
 
+    @SuppressWarnings("unused")
     public P2PNetworkConnection() {
     }
 

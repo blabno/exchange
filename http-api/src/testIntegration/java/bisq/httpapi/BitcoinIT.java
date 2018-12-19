@@ -16,11 +16,10 @@ import org.jboss.arquillian.junit.Arquillian;
 public class BitcoinIT {
 
     @DockerContainer
-    Container bitcoin = ContainerFactory.createBitcoinContainer();
+    private Container bitcoin = ContainerFactory.createBitcoinContainer();
 
     @Test
-    public void generateBlocks() throws InterruptedException
-    {
+    public void generateBlocks() {
         CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "generate", "101");
         assertEquals("Command 'generate 101' should succeed", "", cubeOutput.getError());
         CubeOutput getbalanceOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getbalance");

@@ -30,7 +30,6 @@ public class TradeEndpointIT {
     Container bob;
     @DockerContainer
     Container arbitrator;
-    @SuppressWarnings("unused")
     @DockerContainer(order = 4)
     Container seedNode;
     @DockerContainer

@@ -3,6 +3,7 @@ package bisq.httpapi.model.payment;
 import bisq.core.payment.CashAppAccount;
 import bisq.core.payment.payload.CashAppAccountPayload;
 
+@SuppressWarnings("deprecation")
 public class CashAppPaymentAccountConverter extends AbstractPaymentAccountConverter<CashAppAccount, CashAppAccountPayload, CashAppPaymentAccount> {
 
     @Override

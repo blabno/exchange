@@ -1,12 +1,10 @@
 package bisq.httpapi.facade;
 
-import bisq.core.app.BisqEnvironment;
 import bisq.core.btc.BalanceUtil;
 import bisq.core.btc.exceptions.AddressEntryException;
 import bisq.core.btc.exceptions.InsufficientFundsException;
 import bisq.core.btc.model.AddressEntry;
 import bisq.core.btc.setup.WalletsSetup;
-import bisq.core.btc.wallet.BsqWalletService;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.btc.wallet.WalletService;
 import bisq.core.btc.wallet.WalletsManager;
@@ -43,6 +41,7 @@ import java.io.File;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -50,6 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.Nonnull;
 
 import static bisq.httpapi.facade.FacadeUtil.failFuture;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,7 +72,6 @@ public class WalletFacade {
 
     private final BtcWalletService btcWalletService;
     private final TradeManager tradeManager;
-    private final BsqWalletService bsqWalletService;
     private final WalletsSetup walletsSetup;
     private final WalletsManager walletsManager;
     private final BalanceUtil balanceUtil;
@@ -81,7 +81,6 @@ public class WalletFacade {
     @Inject
     public WalletFacade(BtcWalletService btcWalletService,
                         TradeManager tradeManager,
-                        BsqWalletService bsqWalletService,
                         WalletsSetup walletsSetup,
                         WalletsManager walletsManager,
                         BalanceUtil balanceUtil,
@@ -89,7 +88,6 @@ public class WalletFacade {
                         @Named(Storage.STORAGE_DIR) File storageDir) {
         this.btcWalletService = btcWalletService;
         this.tradeManager = tradeManager;
-        this.bsqWalletService = bsqWalletService;
         this.walletsSetup = walletsSetup;
         this.walletsManager = walletsManager;
         this.balanceUtil = balanceUtil;
@@ -117,7 +115,6 @@ public class WalletFacade {
         if (valueSentToMe.isZero()) {
             for (TransactionOutput output : transaction.getOutputs()) {
                 if (!btcWalletService.isTransactionOutputMine(output)) {
-                    received = false;
                     if (WalletService.isOutputScriptConvertibleToAddress(output)) {
                         addressString = WalletService.getAddressStringFromOutput(output);
                         break;
@@ -134,19 +131,13 @@ public class WalletFacade {
                 }
             }
         } else {
-            boolean outgoing = false;
             for (TransactionOutput output : transaction.getOutputs()) {
                 if (!btcWalletService.isTransactionOutputMine(output)) {
                     if (WalletService.isOutputScriptConvertibleToAddress(output)) {
                         addressString = WalletService.getAddressStringFromOutput(output);
-                        outgoing = !(BisqEnvironment.isBaseCurrencySupportingBsq() && bsqWalletService.isTransactionOutputMine(output));
                         break;
                     }
                 }
-            }
-
-            if (outgoing) {
-                received = false;
             }
         }
         TransactionConfidence confidence = transaction.getConfidence();
@@ -191,9 +182,9 @@ public class WalletFacade {
             throws AddressEntryException, InsufficientFundsException, AmountTooLowException {
         // get all address entries
         List<AddressEntry> sourceAddressEntries = sourceAddresses.stream()
-                .filter(address -> null != address)
+                .filter(Objects::nonNull)
                 .map(address -> btcWalletService.getAddressEntryListAsImmutableList().stream().filter(addressEntry -> address.equals(addressEntry.getAddressString())).findFirst().orElse(null))
-                .filter(item -> null != item)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         // this filter matches all unauthorized address types
         Predicate<AddressEntry> filterNotAllowedAddressEntries = addressEntry -> !(AddressEntry.Context.AVAILABLE.equals(addressEntry.getContext())
@@ -239,7 +230,7 @@ public class WalletFacade {
         if (receiverAmount.isPositive()) {
             try {
                 //                TODO return completable future
-                btcWalletService.sendFundsForMultipleAddresses(sourceAddresses, targetAddress, amountAsCoin, fee, null, null, new FutureCallback<Transaction>() {
+                btcWalletService.sendFundsForMultipleAddresses(sourceAddresses, targetAddress, amountAsCoin, fee, null, null, new FutureCallback<>() {
                     @Override
                     public void onSuccess(@javax.annotation.Nullable Transaction transaction) {
                         if (transaction != null) {
@@ -259,7 +250,7 @@ public class WalletFacade {
                     }
 
                     @Override
-                    public void onFailure(Throwable t) {
+                    public void onFailure(@Nonnull Throwable t) {
                         log.error("onWithdraw onFailure");
                     }
                 });
@@ -321,21 +312,21 @@ public class WalletFacade {
         SEND_FUNDS
     }
 
-    public KeyParameter getAESKey(String password) {
+    KeyParameter getAESKey(String password) {
         return getAESKeyAndScrypt(password).first;
     }
 
-    public Tuple2<KeyParameter, KeyCrypterScrypt> getAESKeyAndScrypt(String password) {
+    Tuple2<KeyParameter, KeyCrypterScrypt> getAESKeyAndScrypt(String password) {
         KeyCrypterScrypt keyCrypterScrypt = walletsManager.getKeyCrypterScrypt();
         return new Tuple2<>(keyCrypterScrypt.deriveKey(password), keyCrypterScrypt);
     }
 
-    public boolean isWalletPasswordValid(String password) {
+    boolean isWalletPasswordValid(String password) {
         KeyParameter aesKey = getAESKey(password);
         return isWalletPasswordValid(aesKey);
     }
 
-    public boolean isWalletPasswordValid(KeyParameter aesKey) {
+    boolean isWalletPasswordValid(KeyParameter aesKey) {
         return null != aesKey && walletsManager.checkAESKey(aesKey);
     }
 

@@ -19,6 +19,7 @@ public @interface StringEnumeration {
 
     String message() default "must be one of: ${availableValues}";
 
+    @SuppressWarnings("unused")
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};

@@ -31,9 +31,7 @@ public class PreferencesEndpointIT {
     @InSequence
     @Test
     public void waitForAllServicesToBeReady() throws InterruptedException {
-        /**
-         * PaymentMethod initializes it's static values after all services get initialized
-         */
+        // PaymentMethod initializes it's static values after all services get initialized
         ApiTestHelper.waitForAllServicesToBeReady();
     }
 

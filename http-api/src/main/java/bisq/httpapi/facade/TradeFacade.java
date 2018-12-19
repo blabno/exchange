@@ -3,7 +3,6 @@ package bisq.httpapi.facade;
 import bisq.core.btc.model.AddressEntry;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.trade.BuyerAsMakerTrade;
-import bisq.core.trade.SellerAsMakerTrade;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
 import bisq.core.trade.protocol.BuyerAsMakerProtocol;
@@ -102,8 +101,7 @@ public class TradeFacade {
         ResultHandler resultHandler = () -> futureResult.complete(null);
         ErrorMessageHandler errorResultHandler = message -> futureResult.completeExceptionally(new RuntimeException(message));
 
-//        TODO I think we should check instance of tradeProtocol here instead of trade
-        if (trade instanceof SellerAsMakerTrade) {
+        if (tradeProtocol instanceof SellerAsMakerProtocol) {
             ((SellerAsMakerProtocol) tradeProtocol).onFiatPaymentReceived(resultHandler, errorResultHandler);
         } else {
             ((SellerAsTakerProtocol) tradeProtocol).onFiatPaymentReceived(resultHandler, errorResultHandler);

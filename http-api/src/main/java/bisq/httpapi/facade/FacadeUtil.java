@@ -2,9 +2,9 @@ package bisq.httpapi.facade;
 
 import java.util.concurrent.CompletableFuture;
 
-public class FacadeUtil {
+final class FacadeUtil {
 
-    public static <T> CompletableFuture<T> failFuture(CompletableFuture<T> futureResult, Throwable throwable) {
+    static <T> CompletableFuture<T> failFuture(CompletableFuture<T> futureResult, Throwable throwable) {
         futureResult.completeExceptionally(throwable);
         return futureResult;
     }

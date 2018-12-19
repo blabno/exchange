@@ -3,6 +3,7 @@ package bisq.httpapi.model.payment;
 import bisq.core.payment.OKPayAccount;
 import bisq.core.payment.payload.OKPayAccountPayload;
 
+@SuppressWarnings("deprecation")
 public class OKPayPaymentAccountConverter extends AbstractPaymentAccountConverter<OKPayAccount, OKPayAccountPayload, OKPayPaymentAccount> {
 
     @Override

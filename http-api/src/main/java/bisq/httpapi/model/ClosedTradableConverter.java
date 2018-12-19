@@ -96,7 +96,7 @@ public class ClosedTradableConverter {
     }
 
     private Long getAmout(Tradable item) {
-        if (item != null && item instanceof Trade) {
+        if (item instanceof Trade) {
             Coin tradeAmount = ((Trade) item).getTradeAmount();
             return null == tradeAmount ? null : tradeAmount.getValue();
         }

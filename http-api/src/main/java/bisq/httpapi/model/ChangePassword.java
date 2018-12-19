@@ -5,6 +5,7 @@ public class ChangePassword {
     public String newPassword;
     public String oldPassword;
 
+    @SuppressWarnings("unused")
     public ChangePassword() {
     }
 

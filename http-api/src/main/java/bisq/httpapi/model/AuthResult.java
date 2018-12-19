@@ -4,6 +4,7 @@ public class AuthResult {
 
     public String token;
 
+    @SuppressWarnings("unused")
     public AuthResult() {
     }
 

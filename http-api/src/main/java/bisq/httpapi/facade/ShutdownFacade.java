@@ -9,15 +9,15 @@ public class ShutdownFacade {
     @Setter
     public Runnable shutdownHandler;
 
-    public boolean isShutdownSupported() {
-        return null != shutdownHandler;
+    boolean isShutdownSupported() {
+        return shutdownHandler != null;
     }
 
-    public void shutDown() {
-        if (!isShutdownSupported()) {
-            log.warn("Shutdown is not supported");
-        } else {
+    void shutDown() {
+        if (isShutdownSupported()) {
             shutdownHandler.run();
+        } else {
+            log.warn("Shutdown is not supported");
         }
     }
 }

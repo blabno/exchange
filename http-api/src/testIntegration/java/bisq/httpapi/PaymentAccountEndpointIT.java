@@ -19,6 +19,7 @@ import bisq.httpapi.model.payment.AliPayPaymentAccount;
 import bisq.httpapi.model.payment.CashAppPaymentAccount;
 import bisq.httpapi.model.payment.CashDepositPaymentAccount;
 import bisq.httpapi.model.payment.ChaseQuickPayPaymentAccount;
+import bisq.httpapi.model.payment.ClearXchangePaymentAccount;
 import bisq.httpapi.model.payment.CryptoCurrencyPaymentAccount;
 import bisq.httpapi.model.payment.F2FPaymentAccount;
 import bisq.httpapi.model.payment.FasterPaymentsPaymentAccount;
@@ -264,6 +265,41 @@ public class PaymentAccountEndpointIT {
                 and().body("selectedTradeCurrency", equalTo(accountToCreate.selectedTradeCurrency)).
                 and().body("tradeCurrencies", equalTo(accountToCreate.tradeCurrencies)).
                 and().body("email", equalTo(accountToCreate.email)).
+                and().body("holderName", equalTo(accountToCreate.holderName)).
+                and().body("size()", equalTo(8))
+        ;
+    }
+
+    @InSequence(2)
+    @Test
+    public void create_validClearXchange_returnsCreatedAccount() {
+        int alicePort = getAlicePort();
+        Faker faker = new Faker();
+
+        ClearXchangePaymentAccount accountToCreate = new ClearXchangePaymentAccount();
+        ApiTestHelper.randomizeAccountPayload(accountToCreate);
+        accountToCreate.emailOrMobileNr = faker.internet().emailAddress();
+        accountToCreate.holderName = faker.name().fullName();
+
+        String expectedPaymentDetails = String.format("Zelle (ClearXchange) - Account owner full name: %s, Email or mobile nr: %s", accountToCreate.holderName, accountToCreate.emailOrMobileNr);
+
+        given().
+                port(alicePort).
+                contentType(ContentType.JSON).
+                body(accountToCreate).
+//
+        when().
+                post("/api/v1/payment-accounts").
+//
+        then().
+                statusCode(200).
+                and().body("id", isA(String.class)).
+                and().body("paymentMethod", equalTo(accountToCreate.paymentMethod)).
+                and().body("accountName", equalTo(accountToCreate.accountName)).
+                and().body("paymentDetails", equalTo(expectedPaymentDetails)).
+                and().body("selectedTradeCurrency", equalTo(accountToCreate.selectedTradeCurrency)).
+                and().body("tradeCurrencies", equalTo(accountToCreate.tradeCurrencies)).
+                and().body("emailOrMobileNr", equalTo(accountToCreate.emailOrMobileNr)).
                 and().body("holderName", equalTo(accountToCreate.holderName)).
                 and().body("size()", equalTo(8))
         ;

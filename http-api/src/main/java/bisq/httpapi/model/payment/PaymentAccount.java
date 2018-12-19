@@ -14,6 +14,7 @@ import java.util.List;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
+@SuppressWarnings("deprecation")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "paymentMethod", include = JsonTypeInfo.As.EXISTING_PROPERTY)
 @JsonSubTypes({
@@ -52,6 +53,7 @@ public abstract class PaymentAccount {
     @NotBlank
     public String accountName;
 
+    @SuppressWarnings("WeakerAccess")
     public String paymentDetails;
 
     @NotBlank

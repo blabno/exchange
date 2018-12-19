@@ -2,6 +2,7 @@ package bisq.httpapi.model;
 
 import bisq.core.offer.OfferPayload;
 
+@SuppressWarnings("WeakerAccess")
 public class ClosedTradableDetails {
 
     public Long amount;

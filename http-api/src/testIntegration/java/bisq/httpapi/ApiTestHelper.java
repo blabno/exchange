@@ -31,6 +31,7 @@ import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.spi.CubeOutput;
 import org.hamcrest.core.AnyOf;
 
+@SuppressWarnings("WeakerAccess")
 public final class ApiTestHelper {
 
     public static ValidatableResponse createPaymentAccount(int apiPort, PaymentAccount accountToCreate) {
@@ -89,8 +90,8 @@ public final class ApiTestHelper {
         return anyOf(instanceOf(Integer.class), instanceOf(Long.class));
     }
 
-    public static ValidatableResponse registerArbitrator(int apiPort) throws InterruptedException {
-        ValidatableResponse validatableResponse = given().
+    public static void registerArbitrator(int apiPort) throws InterruptedException {
+        given().
                 port(apiPort).
 //
         when().
@@ -103,8 +104,6 @@ public final class ApiTestHelper {
 
         /* Wait for arbiter registration message to be broadcast across peers*/
         waitForP2PMsgPropagation();
-
-        return validatableResponse;
     }
 
     public static void waitForP2PMsgPropagation() throws InterruptedException {
@@ -114,9 +113,7 @@ public final class ApiTestHelper {
 
     public static void waitForAllServicesToBeReady() throws InterruptedException {
 //        TODO it would be nice to expose endpoint that would respond with 200
-        /**
-         * PaymentMethod initializes it's static values after all services get initialized
-         */
+        // PaymentMethod initializes it's static values after all services get initialized
         int ALL_SERVICES_INITIALIZED_DELAY = 5000;
         Thread.sleep(ALL_SERVICES_INITIALIZED_DELAY);
     }
@@ -201,11 +198,11 @@ public final class ApiTestHelper {
     }
 
     public static void deselectAllArbitrators(int apiPort) {
-        getArbitrators(apiPort).stream().forEach(arbitratorAddress -> deselectArbitrator(apiPort, arbitratorAddress));
+        getArbitrators(apiPort).forEach(arbitratorAddress -> deselectArbitrator(apiPort, arbitratorAddress));
     }
 
-    private static ValidatableResponse deselectArbitrator(int apiPort, String arbitratorAddress) {
-        return given().
+    private static void deselectArbitrator(int apiPort, String arbitratorAddress) {
+        given().
                 port(apiPort).
 //
         when().
@@ -216,8 +213,8 @@ public final class ApiTestHelper {
                 ;
     }
 
-    public static ValidatableResponse selectArbitrator(int apiPort, String arbitratorAddress) {
-        return given().
+    public static void selectArbitrator(int apiPort, String arbitratorAddress) {
+        given().
                 port(apiPort).
 //
         when().
