@@ -25,7 +25,4 @@ public class TradeList {
     public List<TradeDetails> trades = new ArrayList<>();
     public long total;
 
-    public TradeList() {
-    }
-
 }

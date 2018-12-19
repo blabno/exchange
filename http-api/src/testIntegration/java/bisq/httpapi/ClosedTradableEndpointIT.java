@@ -30,7 +30,6 @@ public class ClosedTradableEndpointIT {
     @DockerContainer
     private Container arbitrator;
 
-    @SuppressWarnings("unused")
     @DockerContainer(order = 4)
     private Container seedNode;
 

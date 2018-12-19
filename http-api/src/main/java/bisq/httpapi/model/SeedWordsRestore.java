@@ -23,6 +23,7 @@ public class SeedWordsRestore {
     @NotEmpty
     public String walletCreationDate;
 
+    @SuppressWarnings("unused")
     public SeedWordsRestore() {
     }
 

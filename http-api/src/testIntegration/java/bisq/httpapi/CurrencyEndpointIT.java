@@ -54,9 +54,7 @@ public class CurrencyEndpointIT {
                         and().body("currencies[0].type", isA(String.class)).
                         and().body("currencies[0].type", isOneOf("crypto", "fiat")).
                         extract().as(CurrencyList.class);
-        /**
-         * Make sure that currency code is used instead of symbol
-         */
+        // Make sure that currency code is used instead of symbol
         Optional<Currency> usd = currencyList.currencies.stream().filter(currency -> "USD".equals(currency.code)).findFirst();
         Assert.assertTrue(usd.isPresent());
     }

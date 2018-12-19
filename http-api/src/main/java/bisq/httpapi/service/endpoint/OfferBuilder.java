@@ -3,7 +3,6 @@ package bisq.httpapi.service.endpoint;
 import bisq.core.btc.wallet.BsqWalletService;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.btc.wallet.Restrictions;
-import bisq.core.btc.wallet.TradeWalletService;
 import bisq.core.filter.FilterManager;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
@@ -54,7 +53,6 @@ import bisq.httpapi.model.Market;
 import javax.validation.ValidationException;
 
 public class OfferBuilder {
-    private final TradeWalletService tradeWalletService;
     private final FeeService feeService;
     private final KeyRing keyRing;
     private final ReferralIdService referralIdService;
@@ -71,7 +69,6 @@ public class OfferBuilder {
     public OfferBuilder(AccountAgeWitnessService accountAgeWitnessService,
                         BsqWalletService bsqWalletService,
                         BtcWalletService btcWalletService,
-                        TradeWalletService tradeWalletService,
                         FeeService feeService, KeyRing keyRing,
                         ReferralIdService referralIdService,
                         FilterManager filterManager,
@@ -82,7 +79,6 @@ public class OfferBuilder {
         this.accountAgeWitnessService = accountAgeWitnessService;
         this.bsqWalletService = bsqWalletService;
         this.btcWalletService = btcWalletService;
-        this.tradeWalletService = tradeWalletService;
         this.feeService = feeService;
         this.keyRing = keyRing;
         this.referralIdService = referralIdService;
@@ -240,7 +236,7 @@ public class OfferBuilder {
 
     private Set<PaymentAccount> getPaymentAccounts() {
         Set<PaymentAccount> paymentAccounts = user.getPaymentAccounts();
-        return null == paymentAccounts ? Collections.<PaymentAccount>emptySet() : paymentAccounts;
+        return null == paymentAccounts ? Collections.emptySet() : paymentAccounts;
     }
 
     private void validateMarketPair(String marketPair) {

@@ -3,6 +3,7 @@ package bisq.httpapi.model.payment;
 import bisq.core.payment.VenmoAccount;
 import bisq.core.payment.payload.VenmoAccountPayload;
 
+@SuppressWarnings("deprecation")
 public class VenmoPaymentAccountConverter extends AbstractPaymentAccountConverter<VenmoAccount, VenmoAccountPayload, VenmoPaymentAccount> {
 
     @Override

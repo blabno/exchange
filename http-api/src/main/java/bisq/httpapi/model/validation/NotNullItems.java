@@ -19,6 +19,7 @@ public @interface NotNullItems {
 
     String message() default "must not contain null elements";
 
+    @SuppressWarnings("unused")
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};

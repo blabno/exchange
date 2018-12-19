@@ -130,7 +130,7 @@ public class OfferEndpointIT {
         createOffer_template(offer, 424);
     }
 
-    private void createOffer_template(InputDataForOffer offer, int expectedStatusCode, String errorMessage) {
+    private void createOffer_template(InputDataForOffer offer, @SuppressWarnings("SameParameterValue") int expectedStatusCode, String errorMessage) {
         createOffer_template(offer, expectedStatusCode).
                 and().body("errors.size()", equalTo(1)).
                 and().body("errors[0]", equalTo(errorMessage))
@@ -484,6 +484,7 @@ public class OfferEndpointIT {
     @Test
     public void withdrawFunds_fromOfferFundingAddress_returns422status() {
         List<WalletAddress> btcWalletAddresses = ApiTestHelper.getBtcWalletAddresses(getAlicePort()).walletAddresses;
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
         WalletAddress walletAddress = btcWalletAddresses.stream().filter(address -> AddressEntry.Context.OFFER_FUNDING.equals(address.context)).findFirst().get();
         WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 50000000;
@@ -540,7 +541,7 @@ public class OfferEndpointIT {
                 ;
     }
 
-    private void takeOffer_errorTemplate(String offerId, TakeOffer payload, int expectedStatusCode, String expectedError) {
+    private void takeOffer_errorTemplate(String offerId, TakeOffer payload, @SuppressWarnings("SameParameterValue") int expectedStatusCode, String expectedError) {
         takeOffer_errorTemplate(offerId, payload, expectedStatusCode, Collections.singletonList(expectedError));
     }
 

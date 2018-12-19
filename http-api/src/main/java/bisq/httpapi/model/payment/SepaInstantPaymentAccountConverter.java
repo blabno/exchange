@@ -15,10 +15,10 @@ public class SepaInstantPaymentAccountConverter extends AbstractPaymentAccountCo
         business.setBic(rest.bic);
         business.setIban(rest.iban);
         business.setHolderName(rest.holderName);
-        business.setCountry(CountryUtil.findCountryByCode(rest.countryCode).get());
+        CountryUtil.findCountryByCode(rest.countryCode).ifPresent(business::setCountry);
         business.getAcceptedCountryCodes().clear();
         if (null != rest.acceptedCountries)
-            rest.acceptedCountries.stream().forEach(business::addAcceptedCountry);
+            rest.acceptedCountries.forEach(business::addAcceptedCountry);
         toBusinessModel(business, rest);
         return business;
     }

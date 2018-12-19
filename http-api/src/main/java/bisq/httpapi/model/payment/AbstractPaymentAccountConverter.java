@@ -28,7 +28,7 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
         if (null != rest.selectedTradeCurrency)
             business.setSelectedTradeCurrency(currencyConverter.convert(rest.selectedTradeCurrency));
         if (null != rest.tradeCurrencies)
-            rest.tradeCurrencies.stream().forEach(currencyCode -> business.addCurrency(currencyConverter.convert(currencyCode)));
+            rest.tradeCurrencies.forEach(currencyCode -> business.addCurrency(currencyConverter.convert(currencyCode)));
     }
 
     protected void toRestModel(R rest, B business) {
@@ -39,7 +39,7 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
             rest.selectedTradeCurrency = selectedTradeCurrency.getCode();
         List<TradeCurrency> tradeCurrencies = business.getTradeCurrencies();
         if (null != tradeCurrencies)
-            tradeCurrencies.stream().forEach(currency -> rest.tradeCurrencies.add(currency.getCode()));
+            tradeCurrencies.forEach(currency -> rest.tradeCurrencies.add(currency.getCode()));
     }
 
     protected void toRestModel(R rest, BP business) {

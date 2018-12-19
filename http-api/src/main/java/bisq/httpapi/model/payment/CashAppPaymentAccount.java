@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+@SuppressWarnings("deprecation")
 @JsonTypeName(PaymentMethod.CASH_APP_ID)
 public class CashAppPaymentAccount extends PaymentAccount {
 

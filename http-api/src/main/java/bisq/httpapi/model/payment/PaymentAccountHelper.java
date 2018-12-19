@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 
+@SuppressWarnings("deprecation")
 public final class PaymentAccountHelper {
 
     private static Map<String, PaymentAccountConverter<? extends bisq.core.payment.PaymentAccount, ? extends PaymentAccountPayload, ? extends PaymentAccount>> converters = new HashMap<>();
@@ -44,6 +45,7 @@ public final class PaymentAccountHelper {
         converters.put(PaymentMethod.WESTERN_UNION_ID, new WesternUnionPaymentAccountConverter());
     }
 
+    @SuppressWarnings("unchecked")
     public static bisq.core.payment.PaymentAccount toBusinessModel(PaymentAccount rest) {
         PaymentAccountConverter converter = converters.get(rest.paymentMethod);
         if (null != converter) {
@@ -52,6 +54,7 @@ public final class PaymentAccountHelper {
         throw new WebApplicationException("Unsupported paymentMethod:" + rest.paymentMethod, 400);
     }
 
+    @SuppressWarnings("unchecked")
     public static PaymentAccount toRestModel(bisq.core.payment.PaymentAccount business) {
         String paymentMethodId = business.getPaymentMethod().getId();
         PaymentAccountConverter converter = converters.get(paymentMethodId);
@@ -61,6 +64,7 @@ public final class PaymentAccountHelper {
         throw new IllegalArgumentException("Unsupported paymentMethod:" + paymentMethodId);
     }
 
+    @SuppressWarnings("unchecked")
     public static PaymentAccount toRestModel(PaymentAccountPayload business) {
         String paymentMethodId = business.getPaymentMethodId();
         PaymentAccountConverter converter = converters.get(paymentMethodId);

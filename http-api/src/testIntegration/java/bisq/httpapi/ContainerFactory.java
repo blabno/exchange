@@ -4,13 +4,14 @@ import org.arquillian.cube.docker.impl.client.config.Await;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.ContainerBuilder;
 
+@SuppressWarnings("WeakerAccess")
 public final class ContainerFactory {
 
-    private static final String BITCOIN_NODE_CONTAINER_NAME = "bisq-api-bitcoin-node";
-    private static final String BITCOIN_NODE_HOST_NAME = "bitcoin";
-    private static final String SEED_NODE_CONTAINER_NAME = "bisq-seednode";
-    private static final String SEED_NODE_HOST_NAME = SEED_NODE_CONTAINER_NAME;
-    private static final String SEED_NODE_ADDRESS = SEED_NODE_HOST_NAME + ":8000";
+    public static final String BITCOIN_NODE_CONTAINER_NAME = "bisq-api-bitcoin-node";
+    public static final String BITCOIN_NODE_HOST_NAME = "bitcoin";
+    public static final String SEED_NODE_CONTAINER_NAME = "bisq-seednode";
+    public static final String SEED_NODE_HOST_NAME = SEED_NODE_CONTAINER_NAME;
+    public static final String SEED_NODE_ADDRESS = SEED_NODE_HOST_NAME + ":8000";
     public static final String CONTAINER_NAME_PREFIX = "bisq-api-";
     public static final String API_IMAGE = "bisq-api";
     public static final String GRADLE_VOLUME_NAME = "gradle";
@@ -36,6 +37,7 @@ public final class ContainerFactory {
     public static final String ENV_LOG_LEVEL_KEY = "LOG_LEVEL";
     public static final String ENV_LOG_LEVEL_VALUE = "debug";
 
+    @SuppressWarnings("WeakerAccess")
     public static ContainerBuilder.ContainerOptionsBuilder createApiContainerBuilder(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin, boolean enableExperimentalFeatures) {
         ContainerBuilder.ContainerOptionsBuilder containerOptionsBuilder = Container.withContainerName(CONTAINER_NAME_PREFIX + nameSuffix)
                 .fromImage(API_IMAGE)

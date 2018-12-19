@@ -2,6 +2,7 @@ package bisq.httpapi.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@SuppressWarnings("WeakerAccess")
 public class Currency {
     @JsonProperty
     public String code;
@@ -10,6 +11,7 @@ public class Currency {
     @JsonProperty
     public String type;
 
+    @SuppressWarnings("unused")
     public Currency() {
     }
 

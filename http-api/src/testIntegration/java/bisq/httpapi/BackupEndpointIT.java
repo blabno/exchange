@@ -2,6 +2,8 @@ package bisq.httpapi;
 
 import org.apache.commons.io.IOUtils;
 
+import java.nio.charset.Charset;
+
 import java.io.InputStream;
 
 import java.util.Arrays;
@@ -48,19 +50,16 @@ public class BackupEndpointIT {
 
     private static final String APP_DIR_VOLUME_NAME = "alice-app-dir";
     private static final String APP_DIR_VOLUME_HOST_PATH = "/root/.local/share/Bisq";
+    private static String backupPath;
 
     @ArquillianResource
     private CubeController cubeController;
-
     @ArquillianResource
     private ContainerObjectFactory factory;
-
     @DockerContainer
     private Container alice = ContainerFactory.createApiContainerBuilder("alice", "8081->8080", 3333, false, false)
             .withVolume(APP_DIR_VOLUME_NAME, APP_DIR_VOLUME_HOST_PATH)
             .build();
-
-    private static String backupPath;
 
     @InSequence
     @Test
@@ -71,7 +70,7 @@ public class BackupEndpointIT {
 
     @InSequence(1)
     @Test
-    public void createBackup_always_returns200() throws Exception {
+    public void createBackup_always_returns200() {
         backupPath = given().
                 port(getAlicePort()).
 //
@@ -104,7 +103,7 @@ public class BackupEndpointIT {
 
     @InSequence(3)
     @Test
-    public void getBackup_backupDoesNotExist_returns404() throws Exception {
+    public void getBackup_backupDoesNotExist_returns404() {
         given().
                 port(getAlicePort()).
 //
@@ -159,7 +158,7 @@ public class BackupEndpointIT {
 
     @InSequence(4)
     @Test
-    public void removeBackup_backupDoesNotExist_returns404() throws Exception {
+    public void removeBackup_backupDoesNotExist_returns404() {
         given().
                 port(getAlicePort()).
 //
@@ -173,7 +172,7 @@ public class BackupEndpointIT {
 
     @InSequence(5)
     @Test
-    public void removeBackup_backupExist_returns204() throws Exception {
+    public void removeBackup_backupExist_returns204() {
         given().
                 port(getAlicePort()).
 //
@@ -202,12 +201,12 @@ public class BackupEndpointIT {
                         statusCode(200).
                         and().contentType(ContentType.BINARY.toString()).
                         extract().asInputStream();
-        Assert.assertEquals(fileContent, IOUtils.toString(inputStream));
+        Assert.assertEquals(fileContent, IOUtils.toString(inputStream, Charset.defaultCharset()));
     }
 
     @InSequence(7)
     @Test
-    public void uploadBackup_backupAlreadyExists_returns422() throws Exception {
+    public void uploadBackup_backupAlreadyExists_returns422() {
         String fileName = "uploadBackup_backupAlreadyExists_returns422.txt";
         String fileContent = "Hello World!";
         uploadBackupRequest(fileName, fileContent).statusCode(204);
@@ -311,7 +310,7 @@ public class BackupEndpointIT {
     @Image(ContainerFactory.API_IMAGE)
     public static class ApiContainer {
 
-        public static final String CUBE_ID = "bisq-api-alice-backup";
+        static final String CUBE_ID = "bisq-api-alice-backup";
 
         @HostPort(8080)
         public int port;

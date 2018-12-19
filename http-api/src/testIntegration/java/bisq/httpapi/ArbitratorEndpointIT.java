@@ -9,7 +9,6 @@ import static org.hamcrest.Matchers.equalTo;
 
 
 
-import io.restassured.response.ValidatableResponse;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.DockerContainer;
 import org.jboss.arquillian.junit.Arquillian;
@@ -19,13 +18,13 @@ import org.jboss.arquillian.junit.InSequence;
 public class ArbitratorEndpointIT {
 
     @DockerContainer
-    Container alice = ContainerFactory.createApiContainer("alice", "8081->8080", 3333, true, false);
+    private Container alice = ContainerFactory.createApiContainer("alice", "8081->8080", 3333, true, false);
 
     @DockerContainer
-    Container arbitrator = ContainerFactory.createApiContainer("arbitrator", "8082->8080", 3335, true, false);
+    private Container arbitrator = ContainerFactory.createApiContainer("arbitrator", "8082->8080", 3335, true, false);
 
     @DockerContainer(order = 4)
-    Container seedNode = ContainerFactory.createSeedNodeContainer();
+    private Container seedNode = ContainerFactory.createSeedNodeContainer();
 
 
     @InSequence
@@ -123,8 +122,8 @@ public class ArbitratorEndpointIT {
                 body().jsonPath().get("arbitrators[0].address");
     }
 
-    private ValidatableResponse assertNumberOfAcceptedArbitrators(int apiPort, int expectedArbitratorsCount) {
-        return given().
+    private void assertNumberOfAcceptedArbitrators(int apiPort, int expectedArbitratorsCount) {
+        given().
                 port(apiPort).
                 queryParam("acceptedOnly", "true").
 //

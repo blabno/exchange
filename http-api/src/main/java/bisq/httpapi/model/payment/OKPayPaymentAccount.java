@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+@SuppressWarnings("deprecation")
 @JsonTypeName(PaymentMethod.OK_PAY_ID)
 public class OKPayPaymentAccount extends PaymentAccount {
 

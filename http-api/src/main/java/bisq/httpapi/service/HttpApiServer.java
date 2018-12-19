@@ -109,7 +109,7 @@ public class HttpApiServer extends Application<HttpApiConfiguration> {
     private void setupHostAndPort(HttpApiConfiguration configuration) {
         SimpleServerFactory serverFactory = (SimpleServerFactory) configuration.getServerFactory();
         HttpConnectorFactory connector = (HttpConnectorFactory) serverFactory.getConnector();
-        connector.setPort(Integer.valueOf(bisqEnvironment.getHttpApiPort()));
+        connector.setPort(bisqEnvironment.getHttpApiPort());
         connector.setBindHost(bisqEnvironment.getHttpApiHost());
     }
 }

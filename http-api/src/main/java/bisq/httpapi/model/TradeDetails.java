@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import bisq.httpapi.model.payment.PaymentAccount;
 import bisq.httpapi.model.payment.PaymentAccountHelper;
 
+@SuppressWarnings("WeakerAccess")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TradeDetails {
 

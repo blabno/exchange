@@ -2,11 +2,6 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.core.locale.CurrencyUtil;
 
-import bisq.httpapi.model.CurrencyList;
-import bisq.httpapi.model.Market;
-import bisq.httpapi.model.MarketList;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 import java.util.Comparator;
@@ -16,6 +11,10 @@ import static java.util.stream.Collectors.toList;
 
 
 
+import bisq.httpapi.model.CurrencyList;
+import bisq.httpapi.model.Market;
+import bisq.httpapi.model.MarketList;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -43,7 +42,7 @@ public class MarketEndpoint {
         return getMarketList();
     }
 
-    public static MarketList getMarketList() {
+    static MarketList getMarketList() {
         if (marketList == null) {
             marketList = new MarketList();
             CurrencyList currencyList = getCurrencyList(); // we calculate this twice but only at startup
@@ -72,7 +71,7 @@ public class MarketEndpoint {
         return currencyList;
     }
 
-    public static boolean isMarketPriceAvailable() {
+    static boolean isMarketPriceAvailable() {
         //TODO check if we have a live market price
         return true;
     }

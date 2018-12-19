@@ -19,6 +19,7 @@ public @interface CountryCode {
 
     String message() default "is not valid country code";
 
+    @SuppressWarnings("unused")
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};

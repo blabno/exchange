@@ -10,7 +10,7 @@ public class MoneyGramPaymentAccountConverter extends AbstractPaymentAccountConv
     public MoneyGramAccount toBusinessModel(MoneyGramPaymentAccount rest) {
         MoneyGramAccount business = new MoneyGramAccount();
         business.init();
-        business.setCountry(CountryUtil.findCountryByCode(rest.countryCode).get());
+        CountryUtil.findCountryByCode(rest.countryCode).ifPresent(business::setCountry);
         business.setEmail(rest.email);
         business.setFullName(rest.holderName);
         business.setState(rest.state);

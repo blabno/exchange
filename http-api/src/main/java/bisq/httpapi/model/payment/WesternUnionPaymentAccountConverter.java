@@ -12,7 +12,7 @@ public class WesternUnionPaymentAccountConverter extends AbstractPaymentAccountC
         business.init();
         business.setFullName(rest.holderName);
         business.setCity(rest.city);
-        business.setCountry(CountryUtil.findCountryByCode(rest.countryCode).get());
+        CountryUtil.findCountryByCode(rest.countryCode).ifPresent(business::setCountry);
         business.setEmail(rest.email);
         business.setState(rest.state);
         toBusinessModel(business, rest);

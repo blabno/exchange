@@ -7,6 +7,7 @@ public class Arbitrator {
     @JsonProperty
     public String address;
 
+    @SuppressWarnings("unused")
     public Arbitrator() {
     }
 

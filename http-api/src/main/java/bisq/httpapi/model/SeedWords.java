@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.NotEmpty;
 
+@SuppressWarnings("WeakerAccess")
 public class SeedWords {
 
     @NotNull
@@ -19,6 +20,7 @@ public class SeedWords {
     @NotEmpty
     public String walletCreationDate;
 
+    @SuppressWarnings("unused")
     public SeedWords() {
     }
 

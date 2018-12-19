@@ -7,6 +7,7 @@ public class AuthForm {
     @NotEmpty
     public String password;
 
+    @SuppressWarnings("unused")
     public AuthForm() {
     }
 

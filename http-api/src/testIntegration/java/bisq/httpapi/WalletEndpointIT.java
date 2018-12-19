@@ -237,7 +237,7 @@ public class WalletEndpointIT {
 
     @InSequence(8)
     @Test
-    public void getSeedWords_noPasswordSetAndNoPasswordProvided_returns200() throws Exception {
+    public void getSeedWords_noPasswordSetAndNoPasswordProvided_returns200() {
         given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON).
@@ -256,7 +256,7 @@ public class WalletEndpointIT {
 
     @InSequence(9)
     @Test
-    public void getSeedWords_noPasswordSetAndPasswordProvided_returns200() throws Exception {
+    public void getSeedWords_noPasswordSetAndPasswordProvided_returns200() {
         given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON).
@@ -276,7 +276,7 @@ public class WalletEndpointIT {
 
     @InSequence(10)
     @Test
-    public void setPassword() throws Exception {
+    public void setPassword() {
         int alicePort = getAlicePort();
         password = new Faker().internet().password();
         accessToken = given().
@@ -295,7 +295,7 @@ public class WalletEndpointIT {
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_passwordSetAndAccessTokenNotProvided_returns401() throws Exception {
+    public void restoreWalletFromSeedWords_passwordSetAndAccessTokenNotProvided_returns401() {
         given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON).
@@ -311,57 +311,57 @@ public class WalletEndpointIT {
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_passwordSetAndPasswordNotProvided_returns401() throws Exception {
+    public void restoreWalletFromSeedWords_passwordSetAndPasswordNotProvided_returns401() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-04-28");
-        restoreWalletFromSeedWords_request(payload, 401, true);
+        restoreWalletFromSeedWords_request(payload, 401);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_noContent_returns422() throws Exception {
-        restoreWalletFromSeedWords_request(null, 422, true);
+    public void restoreWalletFromSeedWords_noContent_returns422() {
+        restoreWalletFromSeedWords_request(null, 422);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_noMnemonicCode_returns422() throws Exception {
+    public void restoreWalletFromSeedWords_noMnemonicCode_returns422() {
         SeedWordsRestore payload = new SeedWordsRestore(null, "2018-04-28", password);
-        restoreWalletFromSeedWords_request(payload, 422, true);
+        restoreWalletFromSeedWords_request(payload, 422);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_mnemonicCodeContainsNull_returns422() throws Exception {
+    public void restoreWalletFromSeedWords_mnemonicCodeContainsNull_returns422() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList(null), "2018-04-28", password);
-        restoreWalletFromSeedWords_request(payload, 422, true);
+        restoreWalletFromSeedWords_request(payload, 422);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_emptyMnemonicCodeArray_returns422() throws Exception {
+    public void restoreWalletFromSeedWords_emptyMnemonicCodeArray_returns422() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
-        restoreWalletFromSeedWords_request(payload, 422, true);
+        restoreWalletFromSeedWords_request(payload, 422);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_walletCreationDateIsNull_returns422() throws Exception {
+    public void restoreWalletFromSeedWords_walletCreationDateIsNull_returns422() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), null, password);
-        restoreWalletFromSeedWords_request(payload, 422, true);
+        restoreWalletFromSeedWords_request(payload, 422);
     }
 
     @InSequence(11)
     @Test
-    public void restoreWalletFromSeedWords_doesNotMatchDatePattern_returns422() throws Exception {
+    public void restoreWalletFromSeedWords_doesNotMatchDatePattern_returns422() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
-        restoreWalletFromSeedWords_request(payload, 422, true);
+        restoreWalletFromSeedWords_request(payload, 422);
     }
 
     @InSequence(12)
     @Test
-    public void restoreWalletFromSeedWords_correctData_returns204() throws Exception {
+    public void restoreWalletFromSeedWords_correctData_returns204() {
         SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-01-01", password);
-        restoreWalletFromSeedWords_request(payload, 204, true);
+        restoreWalletFromSeedWords_request(payload, 204);
     }
 
     private double getAccountBalanceByAddress(Container bitcoin, String address) {
@@ -379,7 +379,7 @@ public class WalletEndpointIT {
         return cubeOutput.getStandard().trim();
     }
 
-    private void restoreWalletFromSeedWords_request(SeedWordsRestore payload, int expectedStatusCode, boolean includeAccessTokenHeader) {
+    private void restoreWalletFromSeedWords_request(SeedWordsRestore payload, int expectedStatusCode) {
         RequestSpecification requestSpecification = given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON);
@@ -387,8 +387,7 @@ public class WalletEndpointIT {
         if (null != payload)
             requestSpecification.body(payload);
 
-        if (includeAccessTokenHeader)
-            requestSpecification.header("authorization", accessToken);
+        requestSpecification.header("authorization", accessToken);
 
         requestSpecification.
 //

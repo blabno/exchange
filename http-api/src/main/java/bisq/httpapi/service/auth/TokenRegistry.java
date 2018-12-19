@@ -1,7 +1,6 @@
 package bisq.httpapi.service.auth;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +20,7 @@ public class TokenRegistry {
         return uuid;
     }
 
-    public boolean isValidToken(String token) {
+    boolean isValidToken(String token) {
         Long createDate = tokens.get(token);
         if (null == createDate || isTimeout(createDate)) {
             tokens.remove(token);
@@ -36,11 +35,7 @@ public class TokenRegistry {
     }
 
     private void removeTimeoutTokens() {
-        Iterator<Long> iterator = tokens.values().iterator();
-        while (iterator.hasNext()) {
-            if (isTimeout(iterator.next()))
-                iterator.remove();
-        }
+        tokens.values().removeIf(this::isTimeout);
     }
 
     public void clear() {
