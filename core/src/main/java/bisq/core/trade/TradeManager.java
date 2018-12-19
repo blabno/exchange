@@ -520,23 +520,23 @@ public class TradeManager implements PersistedDataHost {
                                      Offer offer,
                                      String paymentAccountId,
                                      @Nullable Long maxFundsForTrade) {
-        if (null == amount || !Coin.ZERO.isLessThan(amount)) {
+        if (amount == null || !Coin.ZERO.isLessThan(amount)) {
             throw new ValidationException("Amount must be a positive number");
         }
-        if (null == txFee || !Coin.ZERO.isLessThan(txFee)) {
+        if (txFee == null || !Coin.ZERO.isLessThan(txFee)) {
             throw new ValidationException("Transaction fee must be a positive number");
         }
-        if (null == takerFee || !Coin.ZERO.isLessThan(takerFee)) {
+        if (takerFee == null || !Coin.ZERO.isLessThan(takerFee)) {
             throw new ValidationException("Taker fee must be a positive number");
         }
         if (tradePrice <= 0) {
             throw new ValidationException("Trade price must be a positive number");
         }
         PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
-        if (null == paymentAccount) {
+        if (paymentAccount == null) {
             throw new ValidationException("Payment account for given id does not exist: " + paymentAccountId);
         }
-        if (null == offer) {
+        if (offer == null) {
             throw new ValidationException("Offer must not be null");
         }
         if (amount.isGreaterThan(offer.getAmount())) {
