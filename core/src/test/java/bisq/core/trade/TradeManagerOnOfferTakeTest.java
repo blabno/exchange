@@ -122,12 +122,12 @@ public class TradeManagerOnOfferTakeTest {
 
         keyRing = mock(KeyRing.class);
         when(keyRing.getSignatureKeyPair()).thenReturn(Sig.generateKeyPair());
-        final KeyPair keyPair = Sig.generateKeyPair();
-        final PubKeyRing pubKeyRing = new PubKeyRing(keyPair.getPublic(), keyPair.getPublic(), null);
+        KeyPair keyPair = Sig.generateKeyPair();
+        PubKeyRing pubKeyRing = new PubKeyRing(keyPair.getPublic(), keyPair.getPublic(), null);
         when(keyRing.getPubKeyRing()).thenReturn(pubKeyRing);
 
         btcWalletService = mock(BtcWalletService.class);
-        final AddressEntry addressEntry = new AddressEntry(mock(DeterministicKey.class), AddressEntry.Context.OFFER_FUNDING);
+        AddressEntry addressEntry = new AddressEntry(mock(DeterministicKey.class), AddressEntry.Context.OFFER_FUNDING);
 //        TODO stub more precisely, ideally with exact values or at least matchers
         when(btcWalletService.getOrCreateAddressEntry(any(), any())).thenReturn(addressEntry);
         when(btcWalletService.getFreshAddressEntry()).thenReturn(addressEntry);
@@ -145,9 +145,9 @@ public class TradeManagerOnOfferTakeTest {
 
         tradeWalletService = mock(TradeWalletService.class);
         when(tradeWalletService.createBtcTradingFeeTx(any(), any(), any(), any(), anyBoolean(), any(), any(), any(), any())).thenAnswer(invocation -> {
-            final Transaction transactionMock = mock(Transaction.class);
+            Transaction transactionMock = mock(Transaction.class);
             when(transactionMock.getHashAsString()).thenReturn("transactionHashAsString");
-            final TxBroadcaster.Callback callback = invocation.getArgument(8);
+            TxBroadcaster.Callback callback = invocation.getArgument(8);
             callback.onSuccess(transactionMock);
             return transactionMock;
         });
@@ -183,13 +183,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_paymentAccountIdIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Payment account for given id does not exist: null";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Payment account for given id does not exist: null";
+        OnTakeOfferParams params = getValidParams();
         params.paymentAccountId = null;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -198,13 +198,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_noPaymentAccountForGivenId_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Payment account for given id does not exist: xyz";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Payment account for given id does not exist: xyz";
+        OnTakeOfferParams params = getValidParams();
         params.paymentAccountId = "xyz";
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -213,13 +213,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_paymentAccountNotValidForOffer_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "PaymentAccount is not valid for offer, needs PLN";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "PaymentAccount is not valid for offer, needs PLN";
+        OnTakeOfferParams params = getValidParams();
         when(offerToCreate.getCurrencyCode()).thenReturn("PLN");
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -228,13 +228,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_offerIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Offer must not be null";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Offer must not be null";
+        OnTakeOfferParams params = getValidParams();
         params.offer = null;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -243,13 +243,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_currencyCodeIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "No such currency: null";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "No such currency: null";
+        OnTakeOfferParams params = getValidParams();
         when(params.offer.getCurrencyCode()).thenReturn(null);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -258,13 +258,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_currencyCodeReferencesNonExistingCurrency_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "No such currency: nonExistent";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "No such currency: nonExistent";
+        OnTakeOfferParams params = getValidParams();
         when(params.offer.getCurrencyCode()).thenReturn("nonExistent");
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -273,14 +273,14 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_currencyIsBanned_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = Res.get("offerbook.warning.currencyBanned");
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = Res.get("offerbook.warning.currencyBanned");
         Assert.assertNotNull(expectedExceptionMessage);
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
         when(filterManager.isCurrencyBanned(params.offer.getCurrencyCode())).thenReturn(true);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -289,14 +289,14 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_paymentMethodIsBanned_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = Res.get("offerbook.warning.paymentMethodBanned");
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = Res.get("offerbook.warning.paymentMethodBanned");
         Assert.assertNotNull(expectedExceptionMessage);
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
         when(filterManager.isPaymentMethodBanned(params.offer.getPaymentMethod())).thenReturn(true);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -305,14 +305,14 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_offerIdIsBanned_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = Res.get("offerbook.warning.offerBlocked");
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = Res.get("offerbook.warning.offerBlocked");
         Assert.assertNotNull(expectedExceptionMessage);
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
         when(filterManager.isOfferIdBanned(params.offer.getId())).thenReturn(true);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -321,14 +321,14 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_makerNodeAddressIsBanned_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = Res.get("offerbook.warning.nodeBlocked");
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = Res.get("offerbook.warning.nodeBlocked");
         Assert.assertNotNull(expectedExceptionMessage);
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
         when(filterManager.isNodeAddressBanned(params.offer.getMakerNodeAddress())).thenReturn(true);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -337,15 +337,15 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_makerNodeAddressSameAsTaker_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Taker's address same as maker's";
-        final OnTakeOfferParams params = getValidParams();
-        final NodeAddress myNodeAddress = new NodeAddress("me", 0);
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Taker's address same as maker's";
+        OnTakeOfferParams params = getValidParams();
+        NodeAddress myNodeAddress = new NodeAddress("me", 0);
         when(p2PService.getAddress()).thenReturn(myNodeAddress);
         when(offerToCreate.getMakerNodeAddress()).thenReturn(myNodeAddress);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -354,13 +354,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_amountIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Amount must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Amount must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.amount = null;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -369,13 +369,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_amountIsNegative_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Amount must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Amount must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.amount = Coin.valueOf(-1);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -384,13 +384,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_amountIsZero_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Amount must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Amount must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.amount = Coin.ZERO;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -399,14 +399,14 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_amountHigherThanOfferAmount_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Taken amount must not be higher than offer amount";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Taken amount must not be higher than offer amount";
+        OnTakeOfferParams params = getValidParams();
         params.amount = params.offer.getAmount().add(Coin.SATOSHI);
         Assert.assertTrue(params.amount.isGreaterThan(params.offer.getAmount()));
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -415,13 +415,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_txFeeIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Transaction fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Transaction fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.txFee = null;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -430,13 +430,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_txFeeIsZero_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Transaction fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Transaction fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.txFee = Coin.ZERO;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -445,13 +445,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_txFeeIsNegative_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Transaction fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Transaction fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.txFee = Coin.valueOf(-1);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -460,13 +460,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_takerFeeIsNull_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Taker fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Taker fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.takerFee = null;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -475,13 +475,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_takerFeeIsZero_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Taker fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Taker fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.takerFee = Coin.ZERO;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -490,13 +490,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_takerFeeIsNegative_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Taker fee must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Taker fee must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.takerFee = Coin.valueOf(-1);
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -505,13 +505,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_tradePriceIsNegative_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Trade price must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Trade price must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.tradePrice = -1;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -520,13 +520,13 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_tradePriceIsZero_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Trade price must be a positive number";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Trade price must be a positive number";
+        OnTakeOfferParams params = getValidParams();
         params.tradePrice = 0;
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -536,9 +536,9 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_offerIsNotAvailable_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
-        final String expectedExceptionMessage = "Offer not available";
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = ValidationException.class;
+        String expectedExceptionMessage = "Offer not available";
+        OnTakeOfferParams params = getValidParams();
         when(params.offer.getState()).thenReturn(Offer.State.MAKER_OFFLINE);
 
         doAnswer(invocation -> {
@@ -547,7 +547,7 @@ public class TradeManagerOnOfferTakeTest {
         }).when(offerToCreate).checkOfferAvailability(any(), any(), any());
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -556,17 +556,17 @@ public class TradeManagerOnOfferTakeTest {
     @Test
     public void onTakeOffer_checkOfferAvailabilityFails_completesExceptionally() {
 //        Given
-        final Class<? extends Throwable> expectedExceptionClass = TradeFailedException.class;
-        final String expectedExceptionMessage = "errorMessage" + new Date().toString();
-        final OnTakeOfferParams params = getValidParams();
+        Class<? extends Throwable> expectedExceptionClass = TradeFailedException.class;
+        String expectedExceptionMessage = "errorMessage" + new Date().toString();
+        OnTakeOfferParams params = getValidParams();
         doAnswer(invocation -> {
-            final ErrorMessageHandler handler = invocation.getArgument(2);
+            ErrorMessageHandler handler = invocation.getArgument(2);
             handler.handleErrorMessage(expectedExceptionMessage);
             return null;
         }).when(params.offer).checkOfferAvailability(any(), any(), any());
 
 //        When
-        final CompletableFuture<Trade> completableFuture = onTakeOffer(params);
+        CompletableFuture<Trade> completableFuture = onTakeOffer(params);
 
 //        Then
         assertCompletedExceptionally(completableFuture, expectedExceptionClass, expectedExceptionMessage);
@@ -583,10 +583,10 @@ public class TradeManagerOnOfferTakeTest {
             return null;
         }).when(offerToCreate).checkOfferAvailability(any(), any(), any());
 
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
 
 //        When
-        final Trade trade = onTakeOffer(params).get();
+        Trade trade = onTakeOffer(params).get();
 
 //        Then
 //        TODO what properties should the trade have?
@@ -612,10 +612,10 @@ public class TradeManagerOnOfferTakeTest {
             return null;
         }).when(offerToCreate).checkOfferAvailability(any(), any(), any());
 
-        final OnTakeOfferParams params = getValidParams();
+        OnTakeOfferParams params = getValidParams();
 
 //        When
-        final Trade trade = onTakeOffer(params).get();
+        Trade trade = onTakeOffer(params).get();
 
 //        Then
 //        TODO what properties should the trade have?
@@ -638,7 +638,7 @@ public class TradeManagerOnOfferTakeTest {
             completableFuture.get();
             Assert.fail("Expected exception:" + exceptionClass.getName() + " " + exceptionMessage);
         } catch (Exception e) {
-            final Throwable cause = e.getCause();
+            Throwable cause = e.getCause();
             Assert.assertEquals(exceptionClass, cause.getClass());
             Assert.assertEquals(exceptionMessage, cause.getMessage());
         }
@@ -659,13 +659,13 @@ public class TradeManagerOnOfferTakeTest {
 
     @NotNull
     private TradeManager getTradeManager() {
-        final TradeManager tradeManager = new TradeManager(user, keyRing, btcWalletService, bsqWalletService, tradeWalletService, openOfferManager, closedTradableManager, failedTradesManager, feeService, p2PService, preferences, priceFeedService, filterManager, tradeStatisticsManager, referralIdService, persistenceProtoResolver, accountAgeWitnessService, arbitratorManager, clock, storageDir);
+        TradeManager tradeManager = new TradeManager(user, keyRing, btcWalletService, bsqWalletService, tradeWalletService, openOfferManager, closedTradableManager, failedTradesManager, feeService, p2PService, preferences, priceFeedService, filterManager, tradeStatisticsManager, referralIdService, persistenceProtoResolver, accountAgeWitnessService, arbitratorManager, clock, storageDir);
         tradeManager.readPersisted();
         return tradeManager;
     }
 
     private OnTakeOfferParams getValidParams() {
-        final OnTakeOfferParams params = new OnTakeOfferParams();
+        OnTakeOfferParams params = new OnTakeOfferParams();
         params.amount = Coin.SATOSHI;
         params.txFee = Coin.SATOSHI;
         params.takerFee = Coin.SATOSHI;
@@ -680,33 +680,33 @@ public class TradeManagerOnOfferTakeTest {
     }
 
     private Offer createOffer(OfferPayload.Direction direction, String offerId, Arbitrator arbitrator, Mediator mediator) {
-        final long now = new Date().getTime();
-        final int price = 1;
-        final double marketPriceMargin = 0.1;
-        final boolean useMarketBasedPrice = false;
-        final int amount = 1;
-        final int minAmount = 1;
-        final String baseCurrencyCode = "BTC";
-        final String counterCurrencyCode = "USD";
-        final long lastBlockSeenHeight = 1;
-        final int txFee = 0;
-        final int makerFee = 0;
-        final boolean isCurrencyForMakerFeeBtc = false;
-        final int buyerSecurityDeposit = 0;
-        final int sellerSecurityDeposit = 0;
-        final int maxTradeLimit = 0;
-        final int maxTradePeriod = 0;
-        final boolean useAutoClose = false;
-        final boolean useReOpenAfterAutoClose = false;
-        final int lowerClosePrice = 0;
-        final int upperClosePrice = 0;
-        final boolean isPrivateOffer = false;
-        final String hashOfChallenge = null;
-        final Map<String, String> extraDataMap = null;
-        final KeyPair keyPair = Sig.generateKeyPair();
-        final PubKeyRing pubKeyRing = new PubKeyRing(keyPair.getPublic(), keyPair.getPublic(), null);
-        final List<NodeAddress> arbitrators = Collections.singletonList(arbitrator.getNodeAddress());
-        final List<NodeAddress> mediators = Collections.singletonList(mediator.getNodeAddress());
+        long now = new Date().getTime();
+        int price = 1;
+        double marketPriceMargin = 0.1;
+        boolean useMarketBasedPrice = false;
+        int amount = 1;
+        int minAmount = 1;
+        String baseCurrencyCode = "BTC";
+        String counterCurrencyCode = "USD";
+        long lastBlockSeenHeight = 1;
+        int txFee = 0;
+        int makerFee = 0;
+        boolean isCurrencyForMakerFeeBtc = false;
+        int buyerSecurityDeposit = 0;
+        int sellerSecurityDeposit = 0;
+        int maxTradeLimit = 0;
+        int maxTradePeriod = 0;
+        boolean useAutoClose = false;
+        boolean useReOpenAfterAutoClose = false;
+        int lowerClosePrice = 0;
+        int upperClosePrice = 0;
+        boolean isPrivateOffer = false;
+        String hashOfChallenge = null;
+        Map<String, String> extraDataMap = null;
+        KeyPair keyPair = Sig.generateKeyPair();
+        PubKeyRing pubKeyRing = new PubKeyRing(keyPair.getPublic(), keyPair.getPublic(), null);
+        List<NodeAddress> arbitrators = Collections.singletonList(arbitrator.getNodeAddress());
+        List<NodeAddress> mediators = Collections.singletonList(mediator.getNodeAddress());
         OfferPayload offerPayload = new OfferPayload(offerId,
                 now,
                 new NodeAddress("0", 0),
@@ -745,7 +745,7 @@ public class TradeManagerOnOfferTakeTest {
                 hashOfChallenge,
                 extraDataMap,
                 Version.TRADE_PROTOCOL_VERSION);
-        final Offer offer = new Offer(offerPayload);
+        Offer offer = new Offer(offerPayload);
         offer.setState(Offer.State.AVAILABLE);
         offer.setOfferFeePaymentTxId("abc");
 //        TODO this is sick, offer should not include logic like checkOfferAvailability

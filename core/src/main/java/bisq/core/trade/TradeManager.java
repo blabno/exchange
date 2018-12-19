@@ -439,7 +439,7 @@ public class TradeManager implements PersistedDataHost {
         //        TODO what if txFee is now bigger than the one before calculating fundsNeededForTaker?
         txFee = estimatedFeeAndTxSize.first;
         fundsNeededForTaker = TakerUtil.getFundsNeededForTakeOffer(amount, txFee, txFee, offer);
-        final boolean currencyForTakerFeeBtc = TakerUtil.isCurrencyForTakerFeeBtc(amount, preferences, bsqWalletService);
+        boolean currencyForTakerFeeBtc = TakerUtil.isCurrencyForTakerFeeBtc(amount, preferences, bsqWalletService);
         return onTakeOffer(amount, txFee, takerFee, currencyForTakerFeeBtc, tradePrice, fundsNeededForTaker, offer, paymentAccountId, useSavingsWallet, maxFundsForTrade);
     }
 
@@ -477,20 +477,20 @@ public class TradeManager implements PersistedDataHost {
          * - TODO check if user has enough funds here
          * - TODO instead of coin we might use long
          */
-        final CompletableFuture<Trade> completableFuture = new CompletableFuture<>();
+        CompletableFuture<Trade> completableFuture = new CompletableFuture<>();
         try {
             validateOnTakeOffer(amount, txFee, takerFee, tradePrice, fundsNeededForTrade, offer, paymentAccountId, maxFundsForTrade);
         } catch (Exception e) {
             completableFuture.completeExceptionally(e);
             return completableFuture;
         }
-        final OfferAvailabilityModel model = getOfferAvailabilityModel(offer);
+        OfferAvailabilityModel model = getOfferAvailabilityModel(offer);
         offer.checkOfferAvailability(model, () -> {
 //            TODO what if offer is in invalid state?
 //            TODO what if exception is thrown inside createTrade?
                     try {
                         if (offer.getState() == Offer.State.AVAILABLE) {
-                            final Trade trade = createTrade(amount,
+                            Trade trade = createTrade(amount,
                                     txFee,
                                     takerFee,
                                     isCurrencyForTakerFeeBtc,
@@ -532,7 +532,7 @@ public class TradeManager implements PersistedDataHost {
         if (tradePrice <= 0) {
             throw new ValidationException("Trade price must be a positive number");
         }
-        final PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
+        PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
         if (null == paymentAccount) {
             throw new ValidationException("Payment account for given id does not exist: " + paymentAccountId);
         }
@@ -542,7 +542,7 @@ public class TradeManager implements PersistedDataHost {
         if (amount.isGreaterThan(offer.getAmount())) {
             throw new ValidationException("Taken amount must not be higher than offer amount");
         }
-        final String currencyCode = offer.getCurrencyCode();
+        String currencyCode = offer.getCurrencyCode();
         if (!CurrencyUtil.getTradeCurrency(currencyCode).isPresent()) {
             throw new ValidationException("No such currency: " + currencyCode);
         }
