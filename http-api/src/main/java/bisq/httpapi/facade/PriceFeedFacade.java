@@ -36,7 +36,7 @@ public class PriceFeedFacade {
         List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
         List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
         Stream<String> codesStream;
-        if (null == codes || 0 == codes.length)
+        if (codes == null || codes.length == 0)
             codesStream = Stream.concat(fiatCurrencies.stream(), cryptoCurrencies.stream()).map(TradeCurrency::getCode);
         else
             codesStream = Arrays.stream(codes);

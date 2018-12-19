@@ -22,7 +22,7 @@ public class TokenRegistry {
 
     boolean isValidToken(String token) {
         Long createDate = tokens.get(token);
-        if (null == createDate || isTimeout(createDate)) {
+        if (createDate == null || isTimeout(createDate)) {
             tokens.remove(token);
             return false;
         } else {

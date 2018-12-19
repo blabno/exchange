@@ -48,7 +48,7 @@ public class BackupRestoreManager {
         if (!backupToRestoreMarkerFile.delete())
             log.warn("Unable to remove backupToRestoreMarkerFile: " + backupToRestoreMarkerPath);
         String backupFilename = lines.isEmpty() ? null : lines.get(0);
-        if (null == backupFilename || backupFilename.trim().length() < 1)
+        if (backupFilename == null || backupFilename.trim().length() < 1)
             return;
         backupManager.restore(backupFilename);
         log.info("Backup restored successfully: " + backupFilename);

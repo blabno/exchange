@@ -56,11 +56,11 @@ public class ArbitratorFacade {
         //        TODO most of this code is dupplication of ArbitratorRegistrationViewModel.onRegister
         String privKeyString = useDevPrivilegeKeys ? DevEnv.DEV_PRIVILEGE_PRIV_KEY : null;
         //        TODO hm, are we going to send private key over http?
-        if (null == privKeyString) {
+        if (privKeyString == null) {
             throw new RuntimeException("Missing private key");
         }
         ECKey registrationKey = arbitratorManager.getRegistrationKey(privKeyString);
-        if (null == registrationKey) {
+        if (registrationKey == null) {
             throw new RuntimeException("Missing registration key");
         }
         AddressEntry arbitratorDepositAddressEntry = btcWalletService.getArbitratorAddressEntry();
@@ -91,7 +91,7 @@ public class ArbitratorFacade {
 
     public Collection<Arbitrator> selectArbitrator(String arbitratorAddress) {
         Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
-        if (null == arbitrator) {
+        if (arbitrator == null) {
             throw new NotFoundException("Arbitrator not found: " + arbitratorAddress);
         }
         if (!arbitratorIsTrader(arbitrator)) {
@@ -104,7 +104,7 @@ public class ArbitratorFacade {
 
     public Collection<Arbitrator> deselectArbitrator(String arbitratorAddress) {
         Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
-        if (null == arbitrator) {
+        if (arbitrator == null) {
             throw new NotFoundException("Arbitrator not found: " + arbitratorAddress);
         }
         user.removeAcceptedArbitrator(arbitrator);

@@ -48,7 +48,7 @@ public class TradeFacade {
     }
 
     public Trade getTrade(String tradeId) {
-        String safeTradeId = (null == tradeId) ? "" : tradeId;
+        String safeTradeId = (tradeId == null) ? "" : tradeId;
         Optional<Trade> tradeOptional = getTradeList().stream().filter(item -> safeTradeId.equals(item.getId())).findAny();
         if (!tradeOptional.isPresent()) {
             throw new NotFoundException("Trade not found: " + tradeId);

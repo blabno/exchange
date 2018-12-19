@@ -101,7 +101,7 @@ public class OfferBuilder {
                        @Nullable Long buyerSecurityDeposit)
             throws NoAcceptedArbitratorException, PaymentAccountNotFoundException, IncompatiblePaymentAccountException {
         List<NodeAddress> acceptedArbitratorAddresses = user.getAcceptedArbitratorAddresses();
-        if (null == acceptedArbitratorAddresses || acceptedArbitratorAddresses.size() == 0) {
+        if (acceptedArbitratorAddresses == null || acceptedArbitratorAddresses.size() == 0) {
             throw new NoAcceptedArbitratorException("No arbitrator has been chosen");
         }
 
@@ -236,7 +236,7 @@ public class OfferBuilder {
 
     private Set<PaymentAccount> getPaymentAccounts() {
         Set<PaymentAccount> paymentAccounts = user.getPaymentAccounts();
-        return null == paymentAccounts ? Collections.emptySet() : paymentAccounts;
+        return paymentAccounts == null ? Collections.emptySet() : paymentAccounts;
     }
 
     private void validateMarketPair(String marketPair) {

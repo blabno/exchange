@@ -141,7 +141,7 @@ public class WalletFacade {
             }
         }
         TransactionConfidence confidence = transaction.getConfidence();
-        int confirmations = null == confidence ? 0 : confidence.getDepthInBlocks();
+        int confirmations = confidence == null ? 0 : confidence.getDepthInBlocks();
 
         WalletTransaction walletTransaction = new WalletTransaction();
         walletTransaction.updateTime = transaction.getUpdateTime().getTime();
@@ -268,7 +268,7 @@ public class WalletFacade {
     }
 
     public CompletableFuture<Void> restoreWalletFromSeedWords(List<String> mnemonicCode, String walletCreationDate, String password) {
-        if (btcWalletService.isEncrypted() && (null == password || !isWalletPasswordValid(password)))
+        if (btcWalletService.isEncrypted() && (password == null || !isWalletPasswordValid(password)))
             throw new UnauthorizedException();
         CompletableFuture<Void> futureResult = new CompletableFuture<>();
         long date = walletCreationDate != null ? LocalDate.parse(walletCreationDate).atStartOfDay().toEpochSecond(ZoneOffset.UTC) : 0;
@@ -294,7 +294,7 @@ public class WalletFacade {
 
         DeterministicSeed seed = keyChainSeed;
         if (keyChainSeed.isEncrypted()) {
-            if (null == password)
+            if (password == null)
                 throw new UnauthorizedException();
             KeyParameter aesKey = getAESKey(password);
             if (!isWalletPasswordValid(aesKey))
@@ -338,7 +338,7 @@ public class WalletFacade {
             balance = btcWalletService.getBalanceForAddress(entry.getAddress());
         }
         TransactionConfidence confidence = btcWalletService.getConfidenceForAddress(entry.getAddress());
-        int confirmations = null == confidence ? 0 : confidence.getDepthInBlocks();
+        int confirmations = confidence == null ? 0 : confidence.getDepthInBlocks();
         return new WalletAddress(entry.getAddressString(), balance.getValue(), confirmations, entry.getContext(), entry.getOfferId());
     }
 }

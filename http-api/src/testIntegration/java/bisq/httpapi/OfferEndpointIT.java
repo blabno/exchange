@@ -74,7 +74,7 @@ public class OfferEndpointIT {
     }
 
     private static void putIfNotNull(JSONObject jsonObject, String key, Object value) {
-        if (null == value) {
+        if (value == null) {
             return;
         }
         if (value instanceof Enum)
