@@ -59,7 +59,7 @@ public class UserEndpoint {
             try {
                 experimentalFeature.assertEnabled();
                 AuthResult result = userFacade.changePassword(data.oldPassword, data.newPassword);
-                if (null == result) {
+                if (result == null) {
                     asyncResponse.resume(Response.noContent().build());
                 } else {
                     asyncResponse.resume(result);

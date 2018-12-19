@@ -55,7 +55,7 @@ public class CurrencyEndpoint {
             try {
                 experimentalFeature.assertEnabled();
                 String[] codes;
-                if (null == currencyCodes || 0 == currencyCodes.length())
+                if (currencyCodes == null || currencyCodes.length() == 0)
                     codes = new String[0];
                 else
                     codes = currencyCodes.split("\\s*,\\s*");

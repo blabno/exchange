@@ -121,7 +121,7 @@ public final class ApiTestHelper {
     public static SepaPaymentAccount randomValidCreateSepaAccountPayload(String tradeCurrency, String countryCode) {
         Faker faker = new Faker();
         SepaPaymentAccount accountToCreate = new SepaPaymentAccount();
-        if (null == countryCode)
+        if (countryCode == null)
             countryCode = faker.options().nextElement(CountryUtil.getAllSepaCountries()).code;
         accountToCreate.paymentMethod = PaymentMethod.SEPA_ID;
         accountToCreate.accountName = faker.commerce().productName();

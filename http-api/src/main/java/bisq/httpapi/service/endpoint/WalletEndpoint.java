@@ -118,7 +118,7 @@ public class WalletEndpoint {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                String password = null == form ? null : form.password;
+                String password = form == null ? null : form.password;
                 SeedWords seedWords = walletFacade.getSeedWords(password);
                 asyncResponse.resume(seedWords);
             } catch (Throwable e) {

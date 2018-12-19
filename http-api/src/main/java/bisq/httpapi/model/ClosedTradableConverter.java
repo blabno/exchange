@@ -81,7 +81,7 @@ public class ClosedTradableConverter {
     private Long getVolume(Tradable item) {
         if (item instanceof Trade) {
             Volume volume = ((Trade) item).getTradeVolume();
-            return null == volume ? null : volume.getValue();
+            return volume == null ? null : volume.getValue();
         }
         return null;
     }
@@ -91,14 +91,14 @@ public class ClosedTradableConverter {
             return ((Trade) tradable).getTradePrice().getValue();
         else {
             Price price = tradable.getOffer().getPrice();
-            return null == price ? null : price.getValue();
+            return price == null ? null : price.getValue();
         }
     }
 
     private Long getAmout(Tradable item) {
         if (item instanceof Trade) {
             Coin tradeAmount = ((Trade) item).getTradeAmount();
-            return null == tradeAmount ? null : tradeAmount.getValue();
+            return tradeAmount == null ? null : tradeAmount.getValue();
         }
         return null;
     }

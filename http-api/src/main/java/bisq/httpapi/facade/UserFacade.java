@@ -48,7 +48,7 @@ public class UserFacade {
         if (!btcWalletService.isWalletReady())
             throw new WalletNotReadyException("Wallet not ready yet");
         if (btcWalletService.isEncrypted()) {
-            KeyParameter aesKey = null == oldPassword ? null : walletFacade.getAESKey(oldPassword);
+            KeyParameter aesKey = oldPassword == null ? null : walletFacade.getAESKey(oldPassword);
             if (!walletFacade.isWalletPasswordValid(aesKey))
                 throw new UnauthorizedException();
             walletsManager.decryptWallets(aesKey);

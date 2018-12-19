@@ -45,7 +45,7 @@ public class AuthFilter implements Filter {
             return;
         }
         String authorizationHeader = httpServletRequest.getHeader("authorization");
-        if (null == authorizationHeader) {
+        if (authorizationHeader == null) {
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

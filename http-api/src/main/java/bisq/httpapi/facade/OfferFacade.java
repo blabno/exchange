@@ -102,7 +102,7 @@ public class OfferFacade {
 
         OfferPayload.Direction direction = OfferPayload.Direction.valueOf(input.direction);
         PriceType priceType = PriceType.valueOf(input.priceType);
-        Double marketPriceMargin = null == input.percentageFromMarketPrice ? null : input.percentageFromMarketPrice.doubleValue();
+        Double marketPriceMargin = input.percentageFromMarketPrice == null ? null : input.percentageFromMarketPrice.doubleValue();
         boolean fundUsingBisqWallet = input.fundUsingBisqWallet;
         String offerId = input.offerId;
         String accountId = input.accountId;
@@ -117,7 +117,7 @@ public class OfferFacade {
         CompletableFuture<Offer> futureResult = new CompletableFuture<>();
 
         //TODO @bernard what is meant by "Specify offerId of earlier prepared offer if you want to use dedicated wallet address."?
-        if (!fundUsingBisqWallet && null == offerId)
+        if (!fundUsingBisqWallet && offerId == null)
             return ResourceHelper.completeExceptionally(futureResult,
                     new ValidationException("Specify offerId of earlier prepared offer if you want to use dedicated wallet address."));
 

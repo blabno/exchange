@@ -50,7 +50,7 @@ public class PaymentAccountFacade {
         if (paymentAccount instanceof CryptoCurrencyAccount) {
             CryptoCurrencyAccount cryptoCurrencyAccount = (CryptoCurrencyAccount) paymentAccount;
             TradeCurrency tradeCurrency = cryptoCurrencyAccount.getSingleTradeCurrency();
-            if (null == tradeCurrency) {
+            if (tradeCurrency == null) {
                 throw new ValidationException("There must be exactly one trade currency");
             }
             altCoinAddressValidator.setCurrencyCode(tradeCurrency.getCode());
@@ -87,7 +87,7 @@ public class PaymentAccountFacade {
 
     public void removePaymentAccount(String id) {
         PaymentAccount paymentAccount = user.getPaymentAccount(id);
-        if (null == paymentAccount) {
+        if (paymentAccount == null) {
             throw new NotFoundException("Payment account not found: " + id);
         }
         user.removePaymentAccount(paymentAccount);
@@ -95,7 +95,7 @@ public class PaymentAccountFacade {
 
     private List<PaymentAccount> getPaymentAccountList() {
         Set<PaymentAccount> paymentAccounts = user.getPaymentAccounts();
-        return paymentAccounts == null ? Collections.emptyList() : new ArrayList<>(paymentAccounts);
+        return null == paymentAccounts ? Collections.emptyList() : new ArrayList<>(paymentAccounts);
     }
 
     public PaymentAccountList getAccountList() {

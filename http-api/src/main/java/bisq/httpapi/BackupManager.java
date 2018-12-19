@@ -66,7 +66,7 @@ public class BackupManager {
 
     public List<String> getBackupList() {
         File[] files = getBackupDirectoryPath().toFile().listFiles();
-        if (null == files)
+        if (files == null)
             return Collections.emptyList();
         return Arrays.asList(files).stream().map(File::getName).collect(Collectors.toList());
     }
