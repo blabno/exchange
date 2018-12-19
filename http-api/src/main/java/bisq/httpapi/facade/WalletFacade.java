@@ -51,8 +51,6 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.jetbrains.annotations.NotNull;
-
 import static bisq.httpapi.facade.FacadeUtil.failFuture;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
@@ -110,7 +108,6 @@ public class WalletFacade {
         return walletTransactions;
     }
 
-    @NotNull
     private WalletTransaction toWalletTransaction(Wallet wallet, Transaction transaction) {
         Coin valueSentFromMe = transaction.getValueSentFromMe(wallet);
         Coin valueSentToMe = transaction.getValueSentToMe(wallet);
@@ -262,7 +259,7 @@ public class WalletFacade {
                     }
 
                     @Override
-                    public void onFailure(@NotNull Throwable t) {
+                    public void onFailure(Throwable t) {
                         log.error("onWithdraw onFailure");
                     }
                 });
@@ -342,7 +339,6 @@ public class WalletFacade {
         return null != aesKey && walletsManager.checkAESKey(aesKey);
     }
 
-    @NotNull
     private static WalletAddress convertAddressEntryToWalletAddress(AddressEntry entry, BtcWalletService btcWalletService) {
         Coin balance;
         if (AddressEntry.Context.MULTI_SIG.equals(entry.getContext())) {

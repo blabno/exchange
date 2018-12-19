@@ -31,8 +31,6 @@ import java.util.zip.ZipOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.jetbrains.annotations.NotNull;
-
 //TODO @bernard: Why not use BackupManager from core?
 @Slf4j
 public class BackupManager {
@@ -58,12 +56,10 @@ public class BackupManager {
         return backupFilename;
     }
 
-    @NotNull
     public Path getBackupFilePath(String backupFilename) {
         return getBackupDirectoryPath().resolve(backupFilename);
     }
 
-    @NotNull
     private Path getBackupDirectoryPath() {
         return appDataDirectoryPath.resolve("backup");
     }
@@ -147,7 +143,6 @@ public class BackupManager {
 
     }
 
-    @NotNull
     private FileNotFoundException fileNotFound(String fileName) {
         return new FileNotFoundException("File not found: " + fileName);
     }
