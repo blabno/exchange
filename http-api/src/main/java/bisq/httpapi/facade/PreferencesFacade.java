@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
-
 
 
 import bisq.httpapi.model.Preferences;
@@ -111,7 +109,6 @@ public class PreferencesFacade {
         return getPreferences();
     }
 
-    @NotNull
     private static Country codeToCountry(String code) {
         Optional<Country> countryOptional = CountryUtil.findCountryByCode(code);
         if (!countryOptional.isPresent())
@@ -119,7 +116,6 @@ public class PreferencesFacade {
         return countryOptional.get();
     }
 
-    @NotNull
     private Collection<CryptoCurrency> codesToCryptoCurrencies(List<String> cryptoCurrencies) {
         return cryptoCurrencies.stream().map(code -> {
             Optional<CryptoCurrency> cryptoCurrency = CurrencyUtil.getCryptoCurrency(code);
@@ -129,7 +125,6 @@ public class PreferencesFacade {
         }).collect(Collectors.toList());
     }
 
-    @NotNull
     private Collection<FiatCurrency> codesToFiatCurrencies(List<String> fiatCurrencies) {
         return fiatCurrencies.stream().map(code -> {
             Optional<FiatCurrency> cryptoCurrency = CurrencyUtil.getFiatCurrency(code);
@@ -139,7 +134,6 @@ public class PreferencesFacade {
         }).collect(Collectors.toList());
     }
 
-    @NotNull
     private static TradeCurrency codeToTradeCurrency(String code) {
         Optional<TradeCurrency> currencyOptional = CurrencyUtil.getTradeCurrency(code);
         if (!currencyOptional.isPresent())

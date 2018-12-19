@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,7 +59,6 @@ public class OfferEndpointIT {
     @DockerContainer
     Container bitcoin = ContainerFactory.createBitcoinContainer();
 
-    @NotNull
     private static JSONObject toJsonObject(InputDataForOffer offer) {
         JSONObject jsonOffer = new JSONObject();
         putIfNotNull(jsonOffer, "fundUsingBisqWallet", offer.fundUsingBisqWallet);
@@ -840,7 +837,6 @@ public class OfferEndpointIT {
         ;
     }
 
-    @NotNull
     private InputDataForOffer getOfferToCreateFixedBuy(String tradeCurrency, String paymentAccountId) {
         InputDataForOffer offer = new InputDataForOffer();
         offer.fundUsingBisqWallet = true;
@@ -855,7 +851,6 @@ public class OfferEndpointIT {
         return offer;
     }
 
-    @NotNull
     private JSONObject toJsonObject(TakeOffer payload) {
         JSONObject json = new JSONObject();
         putIfNotNull(json, "paymentAccountId", payload.paymentAccountId);

@@ -1,9 +1,5 @@
 package bisq.httpapi;
 
-import org.jetbrains.annotations.NotNull;
-
-
-
 import org.arquillian.cube.docker.impl.client.config.Await;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.ContainerBuilder;
@@ -64,7 +60,6 @@ public final class ContainerFactory {
         return createApiContainerBuilder(nameSuffix, portBinding, nodePort, linkToSeedNode, linkToBitcoin, true);
     }
 
-    @NotNull
     public static Await getAwaitStrategy() {
         Await awaitStrategy = new Await();
         awaitStrategy.setStrategy("polling");
