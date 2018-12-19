@@ -137,10 +137,10 @@ public class OfferBuilder {
         Market market = new Market(marketPair);
         // BTC_USD for fiat or XMR_BTC for altcoins
         // baseCurrencyCode is always left side, counterCurrencyCode right side
-        String baseCurrencyCode = market.getLsymbol();
-        String counterCurrencyCode = market.getRsymbol();
+        String baseCurrencyCode = market.getBaseCurrencyCode();
+        String counterCurrencyCode = market.getCounterCurrencyCode();
 
-        String currencyCode = market.getLsymbol().endsWith("BTC") ? market.getRsymbol() : market.getLsymbol();
+        String currencyCode = market.getBaseCurrencyCode().endsWith("BTC") ? market.getCounterCurrencyCode() : market.getBaseCurrencyCode();
 
         PaymentAccount paymentAccount = optionalAccount.get();
         ArrayList<String> acceptedCountryCodes = OfferUtil.getAcceptedCountryCodes(paymentAccount);

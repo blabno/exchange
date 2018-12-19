@@ -11,14 +11,14 @@ public class Market {
     @JsonProperty
     String pair;
     @JsonProperty
-    String lsymbol; // baseCurrencyCode // TODO @bernard should we rename lsymbol?
+    String baseCurrencyCode;
     @JsonProperty
-    String rsymbol; // counterCurrencyCode // TODO @bernard should we rename rsymbol?
+    String counterCurrencyCode;
 
-    public Market(String lsymbol, String rsymbol) {
-        this.lsymbol = lsymbol.toUpperCase();
-        this.rsymbol = rsymbol.toUpperCase();
-        this.pair = this.lsymbol + "_" + this.rsymbol;
+    public Market(String baseCurrencyCode, String counterCurrencyCode) {
+        this.baseCurrencyCode = baseCurrencyCode.toUpperCase();
+        this.counterCurrencyCode = counterCurrencyCode.toUpperCase();
+        this.pair = this.baseCurrencyCode + "_" + this.counterCurrencyCode;
     }
 
     public Market(String marketPair) {

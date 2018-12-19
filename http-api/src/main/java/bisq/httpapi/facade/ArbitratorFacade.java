@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 
@@ -52,17 +53,11 @@ public class ArbitratorFacade {
         this.useDevPrivilegeKeys = useDevPrivilegeKeys;
     }
 
-    public void registerArbitrator(List<String> languageCodes) {
-        //        TODO most of this code is dupplication of ArbitratorRegistrationViewModel.onRegister
-        String privKeyString = useDevPrivilegeKeys ? DevEnv.DEV_PRIVILEGE_PRIV_KEY : null;
-        //        TODO hm, are we going to send private key over http?
-        if (privKeyString == null) {
-            throw new RuntimeException("Missing private key");
+    public CompletableFuture<Void> registerArbitrator(List<String> languageCodes) {
+        if (!useDevPrivilegeKeys) {
+            throw new RuntimeException("This method is allowed only in development environment");
         }
-        ECKey registrationKey = arbitratorManager.getRegistrationKey(privKeyString);
-        if (registrationKey == null) {
-            throw new RuntimeException("Missing registration key");
-        }
+        ECKey registrationKey = arbitratorManager.getRegistrationKey(DevEnv.DEV_PRIVILEGE_PRIV_KEY);
         AddressEntry arbitratorDepositAddressEntry = btcWalletService.getArbitratorAddressEntry();
         String registrationSignature = arbitratorManager.signStorageSignaturePubKey(registrationKey);
         Arbitrator arbitrator = new Arbitrator(
@@ -78,8 +73,9 @@ public class ArbitratorFacade {
                 null,
                 null
         );
-        //        TODO I don't know how to deal with those callbacks in order to send response back
-        arbitratorManager.addArbitrator(arbitrator, () -> System.out.println("Arbi registered"), message -> System.out.println("Error when registering arbi: " + message));
+        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        arbitratorManager.addArbitrator(arbitrator, () -> completableFuture.complete(null), message -> completableFuture.completeExceptionally(new RuntimeException(message)));
+        return completableFuture;
     }
 
     public Collection<Arbitrator> getArbitrators(boolean acceptedOnly) {
