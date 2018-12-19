@@ -1,10 +1,5 @@
 package bisq.httpapi.service.endpoint;
 
-import bisq.httpapi.exceptions.NotFoundException;
-import bisq.httpapi.facade.TradeFacade;
-import bisq.httpapi.model.TradeDetails;
-import bisq.httpapi.model.TradeList;
-
 import bisq.common.UserThread;
 
 import javax.inject.Inject;
@@ -20,6 +15,10 @@ import static java.util.stream.Collectors.toList;
 
 
 
+import bisq.httpapi.exceptions.NotFoundException;
+import bisq.httpapi.facade.TradeFacade;
+import bisq.httpapi.model.TradeDetails;
+import bisq.httpapi.model.TradeList;
 import io.dropwizard.jersey.validation.ValidationErrorMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,10 +49,10 @@ public class TradeEndpoint {
 
     @ApiOperation(value = "List trades", response = TradeList.class)
     @GET
-    public void find(@Suspended final AsyncResponse asyncResponse) {
+    public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
-                final TradeList tradeList = new TradeList();
+                TradeList tradeList = new TradeList();
                 tradeList.trades = tradeFacade.getTradeList().stream().map(TradeDetails::new).collect(toList());
                 tradeList.total = tradeList.trades.size();
                 asyncResponse.resume(tradeList);
@@ -66,7 +65,7 @@ public class TradeEndpoint {
     @ApiOperation(value = "Get trade details", response = TradeDetails.class)
     @GET
     @Path("/{id}")
-    public void getById(@Suspended final AsyncResponse asyncResponse, @PathParam("id") String id) {
+    public void getById(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
                 asyncResponse.resume(new TradeDetails(tradeFacade.getTrade(id)));
@@ -79,10 +78,10 @@ public class TradeEndpoint {
     @ApiOperation("Confirm payment has started")
     @POST
     @Path("/{id}/payment-started")
-    public void paymentStarted(@Suspended final AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
+    public void paymentStarted(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
-                final CompletableFuture<Void> completableFuture = tradeFacade.paymentStarted(id);
+                CompletableFuture<Void> completableFuture = tradeFacade.paymentStarted(id);
                 handlePaymentStatusChange(id, asyncResponse, completableFuture);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -93,10 +92,10 @@ public class TradeEndpoint {
     @ApiOperation("Confirm payment has been received")
     @POST
     @Path("/{id}/payment-received")
-    public void paymentReceived(@Suspended final AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
+    public void paymentReceived(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
-                final CompletableFuture<Void> completableFuture = tradeFacade.paymentReceived(id);
+                CompletableFuture<Void> completableFuture = tradeFacade.paymentReceived(id);
                 handlePaymentStatusChange(id, asyncResponse, completableFuture);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -107,7 +106,7 @@ public class TradeEndpoint {
     @ApiOperation("Move funds to Bisq wallet")
     @POST
     @Path("/{id}/move-funds-to-bisq-wallet")
-    public void moveFundsToBisqWallet(@Suspended final AsyncResponse asyncResponse, @PathParam("id") String id) {
+    public void moveFundsToBisqWallet(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
                 tradeFacade.moveFundsToBisqWallet(id);
@@ -121,14 +120,14 @@ public class TradeEndpoint {
     private void handlePaymentStatusChange(String tradeId, AsyncResponse asyncResponse, CompletableFuture<Void> completableFuture) {
         completableFuture.thenApply(response -> asyncResponse.resume(Response.status(Response.Status.OK).build()))
                 .exceptionally(e -> {
-                    final Throwable cause = e.getCause();
-                    final Response.ResponseBuilder responseBuilder;
+                    Throwable cause = e.getCause();
+                    Response.ResponseBuilder responseBuilder;
                     if (cause instanceof ValidationException) {
                         responseBuilder = toValidationErrorResponse(cause, 422);
                     } else if (cause instanceof NotFoundException) {
                         responseBuilder = toValidationErrorResponse(cause, 404);
                     } else {
-                        final String message = cause.getMessage();
+                        String message = cause.getMessage();
                         responseBuilder = Response.status(500);
                         if (null != message)
                             responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));

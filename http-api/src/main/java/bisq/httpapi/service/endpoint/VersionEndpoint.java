@@ -1,11 +1,10 @@
 package bisq.httpapi.service.endpoint;
 
-import bisq.httpapi.model.VersionDetails;
-
 import bisq.common.app.Version;
 
 
 
+import bisq.httpapi.model.VersionDetails;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -21,7 +20,7 @@ public class VersionEndpoint {
     @ApiOperation(value = "Get version details")
     @GET
     public VersionDetails getVersionDetails() {
-        final VersionDetails versionDetails = new VersionDetails();
+        VersionDetails versionDetails = new VersionDetails();
         versionDetails.application = Version.VERSION;
         versionDetails.network = Version.P2P_NETWORK_VERSION;
         versionDetails.p2PMessage = Version.getP2PMessageVersion();

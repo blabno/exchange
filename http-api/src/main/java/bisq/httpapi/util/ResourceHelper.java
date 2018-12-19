@@ -18,15 +18,15 @@ import javax.ws.rs.core.Response;
 public final class ResourceHelper {
 
     public static Response.ResponseBuilder toValidationErrorResponse(Throwable cause, int status) {
-        final String message = cause.getMessage();
-        final ImmutableList<String> list = null == message ? ImmutableList.of() : ImmutableList.of(message);
+        String message = cause.getMessage();
+        ImmutableList<String> list = null == message ? ImmutableList.of() : ImmutableList.of(message);
         return Response.status(status).entity(new ValidationErrorMessage(list));
     }
 
     public static boolean handleException(AsyncResponse asyncResponse, Throwable throwable) {
-        final Throwable cause = throwable.getCause();
-        final Response.ResponseBuilder responseBuilder;
-        final String message = cause.getMessage();
+        Throwable cause = throwable.getCause();
+        Response.ResponseBuilder responseBuilder;
+        String message = cause.getMessage();
         if (cause instanceof NotFoundException) {
             responseBuilder = toValidationErrorResponse(cause, 404);
         } else {

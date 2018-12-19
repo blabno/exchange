@@ -58,7 +58,7 @@ public class OfferDetail {
     }
 
     public OfferDetail(Offer offer) {
-        final OfferPayload offerPayload = offer.getOfferPayload();
+        OfferPayload offerPayload = offer.getOfferPayload();
         this.id = offer.getId();
         this.direction = offer.getDirection();
         this.state = offer.getState();

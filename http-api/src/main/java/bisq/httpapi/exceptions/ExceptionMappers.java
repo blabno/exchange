@@ -31,17 +31,17 @@ public final class ExceptionMappers {
     public static class InvalidTypeIdExceptionMapper implements ExceptionMapper<InvalidTypeIdException> {
         @Override
         public Response toResponse(InvalidTypeIdException exception) {
-            final Class<?> rawClass = exception.getBaseType().getRawClass();
-            final StringBuilder builder = new StringBuilder("Unable to recognize sub type of ")
+            Class<?> rawClass = exception.getBaseType().getRawClass();
+            StringBuilder builder = new StringBuilder("Unable to recognize sub type of ")
                     .append(rawClass.getSimpleName())
                     .append(". Value '")
                     .append(exception.getTypeId())
                     .append("' is invalid.");
 
-            final JsonSubTypes annotation = rawClass.getAnnotation(JsonSubTypes.class);
+            JsonSubTypes annotation = rawClass.getAnnotation(JsonSubTypes.class);
             if (null != annotation && 0 < annotation.value().length) {
                 builder.append(" Allowed values are: ");
-                final String separator = ", ";
+                String separator = ", ";
                 for (JsonSubTypes.Type subType : annotation.value())
                     builder.append(subType.name()).append(separator);
                 builder.delete(builder.length() - separator.length(), builder.length());

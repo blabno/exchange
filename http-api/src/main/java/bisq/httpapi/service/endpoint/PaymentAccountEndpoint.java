@@ -2,16 +2,15 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
+import javax.inject.Inject;
+
+
+
 import bisq.httpapi.facade.PaymentAccountFacade;
 import bisq.httpapi.model.PaymentAccountList;
 import bisq.httpapi.model.payment.PaymentAccount;
 import bisq.httpapi.model.payment.PaymentAccountHelper;
 import bisq.httpapi.service.ExperimentalFeature;
-
-import javax.inject.Inject;
-
-
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -43,7 +42,7 @@ public class PaymentAccountEndpoint {
     @ApiOperation(value = "Remove payment account", notes = ExperimentalFeature.NOTE)
     @DELETE
     @Path("/{id}")
-    public void removeById(@Suspended final AsyncResponse asyncResponse, @PathParam("id") String id) {
+    public void removeById(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -57,12 +56,12 @@ public class PaymentAccountEndpoint {
 
     @ApiOperation(value = "Create payment account", notes = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", response = PaymentAccount.class)
     @POST
-    public void create(@Suspended final AsyncResponse asyncResponse, @Valid PaymentAccount account) {
+    public void create(@Suspended AsyncResponse asyncResponse, @Valid PaymentAccount account) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final bisq.core.payment.PaymentAccount paymentAccount = PaymentAccountHelper.toBusinessModel(account);
-                final PaymentAccount result = PaymentAccountHelper.toRestModel(paymentAccountFacade.addPaymentAccount(paymentAccount));
+                bisq.core.payment.PaymentAccount paymentAccount = PaymentAccountHelper.toBusinessModel(account);
+                PaymentAccount result = PaymentAccountHelper.toRestModel(paymentAccountFacade.addPaymentAccount(paymentAccount));
                 asyncResponse.resume(result);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -72,7 +71,7 @@ public class PaymentAccountEndpoint {
 
     @ApiOperation(value = "Get existing payment accounts", response = PaymentAccountList.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void find(@Suspended final AsyncResponse asyncResponse) {
+    public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();

@@ -9,9 +9,9 @@ public class SpecificBanksAccountPaymentAccountConverter extends AbstractPayment
 
     @Override
     public SpecificBanksAccount toBusinessModel(SpecificBanksAccountPaymentAccount rest) {
-        final SpecificBanksAccount business = new SpecificBanksAccount();
+        SpecificBanksAccount business = new SpecificBanksAccount();
         business.init();
-        final SpecificBanksAccountPayload paymentAccountPayload = (SpecificBanksAccountPayload) business.getPaymentAccountPayload();
+        SpecificBanksAccountPayload paymentAccountPayload = (SpecificBanksAccountPayload) business.getPaymentAccountPayload();
         paymentAccountPayload.setAccountNr(rest.accountNr);
         paymentAccountPayload.setAccountType(rest.accountType);
         paymentAccountPayload.setBankId(rest.bankId);
@@ -27,14 +27,14 @@ public class SpecificBanksAccountPaymentAccountConverter extends AbstractPayment
 
     @Override
     public SpecificBanksAccountPaymentAccount toRestModel(SpecificBanksAccount business) {
-        final SpecificBanksAccountPaymentAccount rest = toRestModel((SpecificBanksAccountPayload) business.getPaymentAccountPayload());
+        SpecificBanksAccountPaymentAccount rest = toRestModel((SpecificBanksAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public SpecificBanksAccountPaymentAccount toRestModel(SpecificBanksAccountPayload business) {
-        final SpecificBanksAccountPaymentAccount rest = new SpecificBanksAccountPaymentAccount();
+        SpecificBanksAccountPaymentAccount rest = new SpecificBanksAccountPaymentAccount();
         rest.accountNr = business.getAccountNr();
         rest.accountType = business.getAccountType();
         rest.bankId = business.getBankId();
@@ -43,7 +43,7 @@ public class SpecificBanksAccountPaymentAccountConverter extends AbstractPayment
         rest.countryCode = business.getCountryCode();
         rest.holderName = business.getHolderName();
         rest.holderTaxId = business.getHolderTaxId();
-        final List<String> acceptedBanks = business.getAcceptedBanks();
+        List<String> acceptedBanks = business.getAcceptedBanks();
         if (null != acceptedBanks)
             rest.acceptedBanks.addAll(acceptedBanks);
         toRestModel(rest, business);

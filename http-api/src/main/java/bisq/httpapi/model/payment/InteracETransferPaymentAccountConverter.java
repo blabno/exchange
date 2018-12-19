@@ -7,7 +7,7 @@ public class InteracETransferPaymentAccountConverter extends AbstractPaymentAcco
 
     @Override
     public InteracETransferAccount toBusinessModel(InteracETransferPaymentAccount rest) {
-        final InteracETransferAccount business = new InteracETransferAccount();
+        InteracETransferAccount business = new InteracETransferAccount();
         business.init();
         business.setHolderName(rest.holderName);
         business.setEmail(rest.emailOrMobileNr);
@@ -19,14 +19,14 @@ public class InteracETransferPaymentAccountConverter extends AbstractPaymentAcco
 
     @Override
     public InteracETransferPaymentAccount toRestModel(InteracETransferAccount business) {
-        final InteracETransferPaymentAccount rest = toRestModel((InteracETransferAccountPayload) business.getPaymentAccountPayload());
+        InteracETransferPaymentAccount rest = toRestModel((InteracETransferAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public InteracETransferPaymentAccount toRestModel(InteracETransferAccountPayload business) {
-        final InteracETransferPaymentAccount rest = new InteracETransferPaymentAccount();
+        InteracETransferPaymentAccount rest = new InteracETransferPaymentAccount();
         rest.answer = business.getAnswer();
         rest.question = business.getQuestion();
         rest.holderName = business.getHolderName();

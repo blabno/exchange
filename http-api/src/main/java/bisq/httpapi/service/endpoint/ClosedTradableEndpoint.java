@@ -2,16 +2,15 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.ClosedTradableFacade;
-import bisq.httpapi.model.ClosedTradableList;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 
 
 
+import bisq.httpapi.facade.ClosedTradableFacade;
+import bisq.httpapi.model.ClosedTradableList;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -37,11 +36,11 @@ public class ClosedTradableEndpoint {
 
     @ApiOperation(value = "List portfolio history", response = ClosedTradableList.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void listClosedTrades(@Suspended final AsyncResponse asyncResponse) {
+    public void listClosedTrades(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final ClosedTradableList list = new ClosedTradableList();
+                ClosedTradableList list = new ClosedTradableList();
                 list.closedTradables = closedTradableFacade.getClosedTradableList();
                 list.total = list.closedTradables.size();
                 asyncResponse.resume(list);

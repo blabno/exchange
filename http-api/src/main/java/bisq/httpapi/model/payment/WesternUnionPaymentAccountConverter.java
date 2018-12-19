@@ -8,7 +8,7 @@ public class WesternUnionPaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public WesternUnionAccount toBusinessModel(WesternUnionPaymentAccount rest) {
-        final WesternUnionAccount business = new WesternUnionAccount();
+        WesternUnionAccount business = new WesternUnionAccount();
         business.init();
         business.setFullName(rest.holderName);
         business.setCity(rest.city);
@@ -21,14 +21,14 @@ public class WesternUnionPaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public WesternUnionPaymentAccount toRestModel(WesternUnionAccount business) {
-        final WesternUnionPaymentAccount rest = toRestModel((WesternUnionAccountPayload) business.getPaymentAccountPayload());
+        WesternUnionPaymentAccount rest = toRestModel((WesternUnionAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public WesternUnionPaymentAccount toRestModel(WesternUnionAccountPayload business) {
-        final WesternUnionPaymentAccount rest = new WesternUnionPaymentAccount();
+        WesternUnionPaymentAccount rest = new WesternUnionPaymentAccount();
         rest.holderName = business.getHolderName();
         rest.city = business.getCity();
         rest.countryCode = business.getCountryCode();

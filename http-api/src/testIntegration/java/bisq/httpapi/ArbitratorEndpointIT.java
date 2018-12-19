@@ -37,8 +37,8 @@ public class ArbitratorEndpointIT {
     @InSequence(1)
     @Test
     public void registerArbitrator() throws InterruptedException {
-        final int alicePort = getAlicePort();
-        final int arbitratorPort = getArbitratorPort();
+        int alicePort = getAlicePort();
+        int arbitratorPort = getArbitratorPort();
         given().
                 port(alicePort).
 //
@@ -72,8 +72,8 @@ public class ArbitratorEndpointIT {
     @InSequence(3)
     @Test
     public void deselectArbitrator() {
-        final int alicePort = getAlicePort();
-        final String arbitratorAddress = getArbitratorAddress(alicePort);
+        int alicePort = getAlicePort();
+        String arbitratorAddress = getArbitratorAddress(alicePort);
 
         assertNumberOfAcceptedArbitrators(alicePort, 1);
 
@@ -95,8 +95,8 @@ public class ArbitratorEndpointIT {
     @InSequence(4)
     @Test
     public void selectArbitrator() {
-        final int alicePort = getAlicePort();
-        final String arbitratorAddress = getArbitratorAddress(alicePort);
+        int alicePort = getAlicePort();
+        String arbitratorAddress = getArbitratorAddress(alicePort);
 
         assertNumberOfAcceptedArbitrators(alicePort, 0);
 

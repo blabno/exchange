@@ -1,12 +1,5 @@
 package bisq.httpapi;
 
-import bisq.httpapi.model.AuthForm;
-import bisq.httpapi.model.ChangePassword;
-import bisq.httpapi.model.Preferences;
-import bisq.httpapi.model.SeedWordsRestore;
-import bisq.httpapi.model.WithdrawFundsForm;
-import bisq.httpapi.model.payment.SepaPaymentAccount;
-
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -18,6 +11,12 @@ import static org.hamcrest.Matchers.equalTo;
 
 
 
+import bisq.httpapi.model.AuthForm;
+import bisq.httpapi.model.ChangePassword;
+import bisq.httpapi.model.Preferences;
+import bisq.httpapi.model.SeedWordsRestore;
+import bisq.httpapi.model.WithdrawFundsForm;
+import bisq.httpapi.model.payment.SepaPaymentAccount;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
@@ -46,7 +45,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void registerArbitrator_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 when().
                 body("{\"languageCodes\":[\"en\",\"de\"]}").
@@ -58,7 +57,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void deselectArbitrator_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 pathParam("address", "abc").
                 when().
@@ -69,7 +68,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void selectArbitrator_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 pathParam("address", "abc").
                 when().
@@ -104,7 +103,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void uploadBackup_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 multiPart("file", "xyz", "abc".getBytes()).
                 contentType("multipart/form-data").
@@ -141,8 +140,8 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void createPaymentAccount_always_returns501() {
-        final SepaPaymentAccount accountToCreate = ApiTestHelper.randomValidCreateSepaAccountPayload();
-        final Response response = given().
+        SepaPaymentAccount accountToCreate = ApiTestHelper.randomValidCreateSepaAccountPayload();
+        Response response = given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON).
                 body(accountToCreate).
@@ -186,7 +185,7 @@ public class ExperimentalFeatureIT {
         savedPreferences.userLanguage = "PL";
         savedPreferences.withdrawalTxFee = 200L;
 
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 body(savedPreferences).
                 contentType(ContentType.JSON).
@@ -205,7 +204,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void authenticate_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 body(new AuthForm("abc")).
                 contentType(ContentType.JSON).
@@ -217,7 +216,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void changePassword_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 body(new ChangePassword("abc", null)).
                 contentType(ContentType.JSON).
@@ -241,12 +240,12 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void withdrawFunds_always_returns501() {
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 50000000;
         data.feeExcluded = false;
         data.sourceAddresses = Collections.singletonList("abc");
         data.targetAddress = "zyx";
-        final Response response = given().port(getAlicePort()).body(data).
+        Response response = given().port(getAlicePort()).body(data).
                 contentType(ContentType.JSON).when().post("/api/v1/wallet/withdraw");
         expect501(response);
     }
@@ -273,7 +272,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void restoreWalletFromSeedWords_always_returns501() {
-        final Response response = given().
+        Response response = given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON).
                 body(new SeedWordsRestore(Collections.singletonList("abc"), "2018-04-28", "abc")).

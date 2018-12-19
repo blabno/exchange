@@ -45,10 +45,10 @@ public class TradeDetails {
 
     public TradeDetails(Trade trade) {
         this.id = trade.getId();
-        final Offer offer = trade.getOffer();
+        Offer offer = trade.getOffer();
         if (null != offer)
             this.offer = new OfferDetail(offer);
-        final Contract contract = trade.getContract();
+        Contract contract = trade.getContract();
         if (null != contract) {
             this.buyerPaymentAccount = PaymentAccountHelper.toRestModel(contract.getBuyerPaymentAccountPayload());
             this.sellerPaymentAccount = PaymentAccountHelper.toRestModel(contract.getSellerPaymentAccountPayload());
@@ -67,15 +67,15 @@ public class TradeDetails {
         this.tradePeriodState = trade.getTradePeriodState();
         this.arbitratorBtcPubKey = trade.getArbitratorBtcPubKey();
         this.contractHash = trade.getContractHash();
-        final NodeAddress mediatorNodeAddress = trade.getMediatorNodeAddress();
+        NodeAddress mediatorNodeAddress = trade.getMediatorNodeAddress();
         if (null != mediatorNodeAddress)
             this.mediatorNodeAddress = mediatorNodeAddress.getFullAddress();
         this.takerContractSignature = trade.getTakerContractSignature();
         this.makerContractSignature = trade.getMakerContractSignature();
-        final NodeAddress arbitratorNodeAddress = trade.getArbitratorNodeAddress();
+        NodeAddress arbitratorNodeAddress = trade.getArbitratorNodeAddress();
         if (null != arbitratorNodeAddress)
             this.arbitratorNodeAddress = arbitratorNodeAddress.getFullAddress();
-        final NodeAddress tradingPeerNodeAddress = trade.getTradingPeerNodeAddress();
+        NodeAddress tradingPeerNodeAddress = trade.getTradingPeerNodeAddress();
         if (null != tradingPeerNodeAddress)
             this.tradingPeerNodeAddress = tradingPeerNodeAddress.getFullAddress();
         this.takerPaymentAccountId = trade.getTakerPaymentAccountId();

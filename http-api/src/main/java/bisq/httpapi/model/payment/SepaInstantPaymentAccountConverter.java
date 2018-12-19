@@ -10,7 +10,7 @@ public class SepaInstantPaymentAccountConverter extends AbstractPaymentAccountCo
 
     @Override
     public SepaInstantAccount toBusinessModel(SepaInstantPaymentAccount rest) {
-        final SepaInstantAccount business = new SepaInstantAccount();
+        SepaInstantAccount business = new SepaInstantAccount();
         business.init();
         business.setBic(rest.bic);
         business.setIban(rest.iban);
@@ -25,19 +25,19 @@ public class SepaInstantPaymentAccountConverter extends AbstractPaymentAccountCo
 
     @Override
     public SepaInstantPaymentAccount toRestModel(SepaInstantAccount business) {
-        final SepaInstantPaymentAccount rest = toRestModel((SepaInstantAccountPayload) business.getPaymentAccountPayload());
+        SepaInstantPaymentAccount rest = toRestModel((SepaInstantAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public SepaInstantPaymentAccount toRestModel(SepaInstantAccountPayload business) {
-        final SepaInstantPaymentAccount rest = new SepaInstantPaymentAccount();
+        SepaInstantPaymentAccount rest = new SepaInstantPaymentAccount();
         rest.iban = business.getIban();
         rest.bic = business.getBic();
         rest.countryCode = business.getCountryCode();
         rest.holderName = business.getHolderName();
-        final List<String> tradeCurrencies = business.getAcceptedCountryCodes();
+        List<String> tradeCurrencies = business.getAcceptedCountryCodes();
         if (null != tradeCurrencies)
             rest.acceptedCountries.addAll(tradeCurrencies);
         toRestModel(rest, business);

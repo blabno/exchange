@@ -21,9 +21,9 @@ public class BitcoinIT {
     @Test
     public void generateBlocks() throws InterruptedException
     {
-        final CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "generate", "101");
+        CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "generate", "101");
         assertEquals("Command 'generate 101' should succeed", "", cubeOutput.getError());
-        final CubeOutput getbalanceOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getbalance");
+        CubeOutput getbalanceOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getbalance");
         assertEquals("Balance should be 50 BTC", "50.00000000", getbalanceOutput.getStandard().trim());
     }
 }

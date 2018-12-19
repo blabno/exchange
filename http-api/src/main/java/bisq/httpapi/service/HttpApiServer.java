@@ -3,11 +3,6 @@ package bisq.httpapi.service;
 import bisq.core.app.BisqEnvironment;
 import bisq.core.btc.wallet.BtcWalletService;
 
-import bisq.httpapi.exceptions.ExceptionMappers;
-import bisq.httpapi.service.auth.AuthFilter;
-import bisq.httpapi.service.auth.TokenRegistry;
-import bisq.httpapi.util.CurrencyListHealthCheck;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 
@@ -17,6 +12,10 @@ import java.util.EnumSet;
 
 
 
+import bisq.httpapi.exceptions.ExceptionMappers;
+import bisq.httpapi.service.auth.AuthFilter;
+import bisq.httpapi.service.auth.TokenRegistry;
+import bisq.httpapi.util.CurrencyListHealthCheck;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
@@ -90,7 +89,7 @@ public class HttpApiServer extends Application<HttpApiConfiguration> {
     }
 
     private void setupCrossOriginFilter(Environment environment) {
-        final FilterRegistration.Dynamic crossOriginFilter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        FilterRegistration.Dynamic crossOriginFilter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
         // Configure CrossOriginFilter parameters
         crossOriginFilter.setInitParameter("allowedOrigins", "*");
@@ -103,7 +102,7 @@ public class HttpApiServer extends Application<HttpApiConfiguration> {
 
     private void setupAuth(Environment environment) {
         AuthFilter authFilter = new AuthFilter(walletService, tokenRegistry);
-        final FilterRegistration.Dynamic auth = environment.servlets().addFilter("Auth", authFilter);
+        FilterRegistration.Dynamic auth = environment.servlets().addFilter("Auth", authFilter);
         auth.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
     }
 

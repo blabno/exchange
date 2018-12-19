@@ -7,7 +7,7 @@ public class VenmoPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public VenmoAccount toBusinessModel(VenmoPaymentAccount rest) {
-        final VenmoAccount business = new VenmoAccount();
+        VenmoAccount business = new VenmoAccount();
         business.init();
         business.setHolderName(rest.holderName);
         business.setVenmoUserName(rest.venmoUserName);
@@ -17,14 +17,14 @@ public class VenmoPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public VenmoPaymentAccount toRestModel(VenmoAccount business) {
-        final VenmoPaymentAccount rest = toRestModel((VenmoAccountPayload) business.getPaymentAccountPayload());
+        VenmoPaymentAccount rest = toRestModel((VenmoAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public VenmoPaymentAccount toRestModel(VenmoAccountPayload business) {
-        final VenmoPaymentAccount rest = new VenmoPaymentAccount();
+        VenmoPaymentAccount rest = new VenmoPaymentAccount();
         rest.holderName = business.getHolderName();
         rest.venmoUserName = business.getVenmoUserName();
         toRestModel(rest, business);

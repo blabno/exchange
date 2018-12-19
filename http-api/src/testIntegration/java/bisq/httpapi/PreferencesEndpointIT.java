@@ -130,7 +130,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_invalidBlockChainExplorer_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.blockChainExplorer = "abc";
 
         given().
@@ -152,7 +152,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_unsupportedCryptoCurrencyCode_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.cryptoCurrencies = Collections.singletonList("BTC");
 
         given().
@@ -174,7 +174,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_nullCryptoCurrencyCode_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.cryptoCurrencies = Collections.singletonList(null);
 
         given().
@@ -196,7 +196,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_unsupportedFiatCurrencyCode_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.fiatCurrencies = Collections.singletonList("BTC");
 
         given().
@@ -218,7 +218,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_nullFiatCurrencyCode_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.fiatCurrencies = Collections.singletonList(null);
 
         given().
@@ -240,7 +240,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_nullIgnoredTraders_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.ignoredTraders = Collections.singletonList(null);
 
         given().
@@ -262,7 +262,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_unsupportedPreferredTradeCurrency_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.preferredTradeCurrency = "ABC";
 
         given().
@@ -284,7 +284,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_unsupportedUserCountry_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.userCountry = "ABC";
 
         given().
@@ -306,7 +306,7 @@ public class PreferencesEndpointIT {
     @InSequence(3)
     @Test
     public void setPreferences_baseCurrencyNetwork_returns422() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.baseCurrencyNetwork = "LTC";
 
         given().
@@ -328,7 +328,7 @@ public class PreferencesEndpointIT {
     @InSequence(4)
     @Test
     public void setPreferences_validPartialPayload_returns200() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.autoSelectArbitrators = true;
 
         given().

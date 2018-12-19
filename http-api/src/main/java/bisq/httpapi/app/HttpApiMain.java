@@ -65,7 +65,7 @@ public class HttpApiMain extends BisqHeadlessAppMain {
         log.info("onSetupComplete");
 
         HttpApiServer httpApiServer = injector.getInstance(HttpApiServer.class);
-        final ShutdownFacade shutdownFacade = injector.getInstance(ShutdownFacade.class);
+        ShutdownFacade shutdownFacade = injector.getInstance(ShutdownFacade.class);
         shutdownFacade.setShutdownHandler(() -> UserThread.runAfter(() -> this.gracefulShutDown(() -> log.debug("App shutdown complete")),
                         200, TimeUnit.MILLISECONDS));
         httpApiServer.startServer();

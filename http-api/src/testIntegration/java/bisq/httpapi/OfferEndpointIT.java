@@ -63,7 +63,7 @@ public class OfferEndpointIT {
 
     @NotNull
     private static JSONObject toJsonObject(InputDataForOffer offer) {
-        final JSONObject jsonOffer = new JSONObject();
+        JSONObject jsonOffer = new JSONObject();
         putIfNotNull(jsonOffer, "fundUsingBisqWallet", offer.fundUsingBisqWallet);
         putIfNotNull(jsonOffer, "amount", offer.amount);
         putIfNotNull(jsonOffer, "minAmount", offer.minAmount);
@@ -108,20 +108,20 @@ public class OfferEndpointIT {
     }
 
     private void addPaymentAccounts() {
-        final int alicePort = getAlicePort();
-        final int bobPort = getBobPort();
+        int alicePort = getAlicePort();
+        int bobPort = getBobPort();
 
         SepaPaymentAccount sepaAccountToCreate;
 
         sepaAccountToCreate = ApiTestHelper.randomValidCreateSepaAccountPayload();
         tradeCurrency = sepaAccountToCreate.selectedTradeCurrency;
-        final String tradePaymentMethodCountry = sepaAccountToCreate.countryCode;
+        String tradePaymentMethodCountry = sepaAccountToCreate.countryCode;
         alicePaymentAccount = ApiTestHelper.createPaymentAccount(alicePort, sepaAccountToCreate).extract().as(SepaPaymentAccount.class);
 
         sepaAccountToCreate = ApiTestHelper.randomValidCreateSepaAccountPayload(tradeCurrency, tradePaymentMethodCountry);
         bobPaymentAccount = ApiTestHelper.createPaymentAccount(bobPort, sepaAccountToCreate).extract().as(SepaPaymentAccount.class);
 
-        final String incompatibleCurrency = "EUR".equals(tradeCurrency) ? "PLN" : "EUR";
+        String incompatibleCurrency = "EUR".equals(tradeCurrency) ? "PLN" : "EUR";
         sepaAccountToCreate = ApiTestHelper.randomValidCreateSepaAccountPayload(incompatibleCurrency, tradePaymentMethodCountry);
         bobIncompatiblePaymentAccountId = ApiTestHelper.createPaymentAccount(bobPort, sepaAccountToCreate).extract().body().jsonPath().get("id");
     }
@@ -129,7 +129,7 @@ public class OfferEndpointIT {
     @InSequence(1)
     @Test
     public void createOffer_noArbitratorAccepted_returns424status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         createOffer_template(offer, 424);
     }
 
@@ -163,7 +163,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_validPayloadButNoFunds_returns427status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         createOffer_template(offer, 427);
     }
 
@@ -171,21 +171,21 @@ public class OfferEndpointIT {
     @Test
     public void createOffer_incompatiblePaymentAccount_returns423status() {
         String otherTradeCurrency = "EUR".equals(tradeCurrency) ? "PLN" : "EUR";
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(otherTradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(otherTradeCurrency, alicePaymentAccount.id);
         createOffer_template(offer, 423);
     }
 
     @InSequence(3)
     @Test
     public void createOffer_noPaymentAccount_returns425status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id + alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id + alicePaymentAccount.id);
         createOffer_template(offer, 425);
     }
 
     @InSequence(3)
     @Test
     public void createOffer_useMarketBasePriceButNoMarginProvided_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.priceType = PriceType.PERCENTAGE.name();
         offer.percentageFromMarketPrice = null;
         createOffer_template(offer, 422, "When choosing PERCENTAGE price marketPriceMargin must be set");
@@ -194,9 +194,9 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_notUseMarketBasePriceButNoFixedPrice_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.priceType = PriceType.FIXED.name();
-        final JSONObject jsonOffer = toJsonObject(offer);
+        JSONObject jsonOffer = toJsonObject(offer);
         jsonOffer.remove("fixedPrice");
         given().
                 port(getAlicePort()).
@@ -216,7 +216,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_invalidDirection_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.direction = OfferPayload.Direction.BUY.name() + OfferPayload.Direction.SELL.name();
         createOffer_template(offer, 422, "direction must be one of: BUY, SELL");
     }
@@ -224,7 +224,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_missingDirection_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.direction = null;
         createOffer_template(offer, 422, "direction may not be null");
     }
@@ -232,7 +232,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_invalidPriceType_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.priceType = PriceType.FIXED.name() + PriceType.PERCENTAGE.name();
         createOffer_template(offer, 422, "priceType must be one of: FIXED, PERCENTAGE");
     }
@@ -240,7 +240,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_missingPriceType_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.priceType = null;
         createOffer_template(offer, 422, "priceType may not be null");
     }
@@ -248,7 +248,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_fixedPriceNegative_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.fixedPrice = -1;
         createOffer_template(offer, 422, "fixedPrice must be greater than or equal to 0");
     }
@@ -256,7 +256,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_fixedPriceZero_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.fixedPrice = 0;
         createOffer_template(offer, 422, "When choosing FIXED price fiatPrice must be set with a price > 0");
     }
@@ -264,7 +264,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_amountZero_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.amount = 0;
         createOffer_template(offer, 422, "amount must be greater than or equal to 1");
     }
@@ -272,7 +272,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_minAmountZero_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.minAmount = 0;
         createOffer_template(offer, 422, "minAmount must be greater than or equal to 1");
     }
@@ -280,7 +280,7 @@ public class OfferEndpointIT {
     @InSequence(3)
     @Test
     public void createOffer_buyerSecurityDepositZero_returns422status() {
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.buyerSecurityDeposit = 0L;
         createOffer_template(offer, 422, "buyerSecurityDeposit must be greater than or equal to 1");
     }
@@ -297,9 +297,9 @@ public class OfferEndpointIT {
     @InSequence(5)
     @Test
     public void createOffer_amountTooHigh_returns426() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.amount = 100000000;
 
         given().
@@ -317,9 +317,9 @@ public class OfferEndpointIT {
     @InSequence(6)
     @Test
     public void createOffer_validPayloadAndHasFunds_returnsOffer() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
 
         createdOffer = given().
                 port(alicePort).
@@ -373,7 +373,7 @@ public class OfferEndpointIT {
     @InSequence(7)
     @Test
     public void listOffers_always_returnsOffers() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
         given().
                 port(alicePort).
@@ -426,9 +426,9 @@ public class OfferEndpointIT {
     @InSequence(8)
     @Test
     public void createOffer_validMarketPriceBasedOfferAndHasFunds_returnsOffer() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
         offer.fixedPrice = 0;
         offer.percentageFromMarketPrice = new BigDecimal(.12);
         offer.priceType = PriceType.PERCENTAGE.name();
@@ -486,9 +486,9 @@ public class OfferEndpointIT {
     @InSequence(9)
     @Test
     public void withdrawFunds_fromOfferFundingAddress_returns422status() {
-        final List<WalletAddress> btcWalletAddresses = ApiTestHelper.getBtcWalletAddresses(getAlicePort()).walletAddresses;
-        final WalletAddress walletAddress = btcWalletAddresses.stream().filter(address -> AddressEntry.Context.OFFER_FUNDING.equals(address.context)).findFirst().get();
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        List<WalletAddress> btcWalletAddresses = ApiTestHelper.getBtcWalletAddresses(getAlicePort()).walletAddresses;
+        WalletAddress walletAddress = btcWalletAddresses.stream().filter(address -> AddressEntry.Context.OFFER_FUNDING.equals(address.context)).findFirst().get();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 50000000;
         data.feeExcluded = true;
         data.sourceAddresses = Collections.singletonList(walletAddress.address);
@@ -525,7 +525,7 @@ public class OfferEndpointIT {
     @InSequence(10)
     @Test
     public void takeOffer_offerNotFound_returns404status() {
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
         takeOffer_template("non-existing-id", payload, 404);
     }
 
@@ -548,10 +548,10 @@ public class OfferEndpointIT {
     }
 
     private void takeOffer_errorTemplate(String offerId, TakeOffer payload, int expectedStatusCode, List<String> expectedErrors) {
-        final ValidatableResponse validatableResponse = takeOffer_template(offerId, payload, expectedStatusCode);
-        final JsonPath jsonPath = validatableResponse.extract().jsonPath();
-        final List<String> actualErrors = new ArrayList<>();
-        final long actualErrorsSize = jsonPath.getLong("errors.size()");
+        ValidatableResponse validatableResponse = takeOffer_template(offerId, payload, expectedStatusCode);
+        JsonPath jsonPath = validatableResponse.extract().jsonPath();
+        List<String> actualErrors = new ArrayList<>();
+        long actualErrorsSize = jsonPath.getLong("errors.size()");
         for (int i = 0; i < actualErrorsSize; i++) {
             actualErrors.add(jsonPath.get("errors[" + i + "]"));
         }
@@ -564,29 +564,29 @@ public class OfferEndpointIT {
     @InSequence(10)
     @Test
     public void takeOffer_validPayloadButNoFunds_returns422status() {
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
         takeOffer_errorTemplate(createdOffer.id, payload, 422, "Available balance 0 is less than needed amount: 1");
     }
 
     @InSequence(10)
     @Test
     public void takeOffer_paymentAccountIdIsEmptyString_returns422status() {
-        final TakeOffer payload = new TakeOffer("", 1);
+        TakeOffer payload = new TakeOffer("", 1);
         takeOffer_errorTemplate(createdOffer.id, payload, 422, "paymentAccountId may not be empty");
     }
 
     @InSequence(10)
     @Test
     public void takeOffer_paymentAccountIdIsNull_returns422status() {
-        final TakeOffer payload = new TakeOffer(null, 1);
+        TakeOffer payload = new TakeOffer(null, 1);
         takeOffer_errorTemplate(createdOffer.id, payload, 422, Arrays.asList("paymentAccountId may not be empty", "paymentAccountId may not be null"));
     }
 
     @InSequence(10)
     @Test
     public void takeOffer_amountMissing_returns422status() {
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
-        final JSONObject jsonPayload = toJsonObject(payload);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
+        JSONObject jsonPayload = toJsonObject(payload);
         jsonPayload.remove("amount");
         given().
                 port(getBobPort()).
@@ -608,7 +608,7 @@ public class OfferEndpointIT {
     @Test
     public void takeOffer_noArbitratorSelected_returns424() {
         ApiTestHelper.deselectAllArbitrators(getBobPort());
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
         takeOffer_template(createdOffer.id, payload, 423);
     }
 
@@ -616,16 +616,16 @@ public class OfferEndpointIT {
     @InSequence(10)
     @Test
     public void takeOffer_noOverlappingArbitrator_returnsXXX() throws Exception {
-        final int bobPort = getBobPort();
+        int bobPort = getBobPort();
         ApiTestHelper.registerArbitrator(getAlicePort());
-        final OfferDetail offer = ApiTestHelper.getOfferById(bobPort, createdOffer.id);
-        final List<String> arbitrators = ApiTestHelper.getAcceptedArbitrators(bobPort);
+        OfferDetail offer = ApiTestHelper.getOfferById(bobPort, createdOffer.id);
+        List<String> arbitrators = ApiTestHelper.getAcceptedArbitrators(bobPort);
         arbitrators.removeAll(offer.arbitratorNodeAddresses);
         Assert.assertThat(arbitrators.size(), greaterThan(0));
         ApiTestHelper.deselectAllArbitrators(bobPort);
         ApiTestHelper.selectArbitrator(bobPort, arbitrators.get(0));
 
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
         takeOffer_template(createdOffer.id, payload, 0);
         throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -633,8 +633,8 @@ public class OfferEndpointIT {
     @InSequence(11)
     @Test
     public void selectSameArbitratorAsInOffer() {
-        final int bobPort = getBobPort();
-        final OfferDetail offer = ApiTestHelper.getOfferById(bobPort, createdOffer.id);
+        int bobPort = getBobPort();
+        OfferDetail offer = ApiTestHelper.getOfferById(bobPort, createdOffer.id);
         Assert.assertThat(offer.arbitratorNodeAddresses.size(), greaterThan(0));
         ApiTestHelper.selectArbitrator(bobPort, offer.arbitratorNodeAddresses.get(0));
     }
@@ -651,34 +651,34 @@ public class OfferEndpointIT {
     @InSequence(13)
     @Test
     public void takeOffer_paymentAccountNotFound_returns422status() {
-        final TakeOffer payload = new TakeOffer("non-existing-account", 1);
+        TakeOffer payload = new TakeOffer("non-existing-account", 1);
         takeOffer_template(createdOffer.id, payload, 422);
     }
 
     @InSequence(13)
     @Test
     public void takeOffer_incompatiblePaymentAccount_returns422status() {
-        final TakeOffer payload = new TakeOffer(bobIncompatiblePaymentAccountId, 1);
+        TakeOffer payload = new TakeOffer(bobIncompatiblePaymentAccountId, 1);
         takeOffer_errorTemplate(createdOffer.id, payload, 422, String.format("PaymentAccount is not valid for offer, needs %s", alicePaymentAccount.tradeCurrencies.get(0)));
     }
 
     @InSequence(13)
     @Test
     public void takeOffer_maxFundsForTradeExceeded_returns422status() {
-        final TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1, 0L);
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1, 0L);
         takeOffer_errorTemplate(createdOffer.id, payload, 422, "Funds needed for traded calculated by Bisq exceed specified limit");
     }
 
     @InSequence(14)
     @Test
     public void takeOffer_takerSameAsMaker_returns422status() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final TakeOffer payload = new TakeOffer();
+        TakeOffer payload = new TakeOffer();
         payload.amount = 6250000;
         payload.paymentAccountId = bobPaymentAccount.id;
 
-        final String offerId = createdOffer.id;
+        String offerId = createdOffer.id;
 
         given().
                 port(alicePort).
@@ -698,16 +698,16 @@ public class OfferEndpointIT {
     @InSequence(15)
     @Test
     public void takeOffer_validPaymentMethodAndHasFunds_returnsTrade() {
-        final int alicePort = getAlicePort();
-        final int bobPort = getBobPort();
+        int alicePort = getAlicePort();
+        int bobPort = getBobPort();
 
-        final TakeOffer payload = new TakeOffer();
+        TakeOffer payload = new TakeOffer();
         payload.amount = createdOffer.amount;
         payload.paymentAccountId = bobPaymentAccount.id;
 
-        final String offerId = createdOffer.id;
-        final String arbitratorAddress = createdOffer.arbitratorNodeAddresses.get(0);
-        final String aliceAddress = ApiTestHelper.getP2PNetworkStatus(alicePort).address;
+        String offerId = createdOffer.id;
+        String arbitratorAddress = createdOffer.arbitratorNodeAddresses.get(0);
+        String aliceAddress = ApiTestHelper.getP2PNetworkStatus(alicePort).address;
 
 //        TODO some of following properties change over time and we have no control over that timing so probably there's not much point in returning everything here
         given().
@@ -787,7 +787,7 @@ public class OfferEndpointIT {
     public void cancelOffer_notMyOffer_returns404() throws Exception {
         createOffer_validPayloadAndHasFunds_returnsOffer();
         ApiTestHelper.waitForP2PMsgPropagation();
-        final int bobPort = getBobPort();
+        int bobPort = getBobPort();
         assertOfferExists(bobPort, createdOffer.id);
         given().
                 port(bobPort).
@@ -804,7 +804,7 @@ public class OfferEndpointIT {
     @InSequence(17)
     @Test
     public void cancelOffer_ownExistingOffer_returns200() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
         given().
                 port(alicePort).
 //
@@ -828,7 +828,7 @@ public class OfferEndpointIT {
     @InSequence(18)
     @Test
     public void cancelOffer_ownNonExistingOffer_returns404() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
         given().
                 port(alicePort).
 //
@@ -842,7 +842,7 @@ public class OfferEndpointIT {
 
     @NotNull
     private InputDataForOffer getOfferToCreateFixedBuy(String tradeCurrency, String paymentAccountId) {
-        final InputDataForOffer offer = new InputDataForOffer();
+        InputDataForOffer offer = new InputDataForOffer();
         offer.fundUsingBisqWallet = true;
         offer.amount = 6250000;
         offer.minAmount = offer.amount;
@@ -857,7 +857,7 @@ public class OfferEndpointIT {
 
     @NotNull
     private JSONObject toJsonObject(TakeOffer payload) {
-        final JSONObject json = new JSONObject();
+        JSONObject json = new JSONObject();
         putIfNotNull(json, "paymentAccountId", payload.paymentAccountId);
         putIfNotNull(json, "amount", payload.amount);
         return json;

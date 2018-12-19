@@ -230,7 +230,7 @@ public class OfferBuilder {
         offer.setPriceFeedService(priceFeedService);
 
         if (!isPaymentAccountValidForOffer(offer, paymentAccount)) {
-            final String errorMessage = "PaymentAccount is not valid for offer, needs " + offer.getCurrencyCode();
+            String errorMessage = "PaymentAccount is not valid for offer, needs " + offer.getCurrencyCode();
             throw new IncompatiblePaymentAccountException(errorMessage);
         }
 
@@ -239,7 +239,7 @@ public class OfferBuilder {
 
 
     private Set<PaymentAccount> getPaymentAccounts() {
-        final Set<PaymentAccount> paymentAccounts = user.getPaymentAccounts();
+        Set<PaymentAccount> paymentAccounts = user.getPaymentAccounts();
         return null == paymentAccounts ? Collections.<PaymentAccount>emptySet() : paymentAccounts;
     }
 

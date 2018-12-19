@@ -90,7 +90,7 @@ public final class ApiTestHelper {
     }
 
     public static ValidatableResponse registerArbitrator(int apiPort) throws InterruptedException {
-        final ValidatableResponse validatableResponse = given().
+        ValidatableResponse validatableResponse = given().
                 port(apiPort).
 //
         when().
@@ -108,7 +108,7 @@ public final class ApiTestHelper {
     }
 
     public static void waitForP2PMsgPropagation() throws InterruptedException {
-        final int P2P_MSG_RELAY_DELAY = 1000;
+        int P2P_MSG_RELAY_DELAY = 1000;
         Thread.sleep(P2P_MSG_RELAY_DELAY);
     }
 
@@ -117,13 +117,13 @@ public final class ApiTestHelper {
         /**
          * PaymentMethod initializes it's static values after all services get initialized
          */
-        final int ALL_SERVICES_INITIALIZED_DELAY = 5000;
+        int ALL_SERVICES_INITIALIZED_DELAY = 5000;
         Thread.sleep(ALL_SERVICES_INITIALIZED_DELAY);
     }
 
     public static SepaPaymentAccount randomValidCreateSepaAccountPayload(String tradeCurrency, String countryCode) {
-        final Faker faker = new Faker();
-        final SepaPaymentAccount accountToCreate = new SepaPaymentAccount();
+        Faker faker = new Faker();
+        SepaPaymentAccount accountToCreate = new SepaPaymentAccount();
         if (null == countryCode)
             countryCode = faker.options().nextElement(CountryUtil.getAllSepaCountries()).code;
         accountToCreate.paymentMethod = PaymentMethod.SEPA_ID;
@@ -141,7 +141,7 @@ public final class ApiTestHelper {
     }
 
     public static void randomizeAccountPayload(PaymentAccount accountToCreate) {
-        final Faker faker = new Faker();
+        Faker faker = new Faker();
         accountToCreate.accountName = faker.commerce().productName();
         accountToCreate.selectedTradeCurrency = faker.options().option("PLN", "USD", "EUR", "GBP");
         accountToCreate.tradeCurrencies = Collections.singletonList(accountToCreate.selectedTradeCurrency);
@@ -152,9 +152,9 @@ public final class ApiTestHelper {
     }
 
     public static void generateBlocks(Container bitcoin, int numberOfBlocks) {
-        final CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "generate", "" + numberOfBlocks);
+        CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "generate", "" + numberOfBlocks);
         assertEquals("Command 'generate blocks' should succeed", "", cubeOutput.getError());
-        final int ALL_SERVICES_INITIALIZED_DELAY = 3000;
+        int ALL_SERVICES_INITIALIZED_DELAY = 3000;
         try {
             Thread.sleep(ALL_SERVICES_INITIALIZED_DELAY);
         } catch (InterruptedException e) {
@@ -188,12 +188,12 @@ public final class ApiTestHelper {
 
 
     public static void sendFunds(Container bitcoin, String walletAddress, double amount) {
-        final CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "sendtoaddress", walletAddress, "" + amount);
+        CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "sendtoaddress", walletAddress, "" + amount);
         assertEquals("Command 'sendfrom' should succeed", "", cubeOutput.getError());
     }
 
     public static String[] toString(Enum[] values) {
-        final String[] result = new String[values.length];
+        String[] result = new String[values.length];
         for (int i = 0; i < values.length; i++) {
             result[i] = values[i].name();
         }

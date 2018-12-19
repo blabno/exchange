@@ -6,17 +6,6 @@ import bisq.core.btc.exceptions.InsufficientFundsException;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.exceptions.AmountTooLowException;
-import bisq.httpapi.facade.WalletFacade;
-import bisq.httpapi.model.AuthForm;
-import bisq.httpapi.model.SeedWords;
-import bisq.httpapi.model.SeedWordsRestore;
-import bisq.httpapi.model.WalletAddress;
-import bisq.httpapi.model.WalletAddressList;
-import bisq.httpapi.model.WalletTransactionList;
-import bisq.httpapi.model.WithdrawFundsForm;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import org.bitcoinj.core.Coin;
 
 import javax.inject.Inject;
@@ -29,6 +18,16 @@ import lombok.extern.slf4j.Slf4j;
 
 
 
+import bisq.httpapi.exceptions.AmountTooLowException;
+import bisq.httpapi.facade.WalletFacade;
+import bisq.httpapi.model.AuthForm;
+import bisq.httpapi.model.SeedWords;
+import bisq.httpapi.model.SeedWordsRestore;
+import bisq.httpapi.model.WalletAddress;
+import bisq.httpapi.model.WalletAddressList;
+import bisq.httpapi.model.WalletTransactionList;
+import bisq.httpapi.model.WithdrawFundsForm;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.dropwizard.jersey.validation.ValidationErrorMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -65,14 +64,14 @@ public class WalletEndpoint {
 
     @ApiOperation(value = "Get wallet details", response = bisq.httpapi.model.Balances.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void getWalletDetails(@Suspended final AsyncResponse asyncResponse) {
+    public void getWalletDetails(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final long availableBalance = this.balances.getAvailableBalance().get().value;
-                final long reservedBalance = this.balances.getReservedBalance().get().value;
-                final long lockedBalance = this.balances.getLockedBalance().get().value;
-                final bisq.httpapi.model.Balances balances = new bisq.httpapi.model.Balances(availableBalance,
+                long availableBalance = this.balances.getAvailableBalance().get().value;
+                long reservedBalance = this.balances.getReservedBalance().get().value;
+                long lockedBalance = this.balances.getLockedBalance().get().value;
+                bisq.httpapi.model.Balances balances = new bisq.httpapi.model.Balances(availableBalance,
                         reservedBalance,
                         lockedBalance);
                 asyncResponse.resume(balances);
@@ -85,11 +84,11 @@ public class WalletEndpoint {
     @ApiOperation(value = "Get wallet addresses", response = WalletAddressList.class, notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/addresses")
-    public void getAddresses(@Suspended final AsyncResponse asyncResponse, @QueryParam("purpose") WalletFacade.WalletAddressPurpose purpose) {
+    public void getAddresses(@Suspended AsyncResponse asyncResponse, @QueryParam("purpose") WalletFacade.WalletAddressPurpose purpose) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final WalletAddressList walletAddresses = walletFacade.getWalletAddresses(purpose);
+                WalletAddressList walletAddresses = walletFacade.getWalletAddresses(purpose);
                 asyncResponse.resume(walletAddresses);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -100,11 +99,11 @@ public class WalletEndpoint {
     @ApiOperation(value = "Get or create wallet address", response = WalletAddress.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/addresses") //TODO should path be "addresses" ?
-    public void getOrCreateAvailableUnusedWalletAddresses(@Suspended final AsyncResponse asyncResponse) {
+    public void getOrCreateAvailableUnusedWalletAddresses(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final WalletAddress addresses = walletFacade.getOrCreateAvailableUnusedWalletAddresses();
+                WalletAddress addresses = walletFacade.getOrCreateAvailableUnusedWalletAddresses();
                 asyncResponse.resume(addresses);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -115,12 +114,12 @@ public class WalletEndpoint {
     @ApiOperation(value = "Get wallet seed words", response = SeedWords.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/seed-words/retrieve")
-    public void getSeedWords(@Suspended final AsyncResponse asyncResponse, AuthForm form) {
+    public void getSeedWords(@Suspended AsyncResponse asyncResponse, AuthForm form) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final String password = null == form ? null : form.password;
-                final SeedWords seedWords = walletFacade.getSeedWords(password);
+                String password = null == form ? null : form.password;
+                SeedWords seedWords = walletFacade.getSeedWords(password);
                 asyncResponse.resume(seedWords);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -131,17 +130,17 @@ public class WalletEndpoint {
     @ApiOperation(value = "Restore wallet from seed words", notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/seed-words/restore")
-    public void restoreWalletFromSeedWords(@Suspended final AsyncResponse asyncResponse, @Valid @NotNull SeedWordsRestore data) {
+    public void restoreWalletFromSeedWords(@Suspended AsyncResponse asyncResponse, @Valid @NotNull SeedWordsRestore data) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
                 walletFacade.restoreWalletFromSeedWords(data.mnemonicCode, data.walletCreationDate, data.password)
                         .thenApply(response -> asyncResponse.resume(Response.noContent().build()))
                         .exceptionally(e -> {
-                            final Throwable cause = e.getCause();
-                            final Response.ResponseBuilder responseBuilder;
+                            Throwable cause = e.getCause();
+                            Response.ResponseBuilder responseBuilder;
 
-                            final String message = cause.getMessage();
+                            String message = cause.getMessage();
                             responseBuilder = Response.status(500);
                             if (null != message)
                                 responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
@@ -157,7 +156,7 @@ public class WalletEndpoint {
     @ApiOperation(value = "Get wallet transactions", response = WalletTransactionList.class, notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/transactions")
-    public void getTransactions(@Suspended final AsyncResponse asyncResponse) {
+    public void getTransactions(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -171,14 +170,14 @@ public class WalletEndpoint {
     @ApiOperation(value = "Withdraw funds", notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/withdraw")
-    public void withdrawFunds(@Suspended final AsyncResponse asyncResponse, @Valid WithdrawFundsForm data) {
+    public void withdrawFunds(@Suspended AsyncResponse asyncResponse, @Valid WithdrawFundsForm data) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final HashSet<String> sourceAddresses = new HashSet<>(data.sourceAddresses);
-                final Coin amountAsCoin = Coin.valueOf(data.amount);
-                final boolean feeExcluded = data.feeExcluded;
-                final String targetAddress = data.targetAddress;
+                HashSet<String> sourceAddresses = new HashSet<>(data.sourceAddresses);
+                Coin amountAsCoin = Coin.valueOf(data.amount);
+                boolean feeExcluded = data.feeExcluded;
+                String targetAddress = data.targetAddress;
                 try {
                     walletFacade.withdrawFunds(sourceAddresses, amountAsCoin, feeExcluded, targetAddress);
                     asyncResponse.resume(Response.noContent().build());

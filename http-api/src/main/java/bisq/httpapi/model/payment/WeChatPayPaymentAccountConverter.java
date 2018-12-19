@@ -7,7 +7,7 @@ public class WeChatPayPaymentAccountConverter extends AbstractPaymentAccountConv
 
     @Override
     public WeChatPayAccount toBusinessModel(WeChatPayPaymentAccount rest) {
-        final WeChatPayAccount business = new WeChatPayAccount();
+        WeChatPayAccount business = new WeChatPayAccount();
         business.init();
         business.setAccountNr(rest.accountNr);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class WeChatPayPaymentAccountConverter extends AbstractPaymentAccountConv
 
     @Override
     public WeChatPayPaymentAccount toRestModel(WeChatPayAccount business) {
-        final WeChatPayPaymentAccount rest = toRestModel((WeChatPayAccountPayload) business.getPaymentAccountPayload());
+        WeChatPayPaymentAccount rest = toRestModel((WeChatPayAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public WeChatPayPaymentAccount toRestModel(WeChatPayAccountPayload business) {
-        final WeChatPayPaymentAccount rest = new WeChatPayPaymentAccount();
+        WeChatPayPaymentAccount rest = new WeChatPayPaymentAccount();
         rest.accountNr = business.getAccountNr();
         toRestModel(rest, business);
         return rest;

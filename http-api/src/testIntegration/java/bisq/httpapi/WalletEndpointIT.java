@@ -77,10 +77,10 @@ public class WalletEndpointIT {
     @InSequence(2)
     @Test
     public void withdrawFunds_insufficientFunds_returns423() throws InterruptedException {
-        final int alicePort = getAlicePort();
-        final String addressWithFunds1 = ApiTestHelper.getAvailableBtcWalletAddress(alicePort);
+        int alicePort = getAlicePort();
+        String addressWithFunds1 = ApiTestHelper.getAvailableBtcWalletAddress(alicePort);
 
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 50000000;
         data.feeExcluded = false;
         data.sourceAddresses = Collections.singletonList(addressWithFunds1);
@@ -106,7 +106,7 @@ public class WalletEndpointIT {
     @InSequence(3)
     @Test
     public void fundAliceWallet() throws InterruptedException {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
         addressWithFunds1 = ApiTestHelper.getAvailableBtcWalletAddress(alicePort);
         ApiTestHelper.sendFunds(bitcoin, addressWithFunds1, .3);
         ApiTestHelper.generateBlocks(bitcoin, 1);
@@ -122,10 +122,10 @@ public class WalletEndpointIT {
     @InSequence(4)
     @Test
     public void withdrawFunds_dust_returns424() throws InterruptedException {
-        final int alicePort = getAlicePort();
-        final String addressWithFunds1 = ApiTestHelper.getAvailableBtcWalletAddress(alicePort);
+        int alicePort = getAlicePort();
+        String addressWithFunds1 = ApiTestHelper.getAvailableBtcWalletAddress(alicePort);
 
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 1;
         data.feeExcluded = false;
         data.sourceAddresses = Arrays.asList(addressWithFunds1, addressWithFunds2, addressWithFunds3);
@@ -151,9 +151,9 @@ public class WalletEndpointIT {
     @InSequence(5)
     @Test
     public void withdrawFunds_insufficientFundsDueToFee_returns423() throws InterruptedException {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 100000000;
         data.feeExcluded = true;
         data.sourceAddresses = Arrays.asList(addressWithFunds1, addressWithFunds2, addressWithFunds3);
@@ -179,9 +179,9 @@ public class WalletEndpointIT {
     @InSequence(6)
     @Test
     public void withdrawFunds_sufficientFunds_returns204() throws InterruptedException {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 100000000;
         data.feeExcluded = false;
         data.sourceAddresses = Arrays.asList(addressWithFunds1, addressWithFunds2, addressWithFunds3);
@@ -207,12 +207,12 @@ public class WalletEndpointIT {
     @InSequence(7)
     @Test
     public void withdrawFunds_sufficientFundsExcludingFee_returns204() throws InterruptedException {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
         emptyMinerAddress = createNewAccountAndAddress();
         fundAliceWallet();
 
-        final WithdrawFundsForm data = new WithdrawFundsForm();
+        WithdrawFundsForm data = new WithdrawFundsForm();
         data.amount = 50000000;
         data.feeExcluded = true;
         data.sourceAddresses = Arrays.asList(addressWithFunds1, addressWithFunds2, addressWithFunds3);
@@ -277,7 +277,7 @@ public class WalletEndpointIT {
     @InSequence(10)
     @Test
     public void setPassword() throws Exception {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
         password = new Faker().internet().password();
         accessToken = given().
                 port(alicePort).
@@ -312,7 +312,7 @@ public class WalletEndpointIT {
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_passwordSetAndPasswordNotProvided_returns401() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-04-28");
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-04-28");
         restoreWalletFromSeedWords_request(payload, 401, true);
     }
 
@@ -325,62 +325,62 @@ public class WalletEndpointIT {
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_noMnemonicCode_returns422() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(null, "2018-04-28", password);
+        SeedWordsRestore payload = new SeedWordsRestore(null, "2018-04-28", password);
         restoreWalletFromSeedWords_request(payload, 422, true);
     }
 
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_mnemonicCodeContainsNull_returns422() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList(null), "2018-04-28", password);
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList(null), "2018-04-28", password);
         restoreWalletFromSeedWords_request(payload, 422, true);
     }
 
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_emptyMnemonicCodeArray_returns422() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
         restoreWalletFromSeedWords_request(payload, 422, true);
     }
 
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_walletCreationDateIsNull_returns422() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), null, password);
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), null, password);
         restoreWalletFromSeedWords_request(payload, 422, true);
     }
 
     @InSequence(11)
     @Test
     public void restoreWalletFromSeedWords_doesNotMatchDatePattern_returns422() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.emptyList(), "abcd", password);
         restoreWalletFromSeedWords_request(payload, 422, true);
     }
 
     @InSequence(12)
     @Test
     public void restoreWalletFromSeedWords_correctData_returns204() throws Exception {
-        final SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-01-01", password);
+        SeedWordsRestore payload = new SeedWordsRestore(Collections.singletonList("string"), "2018-01-01", password);
         restoreWalletFromSeedWords_request(payload, 204, true);
     }
 
     private double getAccountBalanceByAddress(Container bitcoin, String address) {
         CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getaccount", address);
         assertEquals("Command 'getnewaddress' should succeed", "", cubeOutput.getError());
-        final String account = cubeOutput.getStandard().trim();
+        String account = cubeOutput.getStandard().trim();
         cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getbalance", account);
         assertEquals("Command 'getbalance' should succeed", "", cubeOutput.getError());
         return Double.valueOf(cubeOutput.getStandard().trim());
     }
 
     private String createNewAccountAndAddress() {
-        final CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getnewaddress", "test" + System.currentTimeMillis());
+        CubeOutput cubeOutput = bitcoin.exec("bitcoin-cli", "-regtest", "getnewaddress", "test" + System.currentTimeMillis());
         assertEquals("Command 'getnewaddress' should succeed", "", cubeOutput.getError());
         return cubeOutput.getStandard().trim();
     }
 
     private void restoreWalletFromSeedWords_request(SeedWordsRestore payload, int expectedStatusCode, boolean includeAccessTokenHeader) {
-        final RequestSpecification requestSpecification = given().
+        RequestSpecification requestSpecification = given().
                 port(getAlicePort()).
                 contentType(ContentType.JSON);
 

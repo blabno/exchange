@@ -7,7 +7,7 @@ public class PopmoneyPaymentAccountConverter extends AbstractPaymentAccountConve
 
     @Override
     public PopmoneyAccount toBusinessModel(PopmoneyPaymentAccount rest) {
-        final PopmoneyAccount business = new PopmoneyAccount();
+        PopmoneyAccount business = new PopmoneyAccount();
         business.init();
         business.setAccountId(rest.accountId);
         business.setHolderName(rest.holderName);
@@ -17,14 +17,14 @@ public class PopmoneyPaymentAccountConverter extends AbstractPaymentAccountConve
 
     @Override
     public PopmoneyPaymentAccount toRestModel(PopmoneyAccount business) {
-        final PopmoneyPaymentAccount rest = toRestModel((PopmoneyAccountPayload) business.getPaymentAccountPayload());
+        PopmoneyPaymentAccount rest = toRestModel((PopmoneyAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public PopmoneyPaymentAccount toRestModel(PopmoneyAccountPayload business) {
-        final PopmoneyPaymentAccount rest = new PopmoneyPaymentAccount();
+        PopmoneyPaymentAccount rest = new PopmoneyPaymentAccount();
         rest.accountId = business.getAccountId();
         rest.holderName = business.getHolderName();
         toRestModel(rest, business);
