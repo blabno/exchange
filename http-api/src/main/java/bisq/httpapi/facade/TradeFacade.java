@@ -43,14 +43,14 @@ public class TradeFacade {
     }
 
     public List<Trade> getTradeList() {
-        final ObservableList<Trade> tradableList = tradeManager.getTradableList();
+        ObservableList<Trade> tradableList = tradeManager.getTradableList();
         if (null != tradableList) return tradableList.sorted();
         return Collections.emptyList();
     }
 
     public Trade getTrade(String tradeId) {
-        final String safeTradeId = (null == tradeId) ? "" : tradeId;
-        final Optional<Trade> tradeOptional = getTradeList().stream().filter(item -> safeTradeId.equals(item.getId())).findAny();
+        String safeTradeId = (null == tradeId) ? "" : tradeId;
+        Optional<Trade> tradeOptional = getTradeList().stream().filter(item -> safeTradeId.equals(item.getId())).findAny();
         if (!tradeOptional.isPresent()) {
             throw new NotFoundException("Trade not found: " + tradeId);
         }
@@ -58,7 +58,7 @@ public class TradeFacade {
     }
 
     public CompletableFuture<Void> paymentStarted(String tradeId) {
-        final CompletableFuture<Void> futureResult = new CompletableFuture<>();
+        CompletableFuture<Void> futureResult = new CompletableFuture<>();
         Trade trade;
         try {
             trade = getTrade(tradeId);
@@ -82,7 +82,7 @@ public class TradeFacade {
     }
 
     public CompletableFuture<Void> paymentReceived(String tradeId) {
-        final CompletableFuture<Void> futureResult = new CompletableFuture<>();
+        CompletableFuture<Void> futureResult = new CompletableFuture<>();
         Trade trade;
         try {
             trade = getTrade(tradeId);
@@ -112,8 +112,8 @@ public class TradeFacade {
     }
 
     public void moveFundsToBisqWallet(String tradeId) {
-        final Trade trade = getTrade(tradeId);
-        final Trade.State tradeState = trade.getState();
+        Trade trade = getTrade(tradeId);
+        Trade.State tradeState = trade.getState();
         if (!Trade.State.SELLER_SAW_ARRIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState) && !Trade.State.BUYER_RECEIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState))
             throw new ValidationException("Trade is not in the correct state to transfer funds out: " + tradeState);
         btcWalletService.swapTradeEntryToAvailableEntry(trade.getId(), AddressEntry.Context.TRADE_PAYOUT);

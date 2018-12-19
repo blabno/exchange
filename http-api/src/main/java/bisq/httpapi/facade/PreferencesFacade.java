@@ -9,9 +9,6 @@ import bisq.core.locale.FiatCurrency;
 import bisq.core.locale.TradeCurrency;
 import bisq.core.user.BlockChainExplorer;
 
-import bisq.httpapi.model.Preferences;
-import bisq.httpapi.model.PreferencesAvailableValues;
-
 import javax.inject.Inject;
 
 import java.util.Collection;
@@ -23,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 
 
+import bisq.httpapi.model.Preferences;
+import bisq.httpapi.model.PreferencesAvailableValues;
 import javax.validation.ValidationException;
 
 public class PreferencesFacade {
@@ -35,7 +34,7 @@ public class PreferencesFacade {
     }
 
     public Preferences getPreferences() {
-        final Preferences preferences = new Preferences();
+        Preferences preferences = new Preferences();
         preferences.autoSelectArbitrators = this.preferences.isAutoSelectArbitrators();
         preferences.baseCurrencyNetwork = BisqEnvironment.getBaseCurrencyNetwork().getCurrencyCode();
         preferences.blockChainExplorer = this.preferences.getBlockChainExplorer().name;
@@ -45,7 +44,7 @@ public class PreferencesFacade {
         preferences.maxPriceDistance = this.preferences.getMaxPriceDistanceInPercent();
         preferences.preferredTradeCurrency = this.preferences.getPreferredTradeCurrency().getCode();
         preferences.useCustomWithdrawalTxFee = this.preferences.getUseCustomWithdrawalTxFeeProperty().get();
-        final Country userCountry = this.preferences.getUserCountry();
+        Country userCountry = this.preferences.getUserCountry();
         if (null != userCountry)
             preferences.userCountry = userCountry.code;
         preferences.userLanguage = this.preferences.getUserLanguage();
@@ -54,7 +53,7 @@ public class PreferencesFacade {
     }
 
     public PreferencesAvailableValues getPreferencesAvailableValues() {
-        final PreferencesAvailableValues availableValues = new PreferencesAvailableValues();
+        PreferencesAvailableValues availableValues = new PreferencesAvailableValues();
         availableValues.blockChainExplorers = preferences.getBlockChainExplorers().stream().map(i -> i.name).collect(Collectors.toList());
         availableValues.cryptoCurrencies = tradeCurrenciesToCodes(CurrencyUtil.getAllSortedCryptoCurrencies());
         availableValues.fiatCurrencies = tradeCurrenciesToCodes(CurrencyUtil.getAllSortedFiatCurrencies());
@@ -70,21 +69,21 @@ public class PreferencesFacade {
             throw new ValidationException("Changing baseCurrencyNetwork is not supported");
         }
         if (null != update.blockChainExplorer) {
-            final Optional<BlockChainExplorer> explorerOptional = preferences.getBlockChainExplorers().stream().filter(i -> update.blockChainExplorer.equals(i.name)).findAny();
+            Optional<BlockChainExplorer> explorerOptional = preferences.getBlockChainExplorers().stream().filter(i -> update.blockChainExplorer.equals(i.name)).findAny();
             if (!explorerOptional.isPresent()) {
                 throw new ValidationException("Unsupported value of blockChainExplorer: " + update.blockChainExplorer);
             }
             preferences.setBlockChainExplorer(explorerOptional.get());
         }
         if (null != update.cryptoCurrencies) {
-            final List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
-            final Collection<CryptoCurrency> convertedCryptos = codesToCryptoCurrencies(update.cryptoCurrencies);
+            List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
+            Collection<CryptoCurrency> convertedCryptos = codesToCryptoCurrencies(update.cryptoCurrencies);
             cryptoCurrencies.clear();
             cryptoCurrencies.addAll(convertedCryptos);
         }
         if (null != update.fiatCurrencies) {
-            final List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
-            final Collection<FiatCurrency> convertedFiat = codesToFiatCurrencies(update.fiatCurrencies);
+            List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
+            Collection<FiatCurrency> convertedFiat = codesToFiatCurrencies(update.fiatCurrencies);
             fiatCurrencies.clear();
             fiatCurrencies.addAll(convertedFiat);
         }
@@ -114,7 +113,7 @@ public class PreferencesFacade {
 
     @NotNull
     private static Country codeToCountry(String code) {
-        final Optional<Country> countryOptional = CountryUtil.findCountryByCode(code);
+        Optional<Country> countryOptional = CountryUtil.findCountryByCode(code);
         if (!countryOptional.isPresent())
             throw new ValidationException("Unsupported country code: " + code);
         return countryOptional.get();
@@ -123,7 +122,7 @@ public class PreferencesFacade {
     @NotNull
     private Collection<CryptoCurrency> codesToCryptoCurrencies(List<String> cryptoCurrencies) {
         return cryptoCurrencies.stream().map(code -> {
-            final Optional<CryptoCurrency> cryptoCurrency = CurrencyUtil.getCryptoCurrency(code);
+            Optional<CryptoCurrency> cryptoCurrency = CurrencyUtil.getCryptoCurrency(code);
             if (!cryptoCurrency.isPresent())
                 throw new ValidationException("Unsupported crypto currency code: " + code);
             return cryptoCurrency.get();
@@ -133,7 +132,7 @@ public class PreferencesFacade {
     @NotNull
     private Collection<FiatCurrency> codesToFiatCurrencies(List<String> fiatCurrencies) {
         return fiatCurrencies.stream().map(code -> {
-            final Optional<FiatCurrency> cryptoCurrency = CurrencyUtil.getFiatCurrency(code);
+            Optional<FiatCurrency> cryptoCurrency = CurrencyUtil.getFiatCurrency(code);
             if (!cryptoCurrency.isPresent())
                 throw new ValidationException("Unsupported fiat currency code: " + code);
             return cryptoCurrency.get();
@@ -142,7 +141,7 @@ public class PreferencesFacade {
 
     @NotNull
     private static TradeCurrency codeToTradeCurrency(String code) {
-        final Optional<TradeCurrency> currencyOptional = CurrencyUtil.getTradeCurrency(code);
+        Optional<TradeCurrency> currencyOptional = CurrencyUtil.getTradeCurrency(code);
         if (!currencyOptional.isPresent())
             throw new ValidationException("Unsupported trade currency code: " + code);
         return currencyOptional.get();

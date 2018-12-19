@@ -7,10 +7,10 @@ public class CashDepositPaymentAccountConverter extends AbstractPaymentAccountCo
 
     @Override
     public CashDepositAccount toBusinessModel(CashDepositPaymentAccount rest) {
-        final CashDepositAccount business = new CashDepositAccount();
+        CashDepositAccount business = new CashDepositAccount();
         business.init();
         business.setRequirements(rest.requirements);
-        final CashDepositAccountPayload paymentAccountPayload = (CashDepositAccountPayload) business.getPaymentAccountPayload();
+        CashDepositAccountPayload paymentAccountPayload = (CashDepositAccountPayload) business.getPaymentAccountPayload();
         paymentAccountPayload.setAccountNr(rest.accountNr);
         paymentAccountPayload.setAccountType(rest.accountType);
         paymentAccountPayload.setBankId(rest.bankId);
@@ -26,14 +26,14 @@ public class CashDepositPaymentAccountConverter extends AbstractPaymentAccountCo
 
     @Override
     public CashDepositPaymentAccount toRestModel(CashDepositAccount business) {
-        final CashDepositPaymentAccount rest = toRestModel((CashDepositAccountPayload) business.getPaymentAccountPayload());
+        CashDepositPaymentAccount rest = toRestModel((CashDepositAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public CashDepositPaymentAccount toRestModel(CashDepositAccountPayload business) {
-        final CashDepositPaymentAccount rest = new CashDepositPaymentAccount();
+        CashDepositPaymentAccount rest = new CashDepositPaymentAccount();
         rest.requirements = business.getRequirements();
         rest.accountNr = business.getAccountNr();
         rest.accountType = business.getAccountType();

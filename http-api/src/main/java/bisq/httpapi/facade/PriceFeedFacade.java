@@ -7,8 +7,6 @@ import bisq.core.provider.price.MarketPrice;
 import bisq.core.provider.price.PriceFeedService;
 import bisq.core.user.Preferences;
 
-import bisq.httpapi.model.PriceFeed;
-
 import javax.inject.Inject;
 
 import java.util.Arrays;
@@ -17,6 +15,10 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+
+
+
+import bisq.httpapi.model.PriceFeed;
 
 public class PriceFeedFacade {
 
@@ -31,18 +33,18 @@ public class PriceFeedFacade {
     }
 
     public PriceFeed getPriceFeed(String[] codes) {
-        final List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
-        final List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
-        final Stream<String> codesStream;
+        List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
+        List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
+        Stream<String> codesStream;
         if (null == codes || 0 == codes.length)
             codesStream = Stream.concat(fiatCurrencies.stream(), cryptoCurrencies.stream()).map(TradeCurrency::getCode);
         else
             codesStream = Arrays.stream(codes);
-        final List<MarketPrice> marketPrices = codesStream
+        List<MarketPrice> marketPrices = codesStream
                 .map(priceFeedService::getMarketPrice)
                 .filter(Objects::nonNull)
                 .collect(toList());
-        final PriceFeed priceFeed = new PriceFeed();
+        PriceFeed priceFeed = new PriceFeed();
         for (MarketPrice price : marketPrices)
             priceFeed.prices.put(price.getCurrencyCode(), price.getPrice());
         return priceFeed;

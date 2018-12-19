@@ -7,7 +7,7 @@ public class CryptoCurrencyPaymentAccountConverter extends AbstractPaymentAccoun
 
     @Override
     public CryptoCurrencyAccount toBusinessModel(CryptoCurrencyPaymentAccount rest) {
-        final CryptoCurrencyAccount business = new CryptoCurrencyAccount();
+        CryptoCurrencyAccount business = new CryptoCurrencyAccount();
         business.init();
         business.setAddress(rest.address);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class CryptoCurrencyPaymentAccountConverter extends AbstractPaymentAccoun
 
     @Override
     public CryptoCurrencyPaymentAccount toRestModel(CryptoCurrencyAccount business) {
-        final CryptoCurrencyPaymentAccount rest = toRestModel((CryptoCurrencyAccountPayload) business.getPaymentAccountPayload());
+        CryptoCurrencyPaymentAccount rest = toRestModel((CryptoCurrencyAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public CryptoCurrencyPaymentAccount toRestModel(CryptoCurrencyAccountPayload business) {
-        final CryptoCurrencyPaymentAccount rest = new CryptoCurrencyPaymentAccount();
+        CryptoCurrencyPaymentAccount rest = new CryptoCurrencyPaymentAccount();
         rest.address = business.getAddress();
         toRestModel(rest, business);
         return rest;

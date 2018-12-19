@@ -123,7 +123,7 @@ public class BackupEndpointIT {
         createBackup_always_returns200();
         assertNumberOfBackups(2);
 
-        final InputStream inputStream = given().
+        InputStream inputStream = given().
                 port(getAlicePort()).
 //
         when().
@@ -133,14 +133,14 @@ public class BackupEndpointIT {
                         statusCode(200).
                         and().contentType(ContentType.BINARY.toString()).
                         extract().asInputStream();
-        final Set<String> zipEntries = new HashSet<>();
+        Set<String> zipEntries = new HashSet<>();
         try (ZipInputStream zip = new ZipInputStream(inputStream)) {
             ZipEntry nextEntry;
             while (null != (nextEntry = zip.getNextEntry())) {
                 zipEntries.add(nextEntry.getName());
             }
         }
-        final List<String> expectedEntries = Arrays.asList("bisq.log",
+        List<String> expectedEntries = Arrays.asList("bisq.log",
                 "btc_regtest/wallet/bisq_BTC.wallet",
                 "btc_regtest/wallet/bisq_BSQ.wallet",
                 "btc_regtest/wallet/bisq.spvchain",
@@ -189,10 +189,10 @@ public class BackupEndpointIT {
     @InSequence(6)
     @Test
     public void uploadBackup_fileNameIsUnique_returns204() throws Exception {
-        final String fileName = "uploadBackup_fileNameIsUnique_returns204.txt";
-        final String fileContent = "Hello World!";
+        String fileName = "uploadBackup_fileNameIsUnique_returns204.txt";
+        String fileContent = "Hello World!";
         uploadBackupRequest(fileName, fileContent).statusCode(204);
-        final InputStream inputStream = given().
+        InputStream inputStream = given().
                 port(getAlicePort()).
 //
         when().
@@ -208,8 +208,8 @@ public class BackupEndpointIT {
     @InSequence(7)
     @Test
     public void uploadBackup_backupAlreadyExists_returns422() throws Exception {
-        final String fileName = "uploadBackup_backupAlreadyExists_returns422.txt";
-        final String fileContent = "Hello World!";
+        String fileName = "uploadBackup_backupAlreadyExists_returns422.txt";
+        String fileContent = "Hello World!";
         uploadBackupRequest(fileName, fileContent).statusCode(204);
         uploadBackupRequest(fileName, fileContent).statusCode(422);
     }
@@ -229,8 +229,8 @@ public class BackupEndpointIT {
     @InSequence(8)
     @Test
     public void restore() throws Exception {
-        final int alicePort = getAlicePort();
-        final String walletAddress = given().
+        int alicePort = getAlicePort();
+        String walletAddress = given().
                 port(alicePort).
 //
         when().
@@ -252,10 +252,10 @@ public class BackupEndpointIT {
                 statusCode(204);
 
         try {
-            final CubeContainer cubeContainer = new CubeContainer();
+            CubeContainer cubeContainer = new CubeContainer();
             cubeContainer.setAwait(ContainerFactory.getAwaitStrategy());
-            final CubeContainerObjectConfiguration configuration = new CubeContainerObjectConfiguration(cubeContainer);
-            final ApiContainer apiContainer = factory.createContainerObject(ApiContainer.class, configuration);
+            CubeContainerObjectConfiguration configuration = new CubeContainerObjectConfiguration(cubeContainer);
+            ApiContainer apiContainer = factory.createContainerObject(ApiContainer.class, configuration);
             ApiTestHelper.waitForAllServicesToBeReady();
             given().
                     port(apiContainer.port).
@@ -288,7 +288,7 @@ public class BackupEndpointIT {
     }
 
     private void removeAllBackups() {
-        final CubeOutput cubeOutput = alice.exec("rm", APP_DIR_VOLUME_HOST_PATH + "/backup", APP_DIR_VOLUME_HOST_PATH + "/backup-to-restore", "-rf");
+        CubeOutput cubeOutput = alice.exec("rm", APP_DIR_VOLUME_HOST_PATH + "/backup", APP_DIR_VOLUME_HOST_PATH + "/backup-to-restore", "-rf");
         assertEquals("Command 'rm backup/*' should succeed", "", cubeOutput.getError());
     }
 

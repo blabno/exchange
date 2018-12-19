@@ -48,7 +48,7 @@ public class TradeEndpointIT {
     @InSequence
     @Test
     public void setupTrade() throws Exception {
-        final OfferEndpointIT offerResourceIT = new OfferEndpointIT();
+        OfferEndpointIT offerResourceIT = new OfferEndpointIT();
         offerResourceIT.alice = alice;
         offerResourceIT.bob = bob;
         offerResourceIT.arbitrator = arbitrator;
@@ -77,10 +77,10 @@ public class TradeEndpointIT {
     @InSequence(1)
     @Test
     public void getTrades_returnsTrade() {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
-        final SepaPaymentAccount alicePaymentAccount = OfferEndpointIT.alicePaymentAccount;
-        final SepaPaymentAccount bobPaymentAccount = OfferEndpointIT.bobPaymentAccount;
+        SepaPaymentAccount alicePaymentAccount = OfferEndpointIT.alicePaymentAccount;
+        SepaPaymentAccount bobPaymentAccount = OfferEndpointIT.bobPaymentAccount;
 
         given().
                 port(getBobPort()).
@@ -225,7 +225,7 @@ public class TradeEndpointIT {
     @InSequence(6)
     @Test
     public void moveFundsToBisqWallet_beforeTradeComplete_returns422() {
-        final String unknownTradeId = tradeId;
+        String unknownTradeId = tradeId;
         moveFundsToBisqWallet_template(getAlicePort(), unknownTradeId, 422);
     }
 
@@ -240,7 +240,7 @@ public class TradeEndpointIT {
     @InSequence(8)
     @Test
     public void moveFundsToBisqWallet_tradeNotFound_returns404() {
-        final String unknownTradeId = tradeId + tradeId;
+        String unknownTradeId = tradeId + tradeId;
         moveFundsToBisqWallet_template(getAlicePort(), unknownTradeId, 404);
         assertTradeNotFound(getAlicePort(), unknownTradeId);
     }

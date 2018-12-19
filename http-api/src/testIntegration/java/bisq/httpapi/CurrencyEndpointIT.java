@@ -40,7 +40,7 @@ public class CurrencyEndpointIT {
     @InSequence(1)
     @Test
     public void getCurrencyList_always_returns200() {
-        final CurrencyList currencyList = given().
+        CurrencyList currencyList = given().
                 port(getAlicePort()).
 //
         when().
@@ -57,14 +57,14 @@ public class CurrencyEndpointIT {
         /**
          * Make sure that currency code is used instead of symbol
          */
-        final Optional<Currency> usd = currencyList.currencies.stream().filter(currency -> "USD".equals(currency.code)).findFirst();
+        Optional<Currency> usd = currencyList.currencies.stream().filter(currency -> "USD".equals(currency.code)).findFirst();
         Assert.assertTrue(usd.isPresent());
     }
 
     @InSequence(1)
     @Test
     public void getPriceFeed_withoutAnyParams_returnsPricesForDefaultCurrencies() {
-        final Preferences preferences = given().
+        Preferences preferences = given().
                 port(getAlicePort()).
 //
         when().
@@ -73,9 +73,9 @@ public class CurrencyEndpointIT {
         then().
                         statusCode(200).
                         extract().as(Preferences.class);
-        final List<String> defaultCodes = new ArrayList<>(preferences.cryptoCurrencies);
+        List<String> defaultCodes = new ArrayList<>(preferences.cryptoCurrencies);
         defaultCodes.addAll(preferences.fiatCurrencies);
-        final HashMap<String, Double> map = given().
+        HashMap<String, Double> map = given().
                 port(getAlicePort()).
 //
         when().

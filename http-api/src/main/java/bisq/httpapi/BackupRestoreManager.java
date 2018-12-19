@@ -33,21 +33,21 @@ public class BackupRestoreManager {
     }
 
     public void requestRestore(String fileName) throws IOException {
-        final Path backupFilePath = backupManager.getBackupFilePath(fileName);
+        Path backupFilePath = backupManager.getBackupFilePath(fileName);
         if (!backupFilePath.toFile().exists())
             throw new FileNotFoundException("File not found: " + fileName);
         Files.write(getRestoreBackupMarkerFilePath(), fileName.getBytes());
     }
 
     public void restoreIfRequested() throws IOException {
-        final Path backupToRestoreMarkerPath = getRestoreBackupMarkerFilePath();
-        final File backupToRestoreMarkerFile = backupToRestoreMarkerPath.toFile();
+        Path backupToRestoreMarkerPath = getRestoreBackupMarkerFilePath();
+        File backupToRestoreMarkerFile = backupToRestoreMarkerPath.toFile();
         if (!backupToRestoreMarkerFile.exists())
             return;
-        final List<String> lines = Files.readAllLines(backupToRestoreMarkerPath);
+        List<String> lines = Files.readAllLines(backupToRestoreMarkerPath);
         if (!backupToRestoreMarkerFile.delete())
             log.warn("Unable to remove backupToRestoreMarkerFile: " + backupToRestoreMarkerPath);
-        final String backupFilename = lines.isEmpty() ? null : lines.get(0);
+        String backupFilename = lines.isEmpty() ? null : lines.get(0);
         if (null == backupFilename || backupFilename.trim().length() < 1)
             return;
         backupManager.restore(backupFilename);

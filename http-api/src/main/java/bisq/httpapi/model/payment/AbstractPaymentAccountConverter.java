@@ -19,7 +19,7 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
         if (null != rest.accountName)
             business.setAccountName(rest.accountName);
         business.getTradeCurrencies().clear();
-        final CurrencyConverter currencyConverter;
+        CurrencyConverter currencyConverter;
         if (rest instanceof CryptoCurrencyPaymentAccount)
             currencyConverter = new CryptoCurrencyConverter();
         else
@@ -34,10 +34,10 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
     protected void toRestModel(R rest, B business) {
         rest.id = business.getId();
         rest.accountName = business.getAccountName();
-        final TradeCurrency selectedTradeCurrency = business.getSelectedTradeCurrency();
+        TradeCurrency selectedTradeCurrency = business.getSelectedTradeCurrency();
         if (null != selectedTradeCurrency)
             rest.selectedTradeCurrency = selectedTradeCurrency.getCode();
-        final List<TradeCurrency> tradeCurrencies = business.getTradeCurrencies();
+        List<TradeCurrency> tradeCurrencies = business.getTradeCurrencies();
         if (null != tradeCurrencies)
             tradeCurrencies.stream().forEach(currency -> rest.tradeCurrencies.add(currency.getCode()));
     }
@@ -60,7 +60,7 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
     private static class CryptoCurrencyConverter implements CurrencyConverter {
         @Override
         public TradeCurrency convert(String currencyCode) {
-            final Optional<CryptoCurrency> cryptoCurrencyOptional = CurrencyUtil.getCryptoCurrency(currencyCode);
+            Optional<CryptoCurrency> cryptoCurrencyOptional = CurrencyUtil.getCryptoCurrency(currencyCode);
             if (!cryptoCurrencyOptional.isPresent()) {
                 throw new ValidationException("Unsupported crypto currency code: " + currencyCode);
             }

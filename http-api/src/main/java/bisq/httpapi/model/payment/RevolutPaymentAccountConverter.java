@@ -7,7 +7,7 @@ public class RevolutPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public RevolutAccount toBusinessModel(RevolutPaymentAccount rest) {
-        final RevolutAccount business = new RevolutAccount();
+        RevolutAccount business = new RevolutAccount();
         business.init();
         business.setAccountId(rest.accountId);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class RevolutPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public RevolutPaymentAccount toRestModel(RevolutAccount business) {
-        final RevolutPaymentAccount rest = toRestModel((RevolutAccountPayload) business.getPaymentAccountPayload());
+        RevolutPaymentAccount rest = toRestModel((RevolutAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public RevolutPaymentAccount toRestModel(RevolutAccountPayload business) {
-        final RevolutPaymentAccount rest = new RevolutPaymentAccount();
+        RevolutPaymentAccount rest = new RevolutPaymentAccount();
         rest.accountId = business.getAccountId();
         toRestModel(rest, business);
         return rest;

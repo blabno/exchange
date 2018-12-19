@@ -11,7 +11,7 @@ public class CubeLogger {
     @SuppressWarnings({"unused", "UnusedParameters"})
     public void beforeContainerStop(@Observes BeforeStop event, CubeController cubeController, ArquillianDescriptor arquillianDescriptor, TestClass testClass) {
         if (isExtensionEnabled(arquillianDescriptor)) {
-            final String cubeId = event.getCubeId();
+            String cubeId = event.getCubeId();
             System.out.println("=====================================================================================");
             System.out.println("Start of container logs: " + cubeId + " from " + testClass.getName());
             System.out.println("=====================================================================================");
@@ -23,7 +23,7 @@ public class CubeLogger {
     }
 
     private static boolean isExtensionEnabled(ArquillianDescriptor arquillianDescriptor) {
-        final String dumpContainerLogs = arquillianDescriptor.extension("cubeLogger").getExtensionProperty("enable");
+        String dumpContainerLogs = arquillianDescriptor.extension("cubeLogger").getExtensionProperty("enable");
         return Boolean.parseBoolean(dumpContainerLogs);
     }
 

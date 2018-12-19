@@ -7,7 +7,7 @@ public class OKPayPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public OKPayAccount toBusinessModel(OKPayPaymentAccount rest) {
-        final OKPayAccount business = new OKPayAccount();
+        OKPayAccount business = new OKPayAccount();
         business.init();
         business.setAccountNr(rest.accountNr);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class OKPayPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public OKPayPaymentAccount toRestModel(OKPayAccount business) {
-        final OKPayPaymentAccount rest = toRestModel((OKPayAccountPayload) business.getPaymentAccountPayload());
+        OKPayPaymentAccount rest = toRestModel((OKPayAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public OKPayPaymentAccount toRestModel(OKPayAccountPayload business) {
-        final OKPayPaymentAccount rest = new OKPayPaymentAccount();
+        OKPayPaymentAccount rest = new OKPayPaymentAccount();
         rest.accountNr = business.getAccountNr();
         toRestModel(rest, business);
         return rest;

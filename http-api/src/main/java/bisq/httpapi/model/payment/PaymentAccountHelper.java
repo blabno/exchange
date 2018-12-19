@@ -45,7 +45,7 @@ public final class PaymentAccountHelper {
     }
 
     public static bisq.core.payment.PaymentAccount toBusinessModel(PaymentAccount rest) {
-        final PaymentAccountConverter converter = converters.get(rest.paymentMethod);
+        PaymentAccountConverter converter = converters.get(rest.paymentMethod);
         if (null != converter) {
             return converter.toBusinessModel(rest);
         }
@@ -53,8 +53,8 @@ public final class PaymentAccountHelper {
     }
 
     public static PaymentAccount toRestModel(bisq.core.payment.PaymentAccount business) {
-        final String paymentMethodId = business.getPaymentMethod().getId();
-        final PaymentAccountConverter converter = converters.get(paymentMethodId);
+        String paymentMethodId = business.getPaymentMethod().getId();
+        PaymentAccountConverter converter = converters.get(paymentMethodId);
         if (null != converter) {
             return converter.toRestModel(business);
         }
@@ -62,10 +62,10 @@ public final class PaymentAccountHelper {
     }
 
     public static PaymentAccount toRestModel(PaymentAccountPayload business) {
-        final String paymentMethodId = business.getPaymentMethodId();
-        final PaymentAccountConverter converter = converters.get(paymentMethodId);
+        String paymentMethodId = business.getPaymentMethodId();
+        PaymentAccountConverter converter = converters.get(paymentMethodId);
         if (null != converter) {
-            final PaymentAccount paymentAccount = converter.toRestModel(business);
+            PaymentAccount paymentAccount = converter.toRestModel(business);
             paymentAccount.paymentDetails = business.getPaymentDetails();
             return paymentAccount;
         }

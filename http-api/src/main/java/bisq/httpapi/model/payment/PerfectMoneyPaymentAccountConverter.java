@@ -7,7 +7,7 @@ public class PerfectMoneyPaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public PerfectMoneyAccount toBusinessModel(PerfectMoneyPaymentAccount rest) {
-        final PerfectMoneyAccount business = new PerfectMoneyAccount();
+        PerfectMoneyAccount business = new PerfectMoneyAccount();
         business.init();
         business.setAccountNr(rest.accountNr);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class PerfectMoneyPaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public PerfectMoneyPaymentAccount toRestModel(PerfectMoneyAccount business) {
-        final PerfectMoneyPaymentAccount rest = toRestModel((PerfectMoneyAccountPayload) business.getPaymentAccountPayload());
+        PerfectMoneyPaymentAccount rest = toRestModel((PerfectMoneyAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public PerfectMoneyPaymentAccount toRestModel(PerfectMoneyAccountPayload business) {
-        final PerfectMoneyPaymentAccount rest = new PerfectMoneyPaymentAccount();
+        PerfectMoneyPaymentAccount rest = new PerfectMoneyPaymentAccount();
         rest.accountNr = business.getAccountNr();
         toRestModel(rest, business);
         return rest;

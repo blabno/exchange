@@ -12,10 +12,6 @@ import bisq.core.user.Preferences;
 import bisq.core.user.User;
 import bisq.core.util.validation.InputValidator;
 
-import bisq.httpapi.exceptions.NotFoundException;
-import bisq.httpapi.model.PaymentAccountList;
-import bisq.httpapi.model.payment.PaymentAccountHelper;
-
 import javax.inject.Inject;
 
 import java.util.ArrayList;
@@ -24,6 +20,9 @@ import java.util.stream.Collectors;
 
 
 
+import bisq.httpapi.exceptions.NotFoundException;
+import bisq.httpapi.model.PaymentAccountList;
+import bisq.httpapi.model.payment.PaymentAccountHelper;
 import javax.validation.ValidationException;
 
 public class PaymentAccountFacade {
@@ -47,13 +46,13 @@ public class PaymentAccountFacade {
 
     public PaymentAccount addPaymentAccount(PaymentAccount paymentAccount) {
         if (paymentAccount instanceof CryptoCurrencyAccount) {
-            final CryptoCurrencyAccount cryptoCurrencyAccount = (CryptoCurrencyAccount) paymentAccount;
-            final TradeCurrency tradeCurrency = cryptoCurrencyAccount.getSingleTradeCurrency();
+            CryptoCurrencyAccount cryptoCurrencyAccount = (CryptoCurrencyAccount) paymentAccount;
+            TradeCurrency tradeCurrency = cryptoCurrencyAccount.getSingleTradeCurrency();
             if (null == tradeCurrency) {
                 throw new ValidationException("There must be exactly one trade currency");
             }
             altCoinAddressValidator.setCurrencyCode(tradeCurrency.getCode());
-            final InputValidator.ValidationResult validationResult = altCoinAddressValidator.validate(cryptoCurrencyAccount.getAddress());
+            InputValidator.ValidationResult validationResult = altCoinAddressValidator.validate(cryptoCurrencyAccount.getAddress());
             if (!validationResult.isValid) {
                 throw new ValidationException(validationResult.errorMessage);
             }
@@ -85,7 +84,7 @@ public class PaymentAccountFacade {
     }
 
     public void removePaymentAccount(String id) {
-        final PaymentAccount paymentAccount = user.getPaymentAccount(id);
+        PaymentAccount paymentAccount = user.getPaymentAccount(id);
         if (null == paymentAccount) {
             throw new NotFoundException("Payment account not found: " + id);
         }

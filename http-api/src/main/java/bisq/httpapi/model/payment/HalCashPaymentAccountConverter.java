@@ -7,7 +7,7 @@ public class HalCashPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public HalCashAccount toBusinessModel(HalCashPaymentAccount rest) {
-        final HalCashAccount business = new HalCashAccount();
+        HalCashAccount business = new HalCashAccount();
         business.init();
         business.setMobileNr(rest.mobileNr);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class HalCashPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public HalCashPaymentAccount toRestModel(HalCashAccount business) {
-        final HalCashPaymentAccount rest = toRestModel((HalCashAccountPayload) business.getPaymentAccountPayload());
+        HalCashPaymentAccount rest = toRestModel((HalCashAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public HalCashPaymentAccount toRestModel(HalCashAccountPayload business) {
-        final HalCashPaymentAccount rest = new HalCashPaymentAccount();
+        HalCashPaymentAccount rest = new HalCashPaymentAccount();
         rest.mobileNr = business.getMobileNr();
         toRestModel(rest, business);
         return rest;

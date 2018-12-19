@@ -7,7 +7,7 @@ public class CashAppPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public CashAppAccount toBusinessModel(CashAppPaymentAccount rest) {
-        final CashAppAccount business = new CashAppAccount();
+        CashAppAccount business = new CashAppAccount();
         business.init();
         business.setCashTag(rest.cashTag);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class CashAppPaymentAccountConverter extends AbstractPaymentAccountConver
 
     @Override
     public CashAppPaymentAccount toRestModel(CashAppAccount business) {
-        final CashAppPaymentAccount rest = toRestModel((CashAppAccountPayload) business.getPaymentAccountPayload());
+        CashAppPaymentAccount rest = toRestModel((CashAppAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public CashAppPaymentAccount toRestModel(CashAppAccountPayload business) {
-        final CashAppPaymentAccount rest = new CashAppPaymentAccount();
+        CashAppPaymentAccount rest = new CashAppPaymentAccount();
         rest.cashTag = business.getCashTag();
         toRestModel(rest, business);
         return rest;

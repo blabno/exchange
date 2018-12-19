@@ -18,7 +18,7 @@ public class P2PNetworkConnection {
     }
 
     public P2PNetworkConnection(Connection connection) {
-        final Statistic statistic = connection.getStatistic();
+        Statistic statistic = connection.getStatistic();
         this.nodeAddress = connection.peersNodeAddressProperty().get().getFullAddress();
         this.sentBytes = statistic.getSentBytes();
         this.receivedBytes = statistic.getReceivedBytes();

@@ -7,7 +7,7 @@ public class F2FPaymentAccountConverter extends AbstractPaymentAccountConverter<
 
     @Override
     public F2FAccount toBusinessModel(F2FPaymentAccount rest) {
-        final F2FAccount business = new F2FAccount();
+        F2FAccount business = new F2FAccount();
         business.init();
         business.setCity(rest.city);
         business.setContact(rest.contact);
@@ -18,14 +18,14 @@ public class F2FPaymentAccountConverter extends AbstractPaymentAccountConverter<
 
     @Override
     public F2FPaymentAccount toRestModel(F2FAccount business) {
-        final F2FPaymentAccount rest = toRestModel((F2FAccountPayload) business.getPaymentAccountPayload());
+        F2FPaymentAccount rest = toRestModel((F2FAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public F2FPaymentAccount toRestModel(F2FAccountPayload business) {
-        final F2FPaymentAccount rest = new F2FPaymentAccount();
+        F2FPaymentAccount rest = new F2FPaymentAccount();
         rest.city = business.getCity();
         rest.contact = business.getContact();
         rest.extraInfo = business.getExtraInfo();

@@ -7,7 +7,7 @@ public class SwishPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public SwishAccount toBusinessModel(SwishPaymentAccount rest) {
-        final SwishAccount business = new SwishAccount();
+        SwishAccount business = new SwishAccount();
         business.init();
         business.setMobileNr(rest.mobileNr);
         business.setHolderName(rest.holderName);
@@ -17,14 +17,14 @@ public class SwishPaymentAccountConverter extends AbstractPaymentAccountConverte
 
     @Override
     public SwishPaymentAccount toRestModel(SwishAccount business) {
-        final SwishPaymentAccount rest = toRestModel((SwishAccountPayload) business.getPaymentAccountPayload());
+        SwishPaymentAccount rest = toRestModel((SwishAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public SwishPaymentAccount toRestModel(SwishAccountPayload business) {
-        final SwishPaymentAccount rest = new SwishPaymentAccount();
+        SwishPaymentAccount rest = new SwishPaymentAccount();
         rest.mobileNr = business.getMobileNr();
         rest.holderName = business.getHolderName();
         toRestModel(rest, business);

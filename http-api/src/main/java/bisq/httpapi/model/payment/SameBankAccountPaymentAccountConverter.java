@@ -7,9 +7,9 @@ public class SameBankAccountPaymentAccountConverter extends AbstractPaymentAccou
 
     @Override
     public SameBankAccount toBusinessModel(SameBankAccountPaymentAccount rest) {
-        final SameBankAccount business = new SameBankAccount();
+        SameBankAccount business = new SameBankAccount();
         business.init();
-        final SameBankAccountPayload paymentAccountPayload = (SameBankAccountPayload) business.getPaymentAccountPayload();
+        SameBankAccountPayload paymentAccountPayload = (SameBankAccountPayload) business.getPaymentAccountPayload();
         paymentAccountPayload.setAccountNr(rest.accountNr);
         paymentAccountPayload.setAccountType(rest.accountType);
         paymentAccountPayload.setBankId(rest.bankId);
@@ -24,14 +24,14 @@ public class SameBankAccountPaymentAccountConverter extends AbstractPaymentAccou
 
     @Override
     public SameBankAccountPaymentAccount toRestModel(SameBankAccount business) {
-        final SameBankAccountPaymentAccount rest = toRestModel((SameBankAccountPayload) business.getPaymentAccountPayload());
+        SameBankAccountPaymentAccount rest = toRestModel((SameBankAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public SameBankAccountPaymentAccount toRestModel(SameBankAccountPayload business) {
-        final SameBankAccountPaymentAccount rest = new SameBankAccountPaymentAccount();
+        SameBankAccountPaymentAccount rest = new SameBankAccountPaymentAccount();
         rest.accountNr = business.getAccountNr();
         rest.accountType = business.getAccountType();
         rest.bankId = business.getBankId();

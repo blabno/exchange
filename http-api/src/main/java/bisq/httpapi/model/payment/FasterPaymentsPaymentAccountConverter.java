@@ -7,7 +7,7 @@ public class FasterPaymentsPaymentAccountConverter extends AbstractPaymentAccoun
 
     @Override
     public FasterPaymentsAccount toBusinessModel(FasterPaymentsPaymentAccount rest) {
-        final FasterPaymentsAccount business = new FasterPaymentsAccount();
+        FasterPaymentsAccount business = new FasterPaymentsAccount();
         business.init();
         business.setAccountNr(rest.accountNr);
         business.setSortCode(rest.sortCode);
@@ -17,14 +17,14 @@ public class FasterPaymentsPaymentAccountConverter extends AbstractPaymentAccoun
 
     @Override
     public FasterPaymentsPaymentAccount toRestModel(FasterPaymentsAccount business) {
-        final FasterPaymentsPaymentAccount rest = toRestModel((FasterPaymentsAccountPayload) business.getPaymentAccountPayload());
+        FasterPaymentsPaymentAccount rest = toRestModel((FasterPaymentsAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public FasterPaymentsPaymentAccount toRestModel(FasterPaymentsAccountPayload business) {
-        final FasterPaymentsPaymentAccount rest = new FasterPaymentsPaymentAccount();
+        FasterPaymentsPaymentAccount rest = new FasterPaymentsPaymentAccount();
         rest.accountNr = business.getAccountNr();
         rest.sortCode = business.getSortCode();
         toRestModel(rest, business);

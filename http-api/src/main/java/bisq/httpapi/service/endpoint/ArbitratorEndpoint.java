@@ -2,12 +2,6 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.ArbitratorFacade;
-import bisq.httpapi.model.Arbitrator;
-import bisq.httpapi.model.ArbitratorList;
-import bisq.httpapi.model.ArbitratorRegistration;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 import java.util.Collection;
@@ -15,6 +9,11 @@ import java.util.stream.Collectors;
 
 
 
+import bisq.httpapi.facade.ArbitratorFacade;
+import bisq.httpapi.model.Arbitrator;
+import bisq.httpapi.model.ArbitratorList;
+import bisq.httpapi.model.ArbitratorRegistration;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -54,7 +53,7 @@ public class ArbitratorEndpoint {
 
     @ApiOperation(value = "Register yourself as arbitrator", notes = ExperimentalFeature.NOTE)
     @POST
-    public void register(@Suspended final AsyncResponse asyncResponse, @Valid ArbitratorRegistration data) {
+    public void register(@Suspended AsyncResponse asyncResponse, @Valid ArbitratorRegistration data) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -68,11 +67,11 @@ public class ArbitratorEndpoint {
 
     @ApiOperation(value = "Find available arbitrators", response = ArbitratorList.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void find(@Suspended final AsyncResponse asyncResponse, @QueryParam("acceptedOnly") boolean acceptedOnly) {
+    public void find(@Suspended AsyncResponse asyncResponse, @QueryParam("acceptedOnly") boolean acceptedOnly) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final ArbitratorList arbitratorList = toRestModel(arbitratorFacade.getArbitrators(acceptedOnly));
+                ArbitratorList arbitratorList = toRestModel(arbitratorFacade.getArbitrators(acceptedOnly));
                 asyncResponse.resume(arbitratorList);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -83,11 +82,11 @@ public class ArbitratorEndpoint {
     @ApiOperation(value = "Select arbitrator", response = ArbitratorList.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/{address}/select")
-    public void selectArbitrator(@Suspended final AsyncResponse asyncResponse, @NotBlank @PathParam("address") String address) {
+    public void selectArbitrator(@Suspended AsyncResponse asyncResponse, @NotBlank @PathParam("address") String address) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final ArbitratorList arbitratorList = toRestModel(arbitratorFacade.selectArbitrator(address));
+                ArbitratorList arbitratorList = toRestModel(arbitratorFacade.selectArbitrator(address));
                 asyncResponse.resume(arbitratorList);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -98,11 +97,11 @@ public class ArbitratorEndpoint {
     @ApiOperation(value = "Deselect arbitrator", response = ArbitratorList.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/{address}/deselect")
-    public void deselectArbitrator(@Suspended final AsyncResponse asyncResponse, @NotBlank @PathParam("address") String address) {
+    public void deselectArbitrator(@Suspended AsyncResponse asyncResponse, @NotBlank @PathParam("address") String address) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final ArbitratorList arbitratorList = toRestModel(arbitratorFacade.deselectArbitrator(address));
+                ArbitratorList arbitratorList = toRestModel(arbitratorFacade.deselectArbitrator(address));
                 asyncResponse.resume(arbitratorList);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -111,7 +110,7 @@ public class ArbitratorEndpoint {
     }
 
     private static ArbitratorList toRestModel(Collection<bisq.core.arbitration.Arbitrator> businessModelList) {
-        final ArbitratorList arbitratorList = new ArbitratorList();
+        ArbitratorList arbitratorList = new ArbitratorList();
         arbitratorList.arbitrators = businessModelList
                 .stream()
                 .map(arbitrator -> new Arbitrator(arbitrator.getNodeAddress().getFullAddress()))

@@ -2,13 +2,6 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.exceptions.NotFoundException;
-import bisq.httpapi.facade.BackupFacade;
-import bisq.httpapi.model.BackupList;
-import bisq.httpapi.model.CreatedBackup;
-import bisq.httpapi.service.ExperimentalFeature;
-import bisq.httpapi.util.ResourceHelper;
-
 import javax.inject.Inject;
 
 import java.nio.file.FileAlreadyExistsException;
@@ -18,6 +11,12 @@ import java.io.InputStream;
 
 
 
+import bisq.httpapi.exceptions.NotFoundException;
+import bisq.httpapi.facade.BackupFacade;
+import bisq.httpapi.model.BackupList;
+import bisq.httpapi.model.CreatedBackup;
+import bisq.httpapi.service.ExperimentalFeature;
+import bisq.httpapi.util.ResourceHelper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -52,11 +51,11 @@ public class BackupEndpoint {
 
     @ApiOperation(value = "List backups", response = BackupList.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void getBackupList(@Suspended final AsyncResponse asyncResponse) {
+    public void getBackupList(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final BackupList backupList = new BackupList(backupFacade.getBackupList());
+                BackupList backupList = new BackupList(backupFacade.getBackupList());
                 asyncResponse.resume(backupList);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -66,11 +65,11 @@ public class BackupEndpoint {
 
     @ApiOperation(value = "Create backup", response = CreatedBackup.class, notes = ExperimentalFeature.NOTE)
     @POST
-    public void createBackup(@Suspended final AsyncResponse asyncResponse) {
+    public void createBackup(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final CreatedBackup backup = new CreatedBackup(backupFacade.createBackup());
+                CreatedBackup backup = new CreatedBackup(backupFacade.createBackup());
                 asyncResponse.resume(backup);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -82,7 +81,7 @@ public class BackupEndpoint {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @POST
     @Path("/upload")
-    public void uploadBackup(@Suspended final AsyncResponse asyncResponse, @FormDataParam("file") InputStream uploadedInputStream,
+    public void uploadBackup(@Suspended AsyncResponse asyncResponse, @FormDataParam("file") InputStream uploadedInputStream,
                              @FormDataParam("file") FormDataContentDisposition fileDetail) {
         UserThread.execute(() -> {
             try {
@@ -103,17 +102,17 @@ public class BackupEndpoint {
     @ApiOperation(value = "Get backup", notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/{path}")
-    public void getBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
+    public void getBackup(@Suspended AsyncResponse asyncResponse, @PathParam("path") String fileName) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
                 try {
-                    final Response response = Response.ok(backupFacade.getBackup(fileName), MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    Response response = Response.ok(backupFacade.getBackup(fileName), MediaType.APPLICATION_OCTET_STREAM_TYPE)
                             .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
                             .build();
                     asyncResponse.resume(response);
                 } catch (FileNotFoundException e) {
-                    final Response response = ResourceHelper.toValidationErrorResponse(e, 404).type(MediaType.APPLICATION_JSON).build();
+                    Response response = ResourceHelper.toValidationErrorResponse(e, 404).type(MediaType.APPLICATION_JSON).build();
                     asyncResponse.resume(response);
                 }
             } catch (Throwable e) {
@@ -125,7 +124,7 @@ public class BackupEndpoint {
     @ApiOperation(value = "Restore backup", notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/{path}/restore")
-    public void restoreBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
+    public void restoreBackup(@Suspended AsyncResponse asyncResponse, @PathParam("path") String fileName) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -144,7 +143,7 @@ public class BackupEndpoint {
     @ApiOperation(value = "Remove backup", notes = ExperimentalFeature.NOTE)
     @DELETE
     @Path("/{path}")
-    public void removeBackup(@Suspended final AsyncResponse asyncResponse, @PathParam("path") String fileName) {
+    public void removeBackup(@Suspended AsyncResponse asyncResponse, @PathParam("path") String fileName) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();

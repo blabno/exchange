@@ -7,9 +7,9 @@ public class NationalBankAccountPaymentAccountConverter extends AbstractPaymentA
 
     @Override
     public NationalBankAccount toBusinessModel(NationalBankAccountPaymentAccount rest) {
-        final NationalBankAccount business = new NationalBankAccount();
+        NationalBankAccount business = new NationalBankAccount();
         business.init();
-        final NationalBankAccountPayload paymentAccountPayload = (NationalBankAccountPayload) business.getPaymentAccountPayload();
+        NationalBankAccountPayload paymentAccountPayload = (NationalBankAccountPayload) business.getPaymentAccountPayload();
         paymentAccountPayload.setAccountNr(rest.accountNr);
         paymentAccountPayload.setAccountType(rest.accountType);
         paymentAccountPayload.setBankId(rest.bankId);
@@ -24,14 +24,14 @@ public class NationalBankAccountPaymentAccountConverter extends AbstractPaymentA
 
     @Override
     public NationalBankAccountPaymentAccount toRestModel(NationalBankAccount business) {
-        final NationalBankAccountPaymentAccount rest = toRestModel((NationalBankAccountPayload) business.getPaymentAccountPayload());
+        NationalBankAccountPaymentAccount rest = toRestModel((NationalBankAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public NationalBankAccountPaymentAccount toRestModel(NationalBankAccountPayload business) {
-        final NationalBankAccountPaymentAccount rest = new NationalBankAccountPaymentAccount();
+        NationalBankAccountPaymentAccount rest = new NationalBankAccountPaymentAccount();
         rest.accountNr = business.getAccountNr();
         rest.accountType = business.getAccountType();
         rest.bankId = business.getBankId();

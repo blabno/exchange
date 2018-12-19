@@ -54,7 +54,7 @@ public class ArbitratorFacade {
 
     public void registerArbitrator(List<String> languageCodes) {
         //        TODO most of this code is dupplication of ArbitratorRegistrationViewModel.onRegister
-        final String privKeyString = useDevPrivilegeKeys ? DevEnv.DEV_PRIVILEGE_PRIV_KEY : null;
+        String privKeyString = useDevPrivilegeKeys ? DevEnv.DEV_PRIVILEGE_PRIV_KEY : null;
         //        TODO hm, are we going to send private key over http?
         if (null == privKeyString) {
             throw new RuntimeException("Missing private key");
@@ -90,7 +90,7 @@ public class ArbitratorFacade {
     }
 
     public Collection<Arbitrator> selectArbitrator(String arbitratorAddress) {
-        final Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
+        Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
         if (null == arbitrator) {
             throw new NotFoundException("Arbitrator not found: " + arbitratorAddress);
         }
@@ -103,7 +103,7 @@ public class ArbitratorFacade {
     }
 
     public Collection<Arbitrator> deselectArbitrator(String arbitratorAddress) {
-        final Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
+        Arbitrator arbitrator = getArbitratorByAddress(arbitratorAddress);
         if (null == arbitrator) {
             throw new NotFoundException("Arbitrator not found: " + arbitratorAddress);
         }

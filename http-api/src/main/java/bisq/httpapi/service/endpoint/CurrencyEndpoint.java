@@ -2,15 +2,14 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.PriceFeedFacade;
-import bisq.httpapi.model.CurrencyList;
-import bisq.httpapi.model.PriceFeed;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 
 
+import bisq.httpapi.facade.PriceFeedFacade;
+import bisq.httpapi.model.CurrencyList;
+import bisq.httpapi.model.PriceFeed;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -37,7 +36,7 @@ public class CurrencyEndpoint {
 
     @ApiOperation(value = "List available currencies", response = CurrencyList.class, notes = ExperimentalFeature.NOTE)
     @GET
-    public void getCurrencyList(@Suspended final AsyncResponse asyncResponse) {
+    public void getCurrencyList(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -51,11 +50,11 @@ public class CurrencyEndpoint {
     @ApiOperation(value = "Get market prices", notes = ExperimentalFeature.NOTE + "If currencyCodes is not provided then currencies from preferences are used.", response = PriceFeed.class)
     @GET
     @Path("/prices")
-    public void getPriceFeed(@Suspended final AsyncResponse asyncResponse, @QueryParam("currencyCodes") String currencyCodes) {
+    public void getPriceFeed(@Suspended AsyncResponse asyncResponse, @QueryParam("currencyCodes") String currencyCodes) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final String[] codes;
+                String[] codes;
                 if (null == currencyCodes || 0 == currencyCodes.length())
                     codes = new String[0];
                 else

@@ -7,7 +7,7 @@ public class MoneyBeamPaymentAccountConverter extends AbstractPaymentAccountConv
 
     @Override
     public MoneyBeamAccount toBusinessModel(MoneyBeamPaymentAccount rest) {
-        final MoneyBeamAccount business = new MoneyBeamAccount();
+        MoneyBeamAccount business = new MoneyBeamAccount();
         business.init();
         business.setAccountId(rest.accountId);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class MoneyBeamPaymentAccountConverter extends AbstractPaymentAccountConv
 
     @Override
     public MoneyBeamPaymentAccount toRestModel(MoneyBeamAccount business) {
-        final MoneyBeamPaymentAccount rest = toRestModel((MoneyBeamAccountPayload) business.getPaymentAccountPayload());
+        MoneyBeamPaymentAccount rest = toRestModel((MoneyBeamAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public MoneyBeamPaymentAccount toRestModel(MoneyBeamAccountPayload business) {
-        final MoneyBeamPaymentAccount rest = new MoneyBeamPaymentAccount();
+        MoneyBeamPaymentAccount rest = new MoneyBeamPaymentAccount();
         rest.accountId = business.getAccountId();
         toRestModel(rest, business);
         return rest;

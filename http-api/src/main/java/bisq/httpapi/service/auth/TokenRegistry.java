@@ -22,7 +22,7 @@ public class TokenRegistry {
     }
 
     public boolean isValidToken(String token) {
-        final Long createDate = tokens.get(token);
+        Long createDate = tokens.get(token);
         if (null == createDate || isTimeout(createDate)) {
             tokens.remove(token);
             return false;
@@ -36,7 +36,7 @@ public class TokenRegistry {
     }
 
     private void removeTimeoutTokens() {
-        final Iterator<Long> iterator = tokens.values().iterator();
+        Iterator<Long> iterator = tokens.values().iterator();
         while (iterator.hasNext()) {
             if (isTimeout(iterator.next()))
                 iterator.remove();

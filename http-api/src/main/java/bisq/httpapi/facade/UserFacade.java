@@ -3,11 +3,6 @@ package bisq.httpapi.facade;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.btc.wallet.WalletsManager;
 
-import bisq.httpapi.exceptions.UnauthorizedException;
-import bisq.httpapi.exceptions.WalletNotReadyException;
-import bisq.httpapi.model.AuthResult;
-import bisq.httpapi.service.auth.TokenRegistry;
-
 import bisq.common.util.Tuple2;
 
 import org.bitcoinj.crypto.KeyCrypterScrypt;
@@ -15,6 +10,13 @@ import org.bitcoinj.crypto.KeyCrypterScrypt;
 import javax.inject.Inject;
 
 import org.spongycastle.crypto.params.KeyParameter;
+
+
+
+import bisq.httpapi.exceptions.UnauthorizedException;
+import bisq.httpapi.exceptions.WalletNotReadyException;
+import bisq.httpapi.model.AuthResult;
+import bisq.httpapi.service.auth.TokenRegistry;
 
 public class UserFacade {
 
@@ -35,7 +37,7 @@ public class UserFacade {
     }
 
     public AuthResult authenticate(String password) {
-        final boolean isPasswordValid = btcWalletService.isWalletReady() && btcWalletService.isEncrypted() && walletFacade.isWalletPasswordValid(password);
+        boolean isPasswordValid = btcWalletService.isWalletReady() && btcWalletService.isEncrypted() && walletFacade.isWalletPasswordValid(password);
         if (isPasswordValid) {
             return new AuthResult(tokenRegistry.generateToken());
         }
@@ -46,13 +48,13 @@ public class UserFacade {
         if (!btcWalletService.isWalletReady())
             throw new WalletNotReadyException("Wallet not ready yet");
         if (btcWalletService.isEncrypted()) {
-            final KeyParameter aesKey = null == oldPassword ? null : walletFacade.getAESKey(oldPassword);
+            KeyParameter aesKey = null == oldPassword ? null : walletFacade.getAESKey(oldPassword);
             if (!walletFacade.isWalletPasswordValid(aesKey))
                 throw new UnauthorizedException();
             walletsManager.decryptWallets(aesKey);
         }
         if (null != newPassword && newPassword.length() > 0) {
-            final Tuple2<KeyParameter, KeyCrypterScrypt> aesKeyAndScrypt = walletFacade.getAESKeyAndScrypt(newPassword);
+            Tuple2<KeyParameter, KeyCrypterScrypt> aesKeyAndScrypt = walletFacade.getAESKeyAndScrypt(newPassword);
             walletsManager.encryptWallets(aesKeyAndScrypt.second, aesKeyAndScrypt.first);
             tokenRegistry.clear();
             return new AuthResult(tokenRegistry.generateToken());

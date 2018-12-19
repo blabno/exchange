@@ -79,7 +79,7 @@ public class OfferFacade {
     }
 
     public CompletableFuture<Void> cancelOffer(String offerId) {
-        final CompletableFuture<Void> futureResult = new CompletableFuture<>();
+        CompletableFuture<Void> futureResult = new CompletableFuture<>();
         UserThread.execute(() -> {
             if (!p2PService.isBootstrapped())
                 futureResult.completeExceptionally(new NotBootstrappedException());
@@ -114,7 +114,7 @@ public class OfferFacade {
         Long buyerSecurityDeposit = input.buyerSecurityDeposit;
 
         // exception from gui code is not clear enough, so this check is added. Missing money is another possible check but that's clear in the gui exception.
-        final CompletableFuture<Offer> futureResult = new CompletableFuture<>();
+        CompletableFuture<Offer> futureResult = new CompletableFuture<>();
 
         //TODO @bernard what is meant by "Specify offerId of earlier prepared offer if you want to use dedicated wallet address."?
         if (!fundUsingBisqWallet && null == offerId)

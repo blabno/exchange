@@ -41,7 +41,7 @@ public final class ContainerFactory {
     public static final String ENV_LOG_LEVEL_VALUE = "debug";
 
     public static ContainerBuilder.ContainerOptionsBuilder createApiContainerBuilder(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin, boolean enableExperimentalFeatures) {
-        final ContainerBuilder.ContainerOptionsBuilder containerOptionsBuilder = Container.withContainerName(CONTAINER_NAME_PREFIX + nameSuffix)
+        ContainerBuilder.ContainerOptionsBuilder containerOptionsBuilder = Container.withContainerName(CONTAINER_NAME_PREFIX + nameSuffix)
                 .fromImage(API_IMAGE)
                 .withVolume(GRADLE_VOLUME_NAME, GRADLE_VOLUME_CONTAINER_PATH)
                 .withVolume(M2_VOLUME_NAME, M2_VOLUME_CONTAINER_PATH)
@@ -66,16 +66,16 @@ public final class ContainerFactory {
 
     @NotNull
     public static Await getAwaitStrategy() {
-        final Await awaitStrategy = new Await();
+        Await awaitStrategy = new Await();
         awaitStrategy.setStrategy("polling");
-        final int sleepPollingTime = 250;
+        int sleepPollingTime = 250;
         awaitStrategy.setIterations(60000 / sleepPollingTime);
         awaitStrategy.setSleepPollingTime(sleepPollingTime);
         return awaitStrategy;
     }
 
     public static Container createApiContainer(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin, boolean enableExperimentalFeatures) {
-        final Container container = createApiContainerBuilder(nameSuffix, portBinding, nodePort, linkToSeedNode, linkToBitcoin, enableExperimentalFeatures).build();
+        Container container = createApiContainerBuilder(nameSuffix, portBinding, nodePort, linkToSeedNode, linkToBitcoin, enableExperimentalFeatures).build();
         container.getCubeContainer().setKillContainer(true);
         return container;
     }
@@ -96,7 +96,7 @@ public final class ContainerFactory {
 
     public static Container createBitcoinContainer() {
         /* it takes a moment for bitcoind to initiate and become ready to receive commands */
-        final Await awaitStrategy = new Await();
+        Await awaitStrategy = new Await();
         awaitStrategy.setStrategy("sleeping");
         awaitStrategy.setSleepTime("2s");
 

@@ -27,7 +27,7 @@ public class ClosedTradableConverter {
     }
 
     public ClosedTradableDetails convert(Tradable tradable) {
-        final ClosedTradableDetails details = new ClosedTradableDetails();
+        ClosedTradableDetails details = new ClosedTradableDetails();
         details.id = tradable.getId();
         details.amount = getAmout(tradable);
         details.date = tradable.getDate().getTime();
@@ -74,13 +74,13 @@ public class ClosedTradableConverter {
     }
 
     private OfferPayload.Direction getDirection(Tradable tradable) {
-        final Offer offer = tradable.getOffer();
+        Offer offer = tradable.getOffer();
         return closedTradableManager.wasMyOffer(offer) ? offer.getDirection() : offer.getMirroredDirection();
     }
 
     private Long getVolume(Tradable item) {
         if (item instanceof Trade) {
-            final Volume volume = ((Trade) item).getTradeVolume();
+            Volume volume = ((Trade) item).getTradeVolume();
             return null == volume ? null : volume.getValue();
         }
         return null;
@@ -90,14 +90,14 @@ public class ClosedTradableConverter {
         if (tradable instanceof Trade)
             return ((Trade) tradable).getTradePrice().getValue();
         else {
-            final Price price = tradable.getOffer().getPrice();
+            Price price = tradable.getOffer().getPrice();
             return null == price ? null : price.getValue();
         }
     }
 
     private Long getAmout(Tradable item) {
         if (item != null && item instanceof Trade) {
-            final Coin tradeAmount = ((Trade) item).getTradeAmount();
+            Coin tradeAmount = ((Trade) item).getTradeAmount();
             return null == tradeAmount ? null : tradeAmount.getValue();
         }
         return null;

@@ -7,7 +7,7 @@ public class AliPayPaymentAccountConverter extends AbstractPaymentAccountConvert
 
     @Override
     public AliPayAccount toBusinessModel(AliPayPaymentAccount rest) {
-        final AliPayAccount business = new AliPayAccount();
+        AliPayAccount business = new AliPayAccount();
         business.init();
         business.setAccountNr(rest.accountNr);
         toBusinessModel(business, rest);
@@ -16,14 +16,14 @@ public class AliPayPaymentAccountConverter extends AbstractPaymentAccountConvert
 
     @Override
     public AliPayPaymentAccount toRestModel(AliPayAccount business) {
-        final AliPayPaymentAccount rest = toRestModel((AliPayAccountPayload) business.getPaymentAccountPayload());
+        AliPayPaymentAccount rest = toRestModel((AliPayAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public AliPayPaymentAccount toRestModel(AliPayAccountPayload business) {
-        final AliPayPaymentAccount rest = new AliPayPaymentAccount();
+        AliPayPaymentAccount rest = new AliPayPaymentAccount();
         rest.accountNr = business.getAccountNr();
         toRestModel(rest, business);
         return rest;

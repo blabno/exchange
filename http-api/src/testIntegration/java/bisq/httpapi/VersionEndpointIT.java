@@ -31,7 +31,7 @@ public class VersionEndpointIT {
     @InSequence(1)
     @Test
     public void getVersionDetails_always_returns200() throws InterruptedException {
-        final int alicePort = getAlicePort();
+        int alicePort = getAlicePort();
 
         given().
                 port(alicePort).

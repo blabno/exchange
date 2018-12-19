@@ -7,7 +7,7 @@ public class ClearXchangePaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public ClearXchangeAccount toBusinessModel(ClearXchangePaymentAccount rest) {
-        final ClearXchangeAccount business = new ClearXchangeAccount();
+        ClearXchangeAccount business = new ClearXchangeAccount();
         business.init();
         business.setEmailOrMobileNr(rest.emailOrMobileNr);
         business.setHolderName(rest.holderName);
@@ -17,14 +17,14 @@ public class ClearXchangePaymentAccountConverter extends AbstractPaymentAccountC
 
     @Override
     public ClearXchangePaymentAccount toRestModel(ClearXchangeAccount business) {
-        final ClearXchangePaymentAccount rest = toRestModel((ClearXchangeAccountPayload) business.getPaymentAccountPayload());
+        ClearXchangePaymentAccount rest = toRestModel((ClearXchangeAccountPayload) business.getPaymentAccountPayload());
         toRestModel(rest, business);
         return rest;
     }
 
     @Override
     public ClearXchangePaymentAccount toRestModel(ClearXchangeAccountPayload business) {
-        final ClearXchangePaymentAccount rest = new ClearXchangePaymentAccount();
+        ClearXchangePaymentAccount rest = new ClearXchangePaymentAccount();
         rest.emailOrMobileNr = business.getEmailOrMobileNr();
         rest.holderName = business.getHolderName();
         toRestModel(rest, business);

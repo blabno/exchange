@@ -2,15 +2,14 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
-import bisq.httpapi.facade.NetworkFacade;
-import bisq.httpapi.model.BitcoinNetworkStatus;
-import bisq.httpapi.model.P2PNetworkStatus;
-import bisq.httpapi.service.ExperimentalFeature;
-
 import javax.inject.Inject;
 
 
 
+import bisq.httpapi.facade.NetworkFacade;
+import bisq.httpapi.model.BitcoinNetworkStatus;
+import bisq.httpapi.model.P2PNetworkStatus;
+import bisq.httpapi.service.ExperimentalFeature;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -38,7 +37,7 @@ public class NetworkEndpoint {
     @ApiOperation(value = "Get Bitcoin network status", response = BitcoinNetworkStatus.class, notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/bitcoin/status")
-    public void getBitcoinNetworkStatus(@Suspended final AsyncResponse asyncResponse) {
+    public void getBitcoinNetworkStatus(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
@@ -52,7 +51,7 @@ public class NetworkEndpoint {
     @ApiOperation(value = "Get P2P network status", response = P2PNetworkStatus.class, notes = ExperimentalFeature.NOTE)
     @GET
     @Path("/p2p/status")
-    public void getP2PNetworkStatus(@Suspended final AsyncResponse asyncResponse) {
+    public void getP2PNetworkStatus(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();

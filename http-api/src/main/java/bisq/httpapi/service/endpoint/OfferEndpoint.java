@@ -66,7 +66,7 @@ public class OfferEndpoint {
 
     @ApiOperation(value = "Find offers", response = OfferList.class)
     @GET
-    public void find(@Suspended final AsyncResponse asyncResponse) {
+    public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
                 List<OfferDetail> offers = offerFacade.getAllOffers();
@@ -80,7 +80,7 @@ public class OfferEndpoint {
     @ApiOperation(value = "Get offer details", response = OfferDetail.class)
     @GET
     @Path("/{id}")
-    public void getOfferById(@Suspended final AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
+    public void getOfferById(@Suspended AsyncResponse asyncResponse, @NotEmpty @PathParam("id") String id) {
         UserThread.execute(() -> {
             try {
                 Offer offer = offerFacade.findOffer(id);
@@ -102,12 +102,12 @@ public class OfferEndpoint {
 
     @ApiOperation(value = "Create offer", response = OfferDetail.class)
     @POST
-    public void createOffer(@Suspended final AsyncResponse asyncResponse, @Valid InputDataForOffer input) {
+    public void createOffer(@Suspended AsyncResponse asyncResponse, @Valid InputDataForOffer input) {
         CompletableFuture<Offer> completableFuture = offerFacade.createOffer(input);
         completableFuture.thenApply(response -> asyncResponse.resume(new OfferDetail(response)))
                 .exceptionally(e -> {
-                    final Throwable cause = e.getCause();
-                    final Response.ResponseBuilder responseBuilder;
+                    Throwable cause = e.getCause();
+                    Response.ResponseBuilder responseBuilder;
                     if (cause instanceof ValidationException) {
                         responseBuilder = toValidationErrorResponse(cause, 422);
                     } else if (cause instanceof IncompatiblePaymentAccountException) {
@@ -134,21 +134,21 @@ public class OfferEndpoint {
     @ApiOperation(value = "Take offer", response = TradeDetails.class)
     @POST
     @Path("/{id}/take")
-    public void takeOffer(@Suspended final AsyncResponse asyncResponse, @PathParam("id") String id, @Valid TakeOffer data) {
+    public void takeOffer(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id, @Valid TakeOffer data) {
         UserThread.execute(() -> {
             try {
-                final CompletableFuture<Trade> completableFuture = offerFacade.offerTake(id, data.paymentAccountId, data.amount, true, data.maxFundsForTrade);
+                CompletableFuture<Trade> completableFuture = offerFacade.offerTake(id, data.paymentAccountId, data.amount, true, data.maxFundsForTrade);
                 completableFuture.thenApply(trade -> asyncResponse.resume(new TradeDetails(trade)))
                         .exceptionally(e -> {
-                            final Throwable cause = e.getCause();
-                            final Response.ResponseBuilder responseBuilder;
+                            Throwable cause = e.getCause();
+                            Response.ResponseBuilder responseBuilder;
                             if (cause instanceof ValidationException) {
-                                final int status = 422;
+                                int status = 422;
                                 responseBuilder = toValidationErrorResponse(cause, status);
                             } else if (cause instanceof NotFoundException) {
                                 responseBuilder = toValidationErrorResponse(cause, 404);
                             } else {
-                                final String message = cause.getMessage();
+                                String message = cause.getMessage();
                                 responseBuilder = Response.status(500);
                                 if (null != message)
                                     responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));

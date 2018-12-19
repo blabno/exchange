@@ -2,16 +2,15 @@ package bisq.httpapi.service.endpoint;
 
 import bisq.common.UserThread;
 
+import javax.inject.Inject;
+
+
+
 import bisq.httpapi.facade.UserFacade;
 import bisq.httpapi.model.AuthForm;
 import bisq.httpapi.model.AuthResult;
 import bisq.httpapi.model.ChangePassword;
 import bisq.httpapi.service.ExperimentalFeature;
-
-import javax.inject.Inject;
-
-
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javax.validation.Valid;
@@ -40,11 +39,11 @@ public class UserEndpoint {
     @ApiOperation(value = "Exchange password for access token", response = AuthResult.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/authenticate")
-    public void authenticate(@Suspended final AsyncResponse asyncResponse, @Valid AuthForm authForm) {
+    public void authenticate(@Suspended AsyncResponse asyncResponse, @Valid AuthForm authForm) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final AuthResult authResult = userFacade.authenticate(authForm.password);
+                AuthResult authResult = userFacade.authenticate(authForm.password);
                 asyncResponse.resume(authResult);
             } catch (Throwable e) {
                 asyncResponse.resume(e);
@@ -55,11 +54,11 @@ public class UserEndpoint {
     @ApiOperation(value = "Change password", response = AuthResult.class, notes = ExperimentalFeature.NOTE)
     @POST
     @Path("/password")
-    public void changePassword(@Suspended final AsyncResponse asyncResponse, @Valid ChangePassword data) {
+    public void changePassword(@Suspended AsyncResponse asyncResponse, @Valid ChangePassword data) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                final AuthResult result = userFacade.changePassword(data.oldPassword, data.newPassword);
+                AuthResult result = userFacade.changePassword(data.oldPassword, data.newPassword);
                 if (null == result) {
                     asyncResponse.resume(Response.noContent().build());
                 } else {

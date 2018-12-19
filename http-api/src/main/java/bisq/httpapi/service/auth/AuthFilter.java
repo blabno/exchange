@@ -29,9 +29,9 @@ public class AuthFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
-        final HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        final HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        final String pathInfo = httpServletRequest.getPathInfo();
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        String pathInfo = httpServletRequest.getPathInfo();
         if (!pathInfo.startsWith("/api") || pathInfo.endsWith("/user/authenticate") || pathInfo.endsWith("/user/password")) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
@@ -44,7 +44,7 @@ public class AuthFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        final String authorizationHeader = httpServletRequest.getHeader("authorization");
+        String authorizationHeader = httpServletRequest.getHeader("authorization");
         if (null == authorizationHeader) {
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
