@@ -305,7 +305,7 @@ class TakeOfferDataModel extends OfferDataModel {
         } else if (filterManager.isNodeAddressBanned(offer.getMakerNodeAddress())) {
             new Popup<>().warning(Res.get("offerbook.warning.nodeBlocked")).show();
         } else {
-            final CompletableFuture<Trade> futureTrade = tradeManager.onTakeOffer(amount.get(),
+            CompletableFuture<Trade> futureTrade = tradeManager.onTakeOffer(amount.get(),
                     txFeeFromFeeService,
                     getTakerFee(),
                     isCurrencyForTakerFeeBtc(),
