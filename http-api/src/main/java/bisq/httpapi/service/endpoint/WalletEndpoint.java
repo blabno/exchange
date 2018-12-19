@@ -98,7 +98,7 @@ public class WalletEndpoint {
 
     @ApiOperation(value = "Get or create wallet address", response = WalletAddress.class, notes = ExperimentalFeature.NOTE)
     @POST
-    @Path("/addresses") //TODO should path be "addresses" ?
+    @Path("/addresses")
     public void getOrCreateAvailableUnusedWalletAddresses(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {

@@ -57,7 +57,7 @@ public class ArbitratorEndpoint {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
-                arbitratorFacade.registerArbitrator(data.languageCodes);
+                arbitratorFacade.registerArbitrator(data.languageCodes).get();
                 asyncResponse.resume(Response.noContent().build());
             } catch (Throwable e) {
                 asyncResponse.resume(e);

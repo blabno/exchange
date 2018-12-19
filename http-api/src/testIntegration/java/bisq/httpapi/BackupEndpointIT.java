@@ -54,8 +54,10 @@ public class BackupEndpointIT {
 
     @ArquillianResource
     private CubeController cubeController;
+
     @ArquillianResource
     private ContainerObjectFactory factory;
+
     @DockerContainer
     private Container alice = ContainerFactory.createApiContainerBuilder("alice", "8081->8080", 3333, false, false)
             .withVolume(APP_DIR_VOLUME_NAME, APP_DIR_VOLUME_HOST_PATH)
