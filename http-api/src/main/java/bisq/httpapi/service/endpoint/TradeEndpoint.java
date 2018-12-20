@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static bisq.httpapi.util.ResourceHelper.toValidationErrorResponse;
+import static bisq.httpapi.util.EndpointHelper.toValidationErrorResponse;
 import static java.util.stream.Collectors.toList;
 
 
@@ -51,7 +51,7 @@ public class TradeEndpoint {
         this.tradeFacade = tradeFacade;
     }
 
-    @Operation(summary = "List trades", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =TradeList.class))))
+    @Operation(summary = "List trades", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = TradeList.class))))
     @GET
     public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
@@ -66,7 +66,7 @@ public class TradeEndpoint {
         });
     }
 
-    @Operation(summary = "Get trade details", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =TradeDetails.class))))
+    @Operation(summary = "Get trade details", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = TradeDetails.class))))
     @GET
     @Path("/{id}")
     public void getById(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
@@ -79,7 +79,7 @@ public class TradeEndpoint {
         });
     }
 
-    @Operation(summary="Confirm payment has started")
+    @Operation(summary = "Confirm payment has started")
     @Consumes(MediaType.WILDCARD)
     @POST
     @Path("/{id}/payment-started")
