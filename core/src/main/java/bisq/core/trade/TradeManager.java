@@ -106,7 +106,6 @@ import lombok.Setter;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static bisq.core.payment.PaymentAccountUtil.isPaymentAccountValidForOffer;
@@ -422,7 +421,7 @@ public class TradeManager implements PersistedDataHost {
         offer.cancelAvailabilityRequest();
     }
 
-    public CompletableFuture<Trade> onTakeOffer(Coin amount, long tradePrice, @Nonnull Offer offer, @Nonnull String paymentAccountId, boolean useSavingsWallet, @Nullable Long maxFundsForTrade) {
+    public CompletableFuture<Trade> onTakeOffer(Coin amount, long tradePrice, Offer offer, String paymentAccountId, boolean useSavingsWallet, @Nullable Long maxFundsForTrade) {
         if (!amount.isPositive()) {
             return CompletableFuture.failedFuture(new ValidationException("amount must be greater than or equal to 1"));
         }
@@ -574,16 +573,16 @@ public class TradeManager implements PersistedDataHost {
         }
     }
 
-    private Trade createTrade(@Nonnull Coin amount,
-                              @Nonnull Coin txFee,
-                              @Nonnull Coin takerFee,
+    private Trade createTrade(Coin amount,
+                              Coin txFee,
+                              Coin takerFee,
                               boolean isCurrencyForTakerFeeBtc,
                               long tradePrice,
-                              @Nonnull Coin fundsNeededForTrade,
-                              @Nonnull Offer offer,
-                              @Nonnull String paymentAccountId,
+                              Coin fundsNeededForTrade,
+                              Offer offer,
+                              String paymentAccountId,
                               boolean useSavingsWallet,
-                              @Nonnull OfferAvailabilityModel model) {
+                              OfferAvailabilityModel model) {
         Trade trade;
         if (offer.isBuyOffer())
             trade = new SellerAsTakerTrade(offer,

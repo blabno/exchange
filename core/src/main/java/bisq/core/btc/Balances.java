@@ -23,8 +23,6 @@ import bisq.core.offer.OpenOffer;
 import bisq.core.offer.OpenOfferManager;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
-import bisq.core.trade.closed.ClosedTradableManager;
-import bisq.core.trade.failed.FailedTradesManager;
 
 import bisq.common.UserThread;
 
@@ -56,8 +54,7 @@ public class Balances {
     private final ObjectProperty<Coin> lockedBalance = new SimpleObjectProperty<>();
 
     @Inject
-    public Balances(BalanceUtil balanceUtil, TradeManager tradeManager, BtcWalletService btcWalletService, OpenOfferManager openOfferManager,
-                    ClosedTradableManager closedTradableManager, FailedTradesManager failedTradesManager) {
+    public Balances(BalanceUtil balanceUtil, TradeManager tradeManager, BtcWalletService btcWalletService, OpenOfferManager openOfferManager) {
         this.balanceUtil = balanceUtil;
         this.tradeManager = tradeManager;
         this.btcWalletService = btcWalletService;
