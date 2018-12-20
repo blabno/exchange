@@ -18,8 +18,6 @@ services:
       - ENABLE_HTTP_API_EXPERIMENTAL_FEATURES=true
   seed:
     image: bisq/seednode
-    volumes:
-      - m2:/root/.m2
     environment:
       - MY_ADDRESS=seed:8000
       - SEED_NODES=seed:8000

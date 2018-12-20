@@ -306,8 +306,6 @@ public class BackupEndpointIT {
     @Environment(key = ContainerFactory.ENV_ENABLE_HTTP_API_EXPERIMENTAL_FEATURES_KEY, value = "true")
     @Environment(key = ContainerFactory.ENV_HTTP_API_HOST_KEY, value = ContainerFactory.ENV_HTTP_API_HOST_VALUE)
     @Cube(value = ApiContainer.CUBE_ID, portBinding = "8080")
-    @Volume(hostPath = ContainerFactory.GRADLE_VOLUME_NAME, containerPath = ContainerFactory.GRADLE_VOLUME_CONTAINER_PATH)
-    @Volume(hostPath = ContainerFactory.M2_VOLUME_NAME, containerPath = ContainerFactory.M2_VOLUME_CONTAINER_PATH)
     @Volume(hostPath = APP_DIR_VOLUME_NAME, containerPath = APP_DIR_VOLUME_HOST_PATH)
     @Image(ContainerFactory.API_IMAGE)
     public static class ApiContainer {

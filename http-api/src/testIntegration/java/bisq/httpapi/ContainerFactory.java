@@ -14,10 +14,6 @@ public final class ContainerFactory {
     public static final String SEED_NODE_ADDRESS = SEED_NODE_HOST_NAME + ":8000";
     public static final String CONTAINER_NAME_PREFIX = "bisq-api-";
     public static final String API_IMAGE = "bisq-api";
-    public static final String GRADLE_VOLUME_NAME = "gradle";
-    public static final String GRADLE_VOLUME_CONTAINER_PATH = "/root/.gradle-volume";
-    public static final String M2_VOLUME_NAME = "m2";
-    public static final String M2_VOLUME_CONTAINER_PATH = "/root/.m2";
     public static final String ENV_NODE_PORT_KEY = "NODE_PORT";
     public static final String ENV_ENABLE_HTTP_API_EXPERIMENTAL_FEATURES_KEY = "ENABLE_HTTP_API_EXPERIMENTAL_FEATURES";
     public static final String ENV_HTTP_API_HOST_KEY = "HTTP_API_HOST";
@@ -41,8 +37,6 @@ public final class ContainerFactory {
     public static ContainerBuilder.ContainerOptionsBuilder createApiContainerBuilder(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin, boolean enableExperimentalFeatures) {
         ContainerBuilder.ContainerOptionsBuilder containerOptionsBuilder = Container.withContainerName(CONTAINER_NAME_PREFIX + nameSuffix)
                 .fromImage(API_IMAGE)
-                .withVolume(GRADLE_VOLUME_NAME, GRADLE_VOLUME_CONTAINER_PATH)
-                .withVolume(M2_VOLUME_NAME, M2_VOLUME_CONTAINER_PATH)
                 .withPortBinding(portBinding)
                 .withEnvironment(ENV_NODE_PORT_KEY, nodePort)
                 .withEnvironment(ENV_HTTP_API_HOST_KEY, ENV_HTTP_API_HOST_VALUE)
