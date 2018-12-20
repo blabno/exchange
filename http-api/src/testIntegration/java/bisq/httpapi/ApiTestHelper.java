@@ -131,7 +131,7 @@ public final class ApiTestHelper {
         accountToCreate.countryCode = countryCode;
         accountToCreate.acceptedCountries = new ArrayList<>(new HashSet<>(Arrays.asList("PL", "GB", countryCode)));
         accountToCreate.selectedTradeCurrency = faker.options().option("PLN", "USD", "EUR", "GBP");
-        if (null != tradeCurrency)
+        if (tradeCurrency != null)
             accountToCreate.selectedTradeCurrency = tradeCurrency;
         accountToCreate.tradeCurrencies = Collections.singletonList(accountToCreate.selectedTradeCurrency);
         return accountToCreate;

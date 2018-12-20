@@ -43,7 +43,7 @@ public class PreferencesFacade {
         preferences.preferredTradeCurrency = this.preferences.getPreferredTradeCurrency().getCode();
         preferences.useCustomWithdrawalTxFee = this.preferences.getUseCustomWithdrawalTxFeeProperty().get();
         Country userCountry = this.preferences.getUserCountry();
-        if (null != userCountry)
+        if (userCountry != null)
             preferences.userCountry = userCountry.code;
         preferences.userLanguage = this.preferences.getUserLanguage();
         preferences.withdrawalTxFee = this.preferences.getWithdrawalTxFeeInBytes();
@@ -60,50 +60,50 @@ public class PreferencesFacade {
     }
 
     public Preferences setPreferences(Preferences update) {
-        if (null != update.autoSelectArbitrators) {
+        if (update.autoSelectArbitrators != null) {
             preferences.setAutoSelectArbitrators(update.autoSelectArbitrators);
         }
-        if (null != update.baseCurrencyNetwork && !update.baseCurrencyNetwork.equals(BisqEnvironment.getBaseCurrencyNetwork().getCurrencyCode())) {
+        if (update.baseCurrencyNetwork != null && !update.baseCurrencyNetwork.equals(BisqEnvironment.getBaseCurrencyNetwork().getCurrencyCode())) {
             throw new ValidationException("Changing baseCurrencyNetwork is not supported");
         }
-        if (null != update.blockChainExplorer) {
+        if (update.blockChainExplorer != null) {
             Optional<BlockChainExplorer> explorerOptional = preferences.getBlockChainExplorers().stream().filter(i -> update.blockChainExplorer.equals(i.name)).findAny();
             if (!explorerOptional.isPresent()) {
                 throw new ValidationException("Unsupported value of blockChainExplorer: " + update.blockChainExplorer);
             }
             preferences.setBlockChainExplorer(explorerOptional.get());
         }
-        if (null != update.cryptoCurrencies) {
+        if (update.cryptoCurrencies != null) {
             List<CryptoCurrency> cryptoCurrencies = preferences.getCryptoCurrencies();
             Collection<CryptoCurrency> convertedCryptos = codesToCryptoCurrencies(update.cryptoCurrencies);
             cryptoCurrencies.clear();
             cryptoCurrencies.addAll(convertedCryptos);
         }
-        if (null != update.fiatCurrencies) {
+        if (update.fiatCurrencies != null) {
             List<FiatCurrency> fiatCurrencies = preferences.getFiatCurrencies();
             Collection<FiatCurrency> convertedFiat = codesToFiatCurrencies(update.fiatCurrencies);
             fiatCurrencies.clear();
             fiatCurrencies.addAll(convertedFiat);
         }
-        if (null != update.ignoredTraders) {
+        if (update.ignoredTraders != null) {
             preferences.setIgnoreTradersList(update.ignoredTraders.stream().map(i -> i.replace(":9999", "").replace(".onion", "")).collect(Collectors.toList()));
         }
-        if (null != update.maxPriceDistance) {
+        if (update.maxPriceDistance != null) {
             preferences.setMaxPriceDistanceInPercent(update.maxPriceDistance);
         }
-        if (null != update.preferredTradeCurrency) {
+        if (update.preferredTradeCurrency != null) {
             preferences.setPreferredTradeCurrency(codeToTradeCurrency(update.preferredTradeCurrency));
         }
-        if (null != update.useCustomWithdrawalTxFee) {
+        if (update.useCustomWithdrawalTxFee != null) {
             preferences.setUseCustomWithdrawalTxFee(update.useCustomWithdrawalTxFee);
         }
-        if (null != update.userCountry) {
+        if (update.userCountry != null) {
             preferences.setUserCountry(codeToCountry(update.userCountry));
         }
-        if (null != update.userLanguage) {
+        if (update.userLanguage != null) {
             preferences.setUserLanguage(update.userLanguage);
         }
-        if (null != update.withdrawalTxFee) {
+        if (update.withdrawalTxFee != null) {
             preferences.setWithdrawalTxFeeInBytes(update.withdrawalTxFee);
         }
         return getPreferences();

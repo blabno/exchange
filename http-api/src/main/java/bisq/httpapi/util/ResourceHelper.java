@@ -31,7 +31,7 @@ public final class ResourceHelper {
             responseBuilder = toValidationErrorResponse(cause, 404);
         } else {
             responseBuilder = Response.status(500);
-            if (null != message)
+            if (message != null)
                 responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
             log.error("Unable to remove offer: throwable={}" + throwable);
         }

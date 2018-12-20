@@ -17,7 +17,7 @@ public class SepaPaymentAccountConverter extends AbstractPaymentAccountConverter
         business.setHolderName(rest.holderName);
         CountryUtil.findCountryByCode(rest.countryCode).ifPresent(business::setCountry);
         business.getAcceptedCountryCodes().clear();
-        if (null != rest.acceptedCountries)
+        if (rest.acceptedCountries != null)
             rest.acceptedCountries.forEach(business::addAcceptedCountry);
         toBusinessModel(business, rest);
         return business;
@@ -38,7 +38,7 @@ public class SepaPaymentAccountConverter extends AbstractPaymentAccountConverter
         rest.countryCode = business.getCountryCode();
         rest.holderName = business.getHolderName();
         List<String> tradeCurrencies = business.getAcceptedCountryCodes();
-        if (null != tradeCurrencies)
+        if (tradeCurrencies != null)
             rest.acceptedCountries.addAll(tradeCurrencies);
         toRestModel(rest, business);
         return rest;

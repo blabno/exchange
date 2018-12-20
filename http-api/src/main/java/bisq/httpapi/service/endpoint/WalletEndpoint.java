@@ -147,7 +147,7 @@ public class WalletEndpoint {
 
                             String message = cause.getMessage();
                             responseBuilder = Response.status(500);
-                            if (null != message)
+                            if (message != null)
                                 responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
                             log.error("Unable to restore wallet from seed", cause);
                             return asyncResponse.resume(responseBuilder.build());

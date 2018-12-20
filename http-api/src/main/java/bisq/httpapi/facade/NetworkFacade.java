@@ -40,7 +40,7 @@ public class NetworkFacade {
     public P2PNetworkStatus getP2PNetworkStatus() {
         P2PNetworkStatus p2PNetworkStatus = new P2PNetworkStatus();
         NodeAddress address = p2PService.getAddress();
-        if (null != address)
+        if (address != null)
             p2PNetworkStatus.address = address.getFullAddress();
         p2PNetworkStatus.p2pNetworkConnection = p2PService.getNetworkNode().getAllConnections().stream()
                 .map(P2PNetworkConnection::new)
@@ -53,7 +53,7 @@ public class NetworkFacade {
     public BitcoinNetworkStatus getBitcoinNetworkStatus() {
         BitcoinNetworkStatus networkStatus = new BitcoinNetworkStatus();
         List<Peer> peers = walletsSetup.connectedPeersProperty().get();
-        if (null != peers)
+        if (peers != null)
             networkStatus.peers = peers.stream().map(peer -> peer.getAddress().toString()).collect(Collectors.toList());
         else
             networkStatus.peers = Collections.emptyList();

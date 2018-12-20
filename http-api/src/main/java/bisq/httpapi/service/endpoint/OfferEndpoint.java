@@ -127,7 +127,7 @@ public class OfferEndpoint {
                     } else {
                         String message = cause.getMessage();
                         responseBuilder = Response.status(500);
-                        if (null != message)
+                        if (message != null)
                             responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
                         log.error("Unable to create offer: " + Json.pretty(input), cause);
                     }
@@ -154,7 +154,7 @@ public class OfferEndpoint {
                             } else {
                                 String message = cause.getMessage();
                                 responseBuilder = Response.status(500);
-                                if (null != message)
+                                if (message != null)
                                     responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
                                 log.error("Unable to take offer: " + id + " " + Json.pretty(data), cause);
                             }
