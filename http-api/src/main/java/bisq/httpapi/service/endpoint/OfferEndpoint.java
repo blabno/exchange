@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static bisq.httpapi.util.ResourceHelper.toValidationErrorResponse;
+import static bisq.httpapi.util.EndpointHelper.toValidationErrorResponse;
 
 
 
@@ -31,7 +31,7 @@ import bisq.httpapi.model.OfferList;
 import bisq.httpapi.model.TakeOffer;
 import bisq.httpapi.model.TradeDetails;
 import bisq.httpapi.service.ValidationErrorMessage;
-import bisq.httpapi.util.ResourceHelper;
+import bisq.httpapi.util.EndpointHelper;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -61,12 +61,10 @@ public class OfferEndpoint {
 
     private final OfferFacade offerFacade;
 
-
     @Inject
     public OfferEndpoint(OfferFacade offerFacade) {
         this.offerFacade = offerFacade;
     }
-
 
     @Operation(summary = "Find offers", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = OfferList.class))))
     @GET
@@ -99,40 +97,52 @@ public class OfferEndpoint {
     @DELETE
     @Path("/{id}")
     public void cancelOffer(@Suspended AsyncResponse asyncResponse, @PathParam("id") String id) {
-        CompletableFuture<Void> completableFuture = offerFacade.cancelOffer(id);
-        completableFuture.thenApply(response -> asyncResponse.resume(Response.status(200).build()))
-                .exceptionally(throwable -> ResourceHelper.handleException(asyncResponse, throwable));
+        UserThread.execute(() -> {
+            try {
+                offerFacade.cancelOffer(id)
+                        .thenApply(response -> asyncResponse.resume(Response.status(200).build()))
+                        .exceptionally(throwable -> EndpointHelper.handleException(asyncResponse, throwable));
+            } catch (Throwable e) {
+                asyncResponse.resume(e);
+            }
+        });
     }
 
     @Operation(summary = "Create offer", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = OfferDetail.class))))
     @POST
     public void createOffer(@Suspended AsyncResponse asyncResponse, @Valid InputDataForOffer input) {
-        CompletableFuture<Offer> completableFuture = offerFacade.createOffer(input);
-        completableFuture.thenApply(response -> asyncResponse.resume(new OfferDetail(response)))
-                .exceptionally(e -> {
-                    Throwable cause = e.getCause();
-                    Response.ResponseBuilder responseBuilder;
-                    if (cause instanceof ValidationException) {
-                        responseBuilder = toValidationErrorResponse(cause, 422);
-                    } else if (cause instanceof IncompatiblePaymentAccountException) {
-                        responseBuilder = toValidationErrorResponse(cause, 423);
-                    } else if (cause instanceof NoAcceptedArbitratorException) {
-                        responseBuilder = toValidationErrorResponse(cause, 424);
-                    } else if (cause instanceof PaymentAccountNotFoundException) {
-                        responseBuilder = toValidationErrorResponse(cause, 425);
-                    } else if (cause instanceof AmountTooHighException) {
-                        responseBuilder = toValidationErrorResponse(cause, 426);
-                    } else if (cause instanceof InsufficientMoneyException) {
-                        responseBuilder = toValidationErrorResponse(cause, 427);
-                    } else {
-                        String message = cause.getMessage();
-                        responseBuilder = Response.status(500);
-                        if (message != null)
-                            responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
-                        log.error("Unable to create offer: " + Json.pretty(input), cause);
-                    }
-                    return asyncResponse.resume(responseBuilder.build());
-                });
+        UserThread.execute(() -> {
+            try {
+                offerFacade.createOffer(input)
+                        .thenApply(response -> asyncResponse.resume(new OfferDetail(response)))
+                        .exceptionally(e -> {
+                            Throwable cause = e.getCause();
+                            Response.ResponseBuilder responseBuilder;
+                            if (cause instanceof ValidationException) {
+                                responseBuilder = toValidationErrorResponse(cause, 422);
+                            } else if (cause instanceof IncompatiblePaymentAccountException) {
+                                responseBuilder = toValidationErrorResponse(cause, 423);
+                            } else if (cause instanceof NoAcceptedArbitratorException) {
+                                responseBuilder = toValidationErrorResponse(cause, 424);
+                            } else if (cause instanceof PaymentAccountNotFoundException) {
+                                responseBuilder = toValidationErrorResponse(cause, 425);
+                            } else if (cause instanceof AmountTooHighException) {
+                                responseBuilder = toValidationErrorResponse(cause, 426);
+                            } else if (cause instanceof InsufficientMoneyException) {
+                                responseBuilder = toValidationErrorResponse(cause, 427);
+                            } else {
+                                String message = cause.getMessage();
+                                responseBuilder = Response.status(500);
+                                if (message != null)
+                                    responseBuilder.entity(new ValidationErrorMessage(ImmutableList.of(message)));
+                                log.error("Unable to create offer: " + Json.pretty(input), cause);
+                            }
+                            return asyncResponse.resume(responseBuilder.build());
+                        });
+            } catch (Throwable e) {
+                asyncResponse.resume(e);
+            }
+        });
     }
 
     @Operation(summary = "Take offer", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = TradeDetails.class))))

@@ -37,7 +37,6 @@ import bisq.httpapi.model.InputDataForOffer;
 import bisq.httpapi.model.OfferDetail;
 import bisq.httpapi.model.PriceType;
 import bisq.httpapi.service.endpoint.OfferBuilder;
-import bisq.httpapi.util.ResourceHelper;
 import javax.validation.ValidationException;
 
 public class OfferFacade {
@@ -98,8 +97,6 @@ public class OfferFacade {
     }
 
     public CompletableFuture<Offer> createOffer(InputDataForOffer input) {
-        //TODO use UserThread.execute
-
         OfferPayload.Direction direction = OfferPayload.Direction.valueOf(input.direction);
         PriceType priceType = PriceType.valueOf(input.priceType);
         Double marketPriceMargin = input.percentageFromMarketPrice == null ? null : input.percentageFromMarketPrice.doubleValue();
@@ -113,20 +110,20 @@ public class OfferFacade {
         long fiatPrice = input.fixedPrice;
         Long buyerSecurityDeposit = input.buyerSecurityDeposit;
 
-        // exception from gui code is not clear enough, so this check is added. Missing money is another possible check but that's clear in the gui exception.
         CompletableFuture<Offer> futureResult = new CompletableFuture<>();
 
-        //TODO @bernard what is meant by "Specify offerId of earlier prepared offer if you want to use dedicated wallet address."?
-        if (!fundUsingBisqWallet && offerId == null)
-            return ResourceHelper.completeExceptionally(futureResult,
-                    new ValidationException("Specify offerId of earlier prepared offer if you want to use dedicated wallet address."));
+        if (!fundUsingBisqWallet && offerId == null) {
+            futureResult.completeExceptionally(new ValidationException("Specify offerId of earlier prepared offer if you want to use dedicated wallet address."));
+            return futureResult;
+        }
 
         Offer offer;
         try {
             offer = offerBuilder.build(offerId, accountId, direction, amount, minAmount, useMarketBasedPrice,
                     marketPriceMargin, marketPair, fiatPrice, buyerSecurityDeposit);
         } catch (Exception e) {
-            return ResourceHelper.completeExceptionally(futureResult, e);
+            futureResult.completeExceptionally(e);
+            return futureResult;
         }
 
         boolean isBuyOffer = OfferUtil.isBuyOffer(direction);

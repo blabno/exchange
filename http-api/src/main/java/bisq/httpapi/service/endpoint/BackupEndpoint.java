@@ -16,7 +16,7 @@ import bisq.httpapi.facade.BackupFacade;
 import bisq.httpapi.model.BackupList;
 import bisq.httpapi.model.CreatedBackup;
 import bisq.httpapi.service.ExperimentalFeature;
-import bisq.httpapi.util.ResourceHelper;
+import bisq.httpapi.util.EndpointHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -119,7 +119,7 @@ public class BackupEndpoint {
                             .build();
                     asyncResponse.resume(response);
                 } catch (FileNotFoundException e) {
-                    Response response = ResourceHelper.toValidationErrorResponse(e, 404).type(MediaType.APPLICATION_JSON).build();
+                    Response response = EndpointHelper.toValidationErrorResponse(e, 404).type(MediaType.APPLICATION_JSON).build();
                     asyncResponse.resume(response);
                 }
             } catch (Throwable e) {
@@ -162,7 +162,7 @@ public class BackupEndpoint {
                     else
                         asyncResponse.resume(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unable to remove file: " + fileName).build());
                 } catch (FileNotFoundException e) {
-                    asyncResponse.resume(ResourceHelper.toValidationErrorResponse(e, 404).build());
+                    asyncResponse.resume(EndpointHelper.toValidationErrorResponse(e, 404).build());
                 }
             } catch (Throwable e) {
                 asyncResponse.resume(e);

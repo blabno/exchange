@@ -3,8 +3,6 @@ package bisq.httpapi.util;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.concurrent.CompletableFuture;
-
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -15,7 +13,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 @Slf4j
-public final class ResourceHelper {
+public final class EndpointHelper {
 
     public static Response.ResponseBuilder toValidationErrorResponse(Throwable cause, int status) {
         String message = cause.getMessage();
@@ -36,10 +34,5 @@ public final class ResourceHelper {
             log.error("Unable to remove offer: throwable={}" + throwable);
         }
         return asyncResponse.resume(responseBuilder.build());
-    }
-
-    public static <T> CompletableFuture<T> completeExceptionally(CompletableFuture<T> futureResult, Throwable throwable) {
-        futureResult.completeExceptionally(throwable);
-        return futureResult;
     }
 }
