@@ -49,9 +49,3 @@ services:
       ports:
 #      If it is default regtest port (18444) then bisq ignores btcNodes param and uses localhost
         - 18445:18444
-
-volumes:
-  m2:
-    name: m2
-  gradle:
-    name: gradle
