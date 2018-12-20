@@ -48,7 +48,7 @@ public final class PaymentAccountHelper {
     @SuppressWarnings("unchecked")
     public static bisq.core.payment.PaymentAccount toBusinessModel(PaymentAccount rest) {
         PaymentAccountConverter converter = converters.get(rest.paymentMethod);
-        if (null != converter) {
+        if (converter != null) {
             return converter.toBusinessModel(rest);
         }
         throw new WebApplicationException("Unsupported paymentMethod:" + rest.paymentMethod, 400);
@@ -58,7 +58,7 @@ public final class PaymentAccountHelper {
     public static PaymentAccount toRestModel(bisq.core.payment.PaymentAccount business) {
         String paymentMethodId = business.getPaymentMethod().getId();
         PaymentAccountConverter converter = converters.get(paymentMethodId);
-        if (null != converter) {
+        if (converter != null) {
             return converter.toRestModel(business);
         }
         throw new IllegalArgumentException("Unsupported paymentMethod:" + paymentMethodId);
@@ -68,7 +68,7 @@ public final class PaymentAccountHelper {
     public static PaymentAccount toRestModel(PaymentAccountPayload business) {
         String paymentMethodId = business.getPaymentMethodId();
         PaymentAccountConverter converter = converters.get(paymentMethodId);
-        if (null != converter) {
+        if (converter != null) {
             PaymentAccount paymentAccount = converter.toRestModel(business);
             paymentAccount.paymentDetails = business.getPaymentDetails();
             return paymentAccount;

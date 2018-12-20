@@ -43,7 +43,7 @@ public class TradeFacade {
 
     public List<Trade> getTradeList() {
         ObservableList<Trade> tradableList = tradeManager.getTradableList();
-        if (null != tradableList) return tradableList.sorted();
+        if (tradableList != null) return tradableList.sorted();
         return Collections.emptyList();
     }
 

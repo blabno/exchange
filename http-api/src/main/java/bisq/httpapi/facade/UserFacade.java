@@ -53,7 +53,7 @@ public class UserFacade {
                 throw new UnauthorizedException();
             walletsManager.decryptWallets(aesKey);
         }
-        if (null != newPassword && newPassword.length() > 0) {
+        if (newPassword != null && newPassword.length() > 0) {
             Tuple2<KeyParameter, KeyCrypterScrypt> aesKeyAndScrypt = walletFacade.getAESKeyAndScrypt(newPassword);
             walletsManager.encryptWallets(aesKeyAndScrypt.second, aesKeyAndScrypt.first);
             tokenRegistry.clear();

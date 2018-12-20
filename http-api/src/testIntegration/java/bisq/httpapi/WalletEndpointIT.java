@@ -384,7 +384,7 @@ public class WalletEndpointIT {
                 port(getAlicePort()).
                 contentType(ContentType.JSON);
 
-        if (null != payload)
+        if (payload != null)
             requestSpecification.body(payload);
 
         requestSpecification.header("authorization", accessToken);

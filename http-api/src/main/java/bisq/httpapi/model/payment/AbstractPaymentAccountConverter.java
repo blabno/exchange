@@ -16,7 +16,7 @@ import javax.validation.ValidationException;
 public abstract class AbstractPaymentAccountConverter<B extends bisq.core.payment.PaymentAccount, BP extends PaymentAccountPayload, R extends PaymentAccount> implements PaymentAccountConverter<B, BP, R> {
 
     protected void toBusinessModel(B business, R rest) {
-        if (null != rest.accountName)
+        if (rest.accountName != null)
             business.setAccountName(rest.accountName);
         business.getTradeCurrencies().clear();
         CurrencyConverter currencyConverter;
@@ -25,9 +25,9 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
         else
             currencyConverter = new FiatCurrencyConverter();
 
-        if (null != rest.selectedTradeCurrency)
+        if (rest.selectedTradeCurrency != null)
             business.setSelectedTradeCurrency(currencyConverter.convert(rest.selectedTradeCurrency));
-        if (null != rest.tradeCurrencies)
+        if (rest.tradeCurrencies != null)
             rest.tradeCurrencies.forEach(currencyCode -> business.addCurrency(currencyConverter.convert(currencyCode)));
     }
 
@@ -35,10 +35,10 @@ public abstract class AbstractPaymentAccountConverter<B extends bisq.core.paymen
         rest.id = business.getId();
         rest.accountName = business.getAccountName();
         TradeCurrency selectedTradeCurrency = business.getSelectedTradeCurrency();
-        if (null != selectedTradeCurrency)
+        if (selectedTradeCurrency != null)
             rest.selectedTradeCurrency = selectedTradeCurrency.getCode();
         List<TradeCurrency> tradeCurrencies = business.getTradeCurrencies();
-        if (null != tradeCurrencies)
+        if (tradeCurrencies != null)
             tradeCurrencies.forEach(currency -> rest.tradeCurrencies.add(currency.getCode()));
     }
 

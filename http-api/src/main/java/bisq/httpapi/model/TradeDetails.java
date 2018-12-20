@@ -47,10 +47,10 @@ public class TradeDetails {
     public TradeDetails(Trade trade) {
         this.id = trade.getId();
         Offer offer = trade.getOffer();
-        if (null != offer)
+        if (offer != null)
             this.offer = new OfferDetail(offer);
         Contract contract = trade.getContract();
-        if (null != contract) {
+        if (contract != null) {
             this.buyerPaymentAccount = PaymentAccountHelper.toRestModel(contract.getBuyerPaymentAccountPayload());
             this.sellerPaymentAccount = PaymentAccountHelper.toRestModel(contract.getSellerPaymentAccountPayload());
         }
@@ -69,15 +69,15 @@ public class TradeDetails {
         this.arbitratorBtcPubKey = trade.getArbitratorBtcPubKey();
         this.contractHash = trade.getContractHash();
         NodeAddress mediatorNodeAddress = trade.getMediatorNodeAddress();
-        if (null != mediatorNodeAddress)
+        if (mediatorNodeAddress != null)
             this.mediatorNodeAddress = mediatorNodeAddress.getFullAddress();
         this.takerContractSignature = trade.getTakerContractSignature();
         this.makerContractSignature = trade.getMakerContractSignature();
         NodeAddress arbitratorNodeAddress = trade.getArbitratorNodeAddress();
-        if (null != arbitratorNodeAddress)
+        if (arbitratorNodeAddress != null)
             this.arbitratorNodeAddress = arbitratorNodeAddress.getFullAddress();
         NodeAddress tradingPeerNodeAddress = trade.getTradingPeerNodeAddress();
-        if (null != tradingPeerNodeAddress)
+        if (tradingPeerNodeAddress != null)
             this.tradingPeerNodeAddress = tradingPeerNodeAddress.getFullAddress();
         this.takerPaymentAccountId = trade.getTakerPaymentAccountId();
         this.errorMessage = trade.getErrorMessage();

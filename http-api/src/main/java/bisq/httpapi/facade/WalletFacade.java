@@ -327,7 +327,7 @@ public class WalletFacade {
     }
 
     boolean isWalletPasswordValid(KeyParameter aesKey) {
-        return null != aesKey && walletsManager.checkAESKey(aesKey);
+        return aesKey != null && walletsManager.checkAESKey(aesKey);
     }
 
     private static WalletAddress convertAddressEntryToWalletAddress(AddressEntry entry, BtcWalletService btcWalletService) {

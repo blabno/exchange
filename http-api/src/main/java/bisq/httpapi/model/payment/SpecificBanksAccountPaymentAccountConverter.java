@@ -44,7 +44,7 @@ public class SpecificBanksAccountPaymentAccountConverter extends AbstractPayment
         rest.holderName = business.getHolderName();
         rest.holderTaxId = business.getHolderTaxId();
         List<String> acceptedBanks = business.getAcceptedBanks();
-        if (null != acceptedBanks)
+        if (acceptedBanks != null)
             rest.acceptedBanks.addAll(acceptedBanks);
         toRestModel(rest, business);
         return rest;
