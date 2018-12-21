@@ -34,13 +34,6 @@ public class MarketEndpoint {
         this.experimentalFeature = experimentalFeature;
     }
 
-    @Operation(summary = "List markets", description = ExperimentalFeature.NOTE)
-    @GET
-    public MarketList find() {
-        experimentalFeature.assertEnabled();
-        return getMarketList();
-    }
-
     static MarketList getMarketList() {
         if (marketList == null) {
             marketList = new MarketList();
@@ -70,8 +63,10 @@ public class MarketEndpoint {
         return currencyList;
     }
 
-    static boolean isMarketPriceAvailable() {
-        //TODO check if we have a live market price
-        return true;
+    @Operation(summary = "List markets", description = ExperimentalFeature.NOTE)
+    @GET
+    public MarketList find() {
+        experimentalFeature.assertEnabled();
+        return getMarketList();
     }
 }
