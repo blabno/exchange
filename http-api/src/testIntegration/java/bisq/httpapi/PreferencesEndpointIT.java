@@ -64,7 +64,7 @@ public class PreferencesEndpointIT {
         savedPreferences.autoSelectArbitrators = false;
         savedPreferences.baseCurrencyNetwork = "BTC";
         savedPreferences.blockChainExplorer = "Smartbit";
-        savedPreferences.cryptoCurrencies = Arrays.asList("BCH", "ETH");
+        savedPreferences.cryptoCurrencies = Arrays.asList("LTC", "ETH");
         savedPreferences.fiatCurrencies = Arrays.asList("PLN", "EUR", "USD");
         savedPreferences.ignoredTraders = Arrays.asList("jes.onion:9999", "ber:3333");
         savedPreferences.maxPriceDistance = 0.5;
