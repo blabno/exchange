@@ -80,8 +80,10 @@ public class OfferFacade {
     public CompletableFuture<Void> cancelOffer(String offerId) {
         CompletableFuture<Void> futureResult = new CompletableFuture<>();
         UserThread.execute(() -> {
-            if (!p2PService.isBootstrapped())
+            if (!p2PService.isBootstrapped()) {
                 futureResult.completeExceptionally(new NotBootstrappedException());
+                return;
+            }
 
             Optional<OpenOffer> openOfferById = openOfferManager.getOpenOfferById(offerId);
             if (!openOfferById.isPresent()) {
