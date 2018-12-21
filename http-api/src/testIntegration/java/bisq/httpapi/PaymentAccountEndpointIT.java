@@ -313,9 +313,9 @@ public class PaymentAccountEndpointIT {
 
         CryptoCurrencyPaymentAccount accountToCreate = new CryptoCurrencyPaymentAccount();
         accountToCreate.accountName = faker.commerce().productName();
-        accountToCreate.selectedTradeCurrency = "BCH";
+        accountToCreate.selectedTradeCurrency = "LTC";
         accountToCreate.tradeCurrencies = Collections.singletonList(accountToCreate.selectedTradeCurrency);
-        accountToCreate.address = "1ab616x3JxQsXsExCKX4iirdFwVDDXuwo";
+        accountToCreate.address = "Ldsb1sfBw4KVv8hvKm9y9EEqBMonKT6Akn";
 
         String expectedPaymentDetails = String.format("Receiver's altcoin address: %s", accountToCreate.address);
 
@@ -1154,7 +1154,7 @@ public class PaymentAccountEndpointIT {
     @InSequence(1)
     @Test
     public void create_invalidCryptoAddress_returnsError() throws Exception {
-        create_cryptoValidationFailureTemplate("address", "abc", "Address is not a valid BCH address! Input too short");
+        create_cryptoValidationFailureTemplate("address", "abc", "Address is not a valid LTC address! Input too short");
     }
 
     @InSequence(1)
@@ -1245,7 +1245,7 @@ public class PaymentAccountEndpointIT {
 
         CryptoCurrencyPaymentAccount accountToCreate = new CryptoCurrencyPaymentAccount();
         accountToCreate.accountName = faker.commerce().productName();
-        accountToCreate.selectedTradeCurrency = "BCH";
+        accountToCreate.selectedTradeCurrency = "LTC";
         accountToCreate.tradeCurrencies = Collections.singletonList(accountToCreate.selectedTradeCurrency);
         accountToCreate.address = "1ab616x3JxQsXsExCKX4iirdFwVDDXuwo";
         CryptoCurrencyPaymentAccount.class.getField(fieldName).set(accountToCreate, fieldValue);
