@@ -103,7 +103,7 @@ public class WalletEndpoint {
     @Operation(summary = "Get or create wallet address", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =WalletAddress.class))), description = ExperimentalFeature.NOTE)
     @Consumes(MediaType.WILDCARD)
     @POST
-    @Path("/addresses") //TODO should path be "addresses" ?
+    @Path("/addresses")
     public void getOrCreateAvailableUnusedWalletAddresses(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {

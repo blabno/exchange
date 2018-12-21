@@ -11,6 +11,7 @@ import bisq.core.offer.TxFeeEstimation;
 import bisq.core.payment.AccountAgeWitnessService;
 import bisq.core.payment.PaymentAccount;
 import bisq.core.provider.fee.FeeService;
+import bisq.core.provider.price.MarketPrice;
 import bisq.core.provider.price.PriceFeedService;
 import bisq.core.trade.statistics.ReferralIdService;
 import bisq.core.user.Preferences;
@@ -159,7 +160,8 @@ public class OfferBuilder {
         Map<String, String> extraDataMap = OfferUtil.getExtraDataMap(accountAgeWitnessService, referralIdService,
                 paymentAccount, currencyCode);
         Coin amountAsCoin = Coin.valueOf(amount);
-        boolean marketPriceAvailable = MarketEndpoint.isMarketPriceAvailable();
+        final MarketPrice marketPrice = priceFeedService.getMarketPrice(market.getBaseCurrencyCode());
+        boolean marketPriceAvailable = marketPrice != null && marketPrice.isPriceAvailable();
         Coin makerFeeAsCoin = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin, marketPriceAvailable, marketPriceMargin);
         // Throws runtime exception if data are invalid
         Coin buyerSecurityDepositAsCoin = Coin.valueOf(buyerSecurityDeposit);
