@@ -22,6 +22,8 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -29,8 +31,6 @@ import static java.util.stream.Collectors.toList;
 
 
 
-import bisq.httpapi.exceptions.AmountTooHighException;
-import bisq.httpapi.exceptions.InsufficientMoneyException;
 import bisq.httpapi.exceptions.NotBootstrappedException;
 import bisq.httpapi.exceptions.NotFoundException;
 import bisq.httpapi.model.InputDataForOffer;
@@ -102,8 +102,6 @@ public class OfferFacade {
         OfferPayload.Direction direction = OfferPayload.Direction.valueOf(input.direction);
         PriceType priceType = PriceType.valueOf(input.priceType);
         Double marketPriceMargin = input.percentageFromMarketPrice == null ? null : input.percentageFromMarketPrice.doubleValue();
-        boolean fundUsingBisqWallet = input.fundUsingBisqWallet;
-        String offerId = input.offerId;
         String accountId = input.accountId;
         long amount = input.amount;
         long minAmount = input.minAmount;
@@ -114,14 +112,9 @@ public class OfferFacade {
 
         CompletableFuture<Offer> futureResult = new CompletableFuture<>();
 
-        if (!fundUsingBisqWallet && offerId == null) {
-            futureResult.completeExceptionally(new ValidationException("Specify offerId of earlier prepared offer if you want to use dedicated wallet address."));
-            return futureResult;
-        }
-
         Offer offer;
         try {
-            offer = offerBuilder.build(offerId, accountId, direction, amount, minAmount, useMarketBasedPrice,
+            offer = offerBuilder.build(accountId, direction, amount, minAmount, useMarketBasedPrice,
                     marketPriceMargin, marketPair, fiatPrice, buyerSecurityDeposit);
         } catch (Exception e) {
             futureResult.completeExceptionally(e);
@@ -142,13 +135,15 @@ public class OfferFacade {
         // TODO check for tradeLimit is missing in ValidateOffer
         openOfferManager.placeOffer(offer,
                 reservedFundsForOffer,
-                fundUsingBisqWallet,
+                true,
                 transaction -> futureResult.complete(offer),
                 errorMessage -> {
+                    final Matcher matcher = Pattern.compile(".*Error message: (.*)").matcher(errorMessage);
+                    final String nestedMessage = matcher.find() ? matcher.group(1) : errorMessage;
                     if (errorMessage.contains("Insufficient money"))
-                        futureResult.completeExceptionally(new InsufficientMoneyException(errorMessage));
+                        futureResult.completeExceptionally(new ValidationException(nestedMessage));
                     else if (errorMessage.contains("Amount is larger"))
-                        futureResult.completeExceptionally(new AmountTooHighException(errorMessage));
+                        futureResult.completeExceptionally(new ValidationException(nestedMessage));
                     else
                         futureResult.completeExceptionally(new RuntimeException(errorMessage));
                 });

@@ -18,12 +18,7 @@ import static bisq.httpapi.util.EndpointHelper.toValidationErrorResponse;
 
 
 
-import bisq.httpapi.exceptions.AmountTooHighException;
-import bisq.httpapi.exceptions.IncompatiblePaymentAccountException;
-import bisq.httpapi.exceptions.InsufficientMoneyException;
-import bisq.httpapi.exceptions.NoAcceptedArbitratorException;
 import bisq.httpapi.exceptions.NotFoundException;
-import bisq.httpapi.exceptions.PaymentAccountNotFoundException;
 import bisq.httpapi.facade.OfferFacade;
 import bisq.httpapi.model.InputDataForOffer;
 import bisq.httpapi.model.OfferDetail;
@@ -120,16 +115,6 @@ public class OfferEndpoint {
                             Response.ResponseBuilder responseBuilder;
                             if (cause instanceof ValidationException) {
                                 responseBuilder = toValidationErrorResponse(cause, 422);
-                            } else if (cause instanceof IncompatiblePaymentAccountException) {
-                                responseBuilder = toValidationErrorResponse(cause, 423);
-                            } else if (cause instanceof NoAcceptedArbitratorException) {
-                                responseBuilder = toValidationErrorResponse(cause, 424);
-                            } else if (cause instanceof PaymentAccountNotFoundException) {
-                                responseBuilder = toValidationErrorResponse(cause, 425);
-                            } else if (cause instanceof AmountTooHighException) {
-                                responseBuilder = toValidationErrorResponse(cause, 426);
-                            } else if (cause instanceof InsufficientMoneyException) {
-                                responseBuilder = toValidationErrorResponse(cause, 427);
                             } else {
                                 String message = cause.getMessage();
                                 responseBuilder = Response.status(500);

@@ -47,9 +47,6 @@ import static bisq.core.payment.PaymentAccountUtil.isPaymentAccountValidForOffer
 
 
 
-import bisq.httpapi.exceptions.IncompatiblePaymentAccountException;
-import bisq.httpapi.exceptions.NoAcceptedArbitratorException;
-import bisq.httpapi.exceptions.PaymentAccountNotFoundException;
 import bisq.httpapi.model.Market;
 import javax.validation.ValidationException;
 
@@ -90,8 +87,7 @@ public class OfferBuilder {
         this.user = user;
     }
 
-    public Offer build(@Nullable String offerId,
-                       String accountId,
+    public Offer build(String accountId,
                        OfferPayload.Direction direction,
                        long amount,
                        long minAmount,
@@ -99,11 +95,10 @@ public class OfferBuilder {
                        @Nullable Double marketPriceMargin,
                        String marketPair,
                        long priceAsLong,
-                       @Nullable Long buyerSecurityDeposit)
-            throws NoAcceptedArbitratorException, PaymentAccountNotFoundException, IncompatiblePaymentAccountException {
+                       @Nullable Long buyerSecurityDeposit) {
         List<NodeAddress> acceptedArbitratorAddresses = user.getAcceptedArbitratorAddresses();
         if (acceptedArbitratorAddresses == null || acceptedArbitratorAddresses.size() == 0) {
-            throw new NoAcceptedArbitratorException("No arbitrator has been chosen");
+            throw new ValidationException("No arbitrator has been chosen");
         }
 
         // Checked that if fixed we have a fixed price, if percentage we have a percentage
@@ -117,7 +112,7 @@ public class OfferBuilder {
                 .filter(account -> account.getId().equals(accountId))
                 .findFirst();
         if (!optionalAccount.isPresent()) {
-            throw new PaymentAccountNotFoundException("Could not find payment account with id: " + accountId);
+            throw new ValidationException("Could not find payment account with id: " + accountId);
         }
 
         validateMarketPair(marketPair);
@@ -129,7 +124,7 @@ public class OfferBuilder {
         if (marketPriceMargin == null)
             marketPriceMargin = 0d;
 
-        offerId = offerId == null ? UUID.randomUUID().toString() : offerId;
+        String offerId = UUID.randomUUID().toString();
 
         // fix marketPair if it's lowercase
         marketPair = marketPair.toUpperCase();
@@ -229,7 +224,7 @@ public class OfferBuilder {
 
         if (!isPaymentAccountValidForOffer(offer, paymentAccount)) {
             String errorMessage = "PaymentAccount is not valid for offer, needs " + offer.getCurrencyCode();
-            throw new IncompatiblePaymentAccountException(errorMessage);
+            throw new ValidationException(errorMessage);
         }
 
         return offer;

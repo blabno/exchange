@@ -36,6 +36,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.DockerContainer;
+import org.hamcrest.Matcher;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 
@@ -61,7 +62,6 @@ public class OfferEndpointIT {
 
     private static JSONObject toJsonObject(InputDataForOffer offer) {
         JSONObject jsonOffer = new JSONObject();
-        putIfNotNull(jsonOffer, "fundUsingBisqWallet", offer.fundUsingBisqWallet);
         putIfNotNull(jsonOffer, "amount", offer.amount);
         putIfNotNull(jsonOffer, "minAmount", offer.minAmount);
         putIfNotNull(jsonOffer, "direction", offer.direction);
@@ -125,15 +125,19 @@ public class OfferEndpointIT {
 
     @InSequence(1)
     @Test
-    public void createOffer_noArbitratorAccepted_returns424status() {
+    public void createOffer_noArbitratorAccepted_returns422status() {
         InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
-        createOffer_template(offer, 424);
+        createOffer_template(offer, 422, "No arbitrator has been chosen");
     }
 
     private void createOffer_template(InputDataForOffer offer, @SuppressWarnings("SameParameterValue") int expectedStatusCode, String errorMessage) {
+        createOffer_template(offer, expectedStatusCode,equalTo(errorMessage));
+    }
+
+    private void createOffer_template(InputDataForOffer offer, @SuppressWarnings("SameParameterValue") int expectedStatusCode, Matcher<String> errorMessageMatcher) {
         createOffer_template(offer, expectedStatusCode).
                 and().body("errors.size()", equalTo(1)).
-                and().body("errors[0]", equalTo(errorMessage))
+                and().body("errors[0]", errorMessageMatcher)
         ;
     }
 
@@ -159,24 +163,27 @@ public class OfferEndpointIT {
 
     @InSequence(3)
     @Test
-    public void createOffer_validPayloadButNoFunds_returns427status() {
+    public void createOffer_validPayloadButNoFunds_returns422status() {
         InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
-        createOffer_template(offer, 427);
+        createOffer_template(offer, 422, containsString("Insufficient money"));
     }
 
     @InSequence(3)
     @Test
-    public void createOffer_incompatiblePaymentAccount_returns423status() {
+    public void createOffer_incompatiblePaymentAccount_returns422status() {
         String otherTradeCurrency = "EUR".equals(tradeCurrency) ? "PLN" : "EUR";
         InputDataForOffer offer = getOfferToCreateFixedBuy(otherTradeCurrency, alicePaymentAccount.id);
-        createOffer_template(offer, 423);
+        final String errorMessage = String.format("PaymentAccount is not valid for offer, needs %s", otherTradeCurrency);
+        createOffer_template(offer, 422, errorMessage);
     }
 
     @InSequence(3)
     @Test
-    public void createOffer_noPaymentAccount_returns425status() {
-        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id + alicePaymentAccount.id);
-        createOffer_template(offer, 425);
+    public void createOffer_noPaymentAccount_returns422status() {
+        final String paymentAccountId = alicePaymentAccount.id + alicePaymentAccount.id;
+        InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, paymentAccountId);
+        final String errorMessage = String.format("Could not find payment account with id: %s", paymentAccountId);
+        createOffer_template(offer, 422, errorMessage);
     }
 
     @InSequence(3)
@@ -293,7 +300,7 @@ public class OfferEndpointIT {
 
     @InSequence(5)
     @Test
-    public void createOffer_amountTooHigh_returns426() {
+    public void createOffer_amountTooHigh_returns422() {
         int alicePort = getAlicePort();
 
         InputDataForOffer offer = getOfferToCreateFixedBuy(tradeCurrency, alicePaymentAccount.id);
@@ -308,7 +315,9 @@ public class OfferEndpointIT {
                 post("/api/v1/offers").
 //
         then().
-                statusCode(426);
+                statusCode(422).
+                and().body("errors.size()", equalTo(1)).
+                and().body("errors[0]", containsString("Amount is larger then"));
     }
 
     @InSequence(6)
@@ -604,10 +613,10 @@ public class OfferEndpointIT {
     @Ignore("Bug in tradeManager.onTakeOffer which resolves instead of reject in this scenario")
     @InSequence(10)
     @Test
-    public void takeOffer_noArbitratorSelected_returns424() {
+    public void takeOffer_noArbitratorSelected_returns422() {
         ApiTestHelper.deselectAllArbitrators(getBobPort());
         TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 1);
-        takeOffer_template(createdOffer.id, payload, 423);
+        takeOffer_errorTemplate(createdOffer.id, payload, 422, "");
     }
 
     @Ignore("Bug in tradeManager.onTakeOffer which resolves instead of reject in this scenario")
@@ -840,7 +849,6 @@ public class OfferEndpointIT {
 
     private InputDataForOffer getOfferToCreateFixedBuy(String tradeCurrency, String paymentAccountId) {
         InputDataForOffer offer = new InputDataForOffer();
-        offer.fundUsingBisqWallet = true;
         offer.amount = 6250000;
         offer.minAmount = offer.amount;
         offer.direction = OfferPayload.Direction.BUY.name();
