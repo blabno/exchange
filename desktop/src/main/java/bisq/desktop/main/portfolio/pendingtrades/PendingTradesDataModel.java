@@ -36,7 +36,6 @@ import bisq.core.locale.Res;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
 import bisq.core.payment.payload.PaymentAccountPayload;
-import bisq.core.trade.BuyerTrade;
 import bisq.core.trade.SellerTrade;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
@@ -80,21 +79,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class PendingTradesDataModel extends ActivatableDataModel {
     public final TradeManager tradeManager;
     public final BtcWalletService btcWalletService;
-    private final KeyRing keyRing;
     public final DisputeManager disputeManager;
-    private final P2PService p2PService;
-    private final WalletsSetup walletsSetup;
     public final Navigation navigation;
     public final WalletPasswordWindow walletPasswordWindow;
-    private final NotificationCenter notificationCenter;
-
-    final ObservableList<PendingTradesListItem> list = FXCollections.observableArrayList();
-    private final ListChangeListener<Trade> tradesListChangeListener;
-    private boolean isMaker;
-
-    final ObjectProperty<PendingTradesListItem> selectedItemProperty = new SimpleObjectProperty<>();
     public final StringProperty txId = new SimpleStringProperty();
     public final Preferences preferences;
+    final ObservableList<PendingTradesListItem> list = FXCollections.observableArrayList();
+    final ObjectProperty<PendingTradesListItem> selectedItemProperty = new SimpleObjectProperty<>();
+    private final KeyRing keyRing;
+    private final P2PService p2PService;
+    private final WalletsSetup walletsSetup;
+    private final NotificationCenter notificationCenter;
+    private final ListChangeListener<Trade> tradesListChangeListener;
+    private boolean isMaker;
     private boolean activated;
     private ChangeListener<Trade.State> tradeStateChangeListener;
     private Trade selectedTrade;
@@ -156,12 +153,13 @@ public class PendingTradesDataModel extends ActivatableDataModel {
 
     public void onPaymentStarted(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
         final Trade trade = getTrade();
-        checkNotNull(trade, "trade must not be null");
-        checkArgument(trade instanceof BuyerTrade, "Check failed: trade instanceof BuyerTrade");
-        checkArgument(trade.getDisputeState() == Trade.DisputeState.NO_DISPUTE, "Check failed: trade.getDisputeState() == Trade.DisputeState.NONE");
-        // TODO UI not impl yet
-        trade.setCounterCurrencyTxId("");
-        ((BuyerTrade) trade).onFiatPaymentStarted(resultHandler, errorMessageHandler);
+        tradeManager.paymentStarted(trade)
+                .thenRun(resultHandler::handleResult)
+                .exceptionally(throwable -> {
+                    errorMessageHandler.handleErrorMessage(throwable.getMessage());
+                    return null;
+
+                });
     }
 
     public void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {

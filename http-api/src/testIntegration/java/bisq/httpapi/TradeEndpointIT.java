@@ -4,7 +4,6 @@ import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
 import bisq.core.trade.Trade;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -14,6 +13,7 @@ import static org.hamcrest.Matchers.*;
 
 
 import bisq.httpapi.model.payment.SepaPaymentAccount;
+import io.restassured.response.ValidatableResponse;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.Container;
 import org.arquillian.cube.docker.impl.client.containerobject.dsl.DockerContainer;
 import org.hamcrest.Matcher;
@@ -167,27 +167,17 @@ public class TradeEndpointIT {
         ;
     }
 
-
-    @Ignore
-    @InSequence(2)
-    @Test
-    public void paymentStarted_invokedBySeller_returnsXXX() {
-
-    }
-
     @InSequence(2)
     @Test
     public void paymentStarted_missingId_returns404() {
         paymentStarted_template("", 404);
     }
 
-
     @InSequence(2)
     @Test
     public void paymentStarted_tradeDoesNotExist_returns404() {
         paymentStarted_template(tradeId + "1", 404);
     }
-
 
     @InSequence(2)
     @Test
@@ -201,34 +191,45 @@ public class TradeEndpointIT {
         ApiTestHelper.generateBlocks(bitcoin, 1);
     }
 
-
     @InSequence(4)
     @Test
-    public void paymentReceived_beforePaymentStarted_returns422() {
-        paymentReceived_template(tradeId, 422);
+    public void paymentStarted_invokedBySeller_returns422() {
+        paymentStarted_errorTemplate(getBobPort(), tradeId, 422, "Check failed: trade instanceof BuyerTrade");
     }
 
     @InSequence(5)
+    @Test
+    public void paymentReceived_beforePaymentStarted_returns422() {
+        paymentReceived_errorTemplate(getBobPort(), tradeId, 422, "Trade is not in the correct state to receive payment: DEPOSIT_CONFIRMED_IN_BLOCK_CHAIN");
+    }
+
+    @InSequence(6)
     @Test
     public void paymentStarted_tradeExists_returns200() {
         paymentStarted_template(tradeId, 200);
         assertTradeState(tradeId, Trade.State.BUYER_SAW_ARRIVED_FIAT_PAYMENT_INITIATED_MSG);
     }
 
-    @InSequence(5)
+    @InSequence(6)
     @Test
     public void paymentReceived_tradeDoesNotExist_returns404() {
-        paymentReceived_template(tradeId + "1", 404);
+        paymentReceived_errorTemplate(getBobPort(), tradeId + "1", 404, startsWith("Trade not found:"));
     }
 
     @InSequence(6)
+    @Test
+    public void paymentReceived_invokedByBuyer_returns422() {
+        paymentReceived_errorTemplate(getAlicePort(), tradeId, 422, "Trade is not in the correct state to receive payment: BUYER_SAW_ARRIVED_FIAT_PAYMENT_INITIATED_MSG");
+    }
+
+    @InSequence(7)
     @Test
     public void moveFundsToBisqWallet_beforeTradeComplete_returns422() {
         String unknownTradeId = tradeId;
         moveFundsToBisqWallet_template(getAlicePort(), unknownTradeId, 422);
     }
 
-    @InSequence(7)
+    @InSequence(8)
     @Test
     public void paymentReceived_tradeExists_returns200() throws Exception {
         paymentReceived_template(tradeId, 200);
@@ -236,7 +237,7 @@ public class TradeEndpointIT {
         assertTradeState(tradeId, Trade.State.BUYER_RECEIVED_PAYOUT_TX_PUBLISHED_MSG);
     }
 
-    @InSequence(8)
+    @InSequence(9)
     @Test
     public void moveFundsToBisqWallet_tradeNotFound_returns404() {
         String unknownTradeId = tradeId + tradeId;
@@ -244,7 +245,7 @@ public class TradeEndpointIT {
         assertTradeNotFound(getAlicePort(), unknownTradeId);
     }
 
-    @InSequence(8)
+    @InSequence(9)
     @Test
     public void moveFundsToBisqWallet_tradeExists_returns200() {
         moveFundsToBisqWallet_template(getAlicePort(), tradeId, 200);
@@ -291,27 +292,53 @@ public class TradeEndpointIT {
                 and().body("state", equalTo(state.name()));
     }
 
-    private void paymentStarted_template(String tradeId, int expectedStatusCode) {
-        given().
-                port(getAlicePort()).
+    private ValidatableResponse paymentStarted_template(int port, String tradeId, int expectedStatusCode) {
+        return given().
+                port(port).
 //
         when().
-                post("/api/v1/trades/" + tradeId + "/payment-started").
+                        post("/api/v1/trades/" + tradeId + "/payment-started").
 //
         then().
-                statusCode(expectedStatusCode)
+                        statusCode(expectedStatusCode)
+                ;
+    }
+
+    private ValidatableResponse paymentStarted_template(String tradeId, int expectedStatusCode) {
+        return paymentStarted_template(getAlicePort(), tradeId, expectedStatusCode);
+    }
+
+    private void paymentStarted_errorTemplate(int port, String tradeId, int expectedStatusCode, String expectedMessage) {
+        paymentStarted_template(port, tradeId, expectedStatusCode).
+                and().body("errors[0]", equalTo(expectedMessage))
         ;
     }
 
-    private void paymentReceived_template(String tradeId, int expectedStatusCode) {
-        given().
-                port(getBobPort()).
+    private ValidatableResponse paymentReceived_template(int port, String tradeId, int expectedStatusCode) {
+        return given().
+                port(port).
 //
         when().
-                post("/api/v1/trades/" + tradeId + "/payment-received").
+                        post("/api/v1/trades/" + tradeId + "/payment-received").
 //
         then().
-                statusCode(expectedStatusCode)
+                        statusCode(expectedStatusCode)
+                ;
+    }
+
+    private ValidatableResponse paymentReceived_template(String tradeId, int expectedStatusCode) {
+        return paymentReceived_template(getBobPort(), tradeId, expectedStatusCode);
+    }
+
+    private void paymentReceived_errorTemplate(int port, String tradeId, int expectedStatusCode, String expectedMessage) {
+        paymentReceived_template(port, tradeId, expectedStatusCode)
+                .and().body("errors[0]", equalTo(expectedMessage))
+        ;
+    }
+
+    private void paymentReceived_errorTemplate(int port, String tradeId, int expectedStatusCode, Matcher<String> expectedMessage) {
+        paymentReceived_template(port, tradeId, expectedStatusCode)
+                .and().body("errors[0]", expectedMessage)
         ;
     }
 
