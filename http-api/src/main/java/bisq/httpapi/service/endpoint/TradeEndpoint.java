@@ -129,7 +129,7 @@ public class TradeEndpoint {
                 .exceptionally(e -> {
                     Throwable cause = e.getCause();
                     Response.ResponseBuilder responseBuilder;
-                    if (cause instanceof ValidationException) {
+                    if (cause instanceof ValidationException || cause instanceof IllegalArgumentException) {
                         responseBuilder = toValidationErrorResponse(cause, 422);
                     } else if (cause instanceof NotFoundException) {
                         responseBuilder = toValidationErrorResponse(cause, 404);

@@ -2,11 +2,8 @@ package bisq.httpapi.facade;
 
 import bisq.core.btc.model.AddressEntry;
 import bisq.core.btc.wallet.BtcWalletService;
-import bisq.core.trade.BuyerAsMakerTrade;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
-import bisq.core.trade.protocol.BuyerAsMakerProtocol;
-import bisq.core.trade.protocol.BuyerAsTakerProtocol;
 import bisq.core.trade.protocol.SellerAsMakerProtocol;
 import bisq.core.trade.protocol.SellerAsTakerProtocol;
 import bisq.core.trade.protocol.TradeProtocol;
@@ -57,27 +54,19 @@ public class TradeFacade {
     }
 
     public CompletableFuture<Void> paymentStarted(String tradeId) {
-        CompletableFuture<Void> futureResult = new CompletableFuture<>();
         Trade trade;
         try {
             trade = getTrade(tradeId);
         } catch (NotFoundException e) {
-            return failFuture(futureResult, e);
+            return CompletableFuture.failedFuture(e);
         }
 
+//        TODO BuyerStep2View does this:  if (trade.isFiatSent()) trade.setState(Trade.State.DEPOSIT_CONFIRMED_IN_BLOCK_CHAIN)
+//        TODO after that it delegates to PendingTradesDataModel which does some more checks and calls onFiatPaymentStarted on the trade
         if (!Trade.State.DEPOSIT_CONFIRMED_IN_BLOCK_CHAIN.equals(trade.getState())) {
-            return failFuture(futureResult, new ValidationException("Trade is not in the correct state to start payment: " + trade.getState()));
+            return CompletableFuture.failedFuture(new ValidationException("Trade is not in the correct state to start payment: " + trade.getState()));
         }
-        TradeProtocol tradeProtocol = trade.getTradeProtocol();
-        ResultHandler resultHandler = () -> futureResult.complete(null);
-        ErrorMessageHandler errorResultHandler = message -> futureResult.completeExceptionally(new RuntimeException(message));
-
-        if (trade instanceof BuyerAsMakerTrade) {
-            ((BuyerAsMakerProtocol) tradeProtocol).onFiatPaymentStarted(resultHandler, errorResultHandler);
-        } else {
-            ((BuyerAsTakerProtocol) tradeProtocol).onFiatPaymentStarted(resultHandler, errorResultHandler);
-        }
-        return futureResult;
+        return tradeManager.paymentStarted(trade);
     }
 
     public CompletableFuture<Void> paymentReceived(String tradeId) {

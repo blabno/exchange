@@ -109,6 +109,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 
 import static bisq.core.payment.PaymentAccountUtil.isPaymentAccountValidForOffer;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 
@@ -763,6 +765,22 @@ public class TradeManager implements PersistedDataHost {
                 .collect(Collectors.toSet()));
 
         return tradesIdSet;
+    }
+
+    public CompletableFuture<Void> paymentStarted(Trade trade) {
+        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        try {
+            checkNotNull(trade, "trade must not be null");
+            checkArgument(trade instanceof BuyerTrade, "Check failed: trade instanceof BuyerTrade");
+            checkArgument(trade.getDisputeState() == Trade.DisputeState.NO_DISPUTE, "Check failed: trade.getDisputeState() == Trade.DisputeState.NONE");
+            // TODO UI not impl yet
+            trade.setCounterCurrencyTxId("");
+
+            ((BuyerTrade) trade).onFiatPaymentStarted(() -> completableFuture.complete(null), errorMessage -> completableFuture.completeExceptionally(new RuntimeException(errorMessage)));
+        } catch (Exception e) {
+            completableFuture.completeExceptionally(e);
+        }
+        return completableFuture;
     }
 
     public void applyTradePeriodState() {
