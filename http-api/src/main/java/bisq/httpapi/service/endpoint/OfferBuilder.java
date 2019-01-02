@@ -100,6 +100,10 @@ public class OfferBuilder {
         if (acceptedArbitratorAddresses == null || acceptedArbitratorAddresses.size() == 0) {
             throw new ValidationException("No arbitrator has been chosen");
         }
+        final List<NodeAddress> acceptedMediatorAddresses = user.getAcceptedMediatorAddresses();
+        if (acceptedMediatorAddresses == null || acceptedMediatorAddresses.size() == 0) {
+            throw new ValidationException("No mediator has been chosen");
+        }
 
         // Checked that if fixed we have a fixed price, if percentage we have a percentage
         if (marketPriceMargin == null && useMarketBasedPriceValue) {
@@ -158,6 +162,9 @@ public class OfferBuilder {
         final MarketPrice marketPrice = priceFeedService.getMarketPrice(market.getBaseCurrencyCode());
         boolean marketPriceAvailable = marketPrice != null && marketPrice.isPriceAvailable();
         Coin makerFeeAsCoin = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin, marketPriceAvailable, marketPriceMargin);
+        if (makerFeeAsCoin == null) {
+            throw new RuntimeException("Unable to calculate maker fee when building an offer");
+        }
         // Throws runtime exception if data are invalid
         Coin buyerSecurityDepositAsCoin = Coin.valueOf(buyerSecurityDeposit);
         OfferUtil.validateOfferData(filterManager, p2PService, buyerSecurityDepositAsCoin, paymentAccount, currencyCode, makerFeeAsCoin);
@@ -192,7 +199,7 @@ public class OfferBuilder {
                 baseCurrencyCode,
                 counterCurrencyCode,
                 Lists.newArrayList(acceptedArbitratorAddresses),
-                Lists.newArrayList(user.getAcceptedMediatorAddresses()),
+                Lists.newArrayList(acceptedMediatorAddresses),
                 paymentAccount.getPaymentMethod().getId(),
                 paymentAccount.getId(),
                 null, // will be filled in by BroadcastMakerFeeTx class
