@@ -767,6 +767,19 @@ public class TradeManager implements PersistedDataHost {
         return tradesIdSet;
     }
 
+    public CompletableFuture<Void> paymentReceived(Trade trade) {
+        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        try {
+            checkNotNull(trade, "trade must not be null");
+            checkArgument(trade instanceof SellerTrade, "Check failed: trade not instanceof SellerTrade");
+            checkArgument(trade.getDisputeState() == Trade.DisputeState.NO_DISPUTE, "Check failed: trade.getDisputeState() == Trade.DisputeState.NONE");
+            ((SellerTrade) trade).onFiatPaymentReceived(() -> completableFuture.complete(null), errorMessage -> completableFuture.completeExceptionally(new RuntimeException(errorMessage)));
+        } catch (Exception e) {
+            completableFuture.completeExceptionally(e);
+        }
+        return completableFuture;
+    }
+
     public CompletableFuture<Void> paymentStarted(Trade trade) {
         final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         try {

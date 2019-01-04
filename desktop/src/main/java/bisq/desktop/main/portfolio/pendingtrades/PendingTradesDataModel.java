@@ -36,7 +36,6 @@ import bisq.core.locale.Res;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
 import bisq.core.payment.payload.PaymentAccountPayload;
-import bisq.core.trade.SellerTrade;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
 import bisq.core.user.Preferences;
@@ -73,7 +72,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class PendingTradesDataModel extends ActivatableDataModel {
@@ -163,10 +161,14 @@ public class PendingTradesDataModel extends ActivatableDataModel {
     }
 
     public void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
-        checkNotNull(getTrade(), "trade must not be null");
-        checkArgument(getTrade() instanceof SellerTrade, "Check failed: trade not instanceof SellerTrade");
-        if (getTrade().getDisputeState() == Trade.DisputeState.NO_DISPUTE)
-            ((SellerTrade) getTrade()).onFiatPaymentReceived(resultHandler, errorMessageHandler);
+        final Trade trade = getTrade();
+        tradeManager.paymentReceived(trade)
+                .thenRun(resultHandler::handleResult)
+                .exceptionally(throwable -> {
+                    errorMessageHandler.handleErrorMessage(throwable.getMessage());
+                    return null;
+
+                });
     }
 
     public void onWithdrawRequest(String toAddress, Coin amount, Coin fee, KeyParameter aesKey, ResultHandler resultHandler, FaultHandler faultHandler) {

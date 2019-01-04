@@ -4,12 +4,6 @@ import bisq.core.btc.model.AddressEntry;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
-import bisq.core.trade.protocol.SellerAsMakerProtocol;
-import bisq.core.trade.protocol.SellerAsTakerProtocol;
-import bisq.core.trade.protocol.TradeProtocol;
-
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 
 import javax.inject.Inject;
 
@@ -19,8 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
-import static bisq.httpapi.facade.FacadeUtil.failFuture;
 
 
 
@@ -70,32 +62,19 @@ public class TradeFacade {
     }
 
     public CompletableFuture<Void> paymentReceived(String tradeId) {
-        CompletableFuture<Void> futureResult = new CompletableFuture<>();
         Trade trade;
         try {
             trade = getTrade(tradeId);
         } catch (NotFoundException e) {
-            return failFuture(futureResult, e);
+            return CompletableFuture.failedFuture(e);
         }
 
+//        TODO BuyerStep3View does this: if (!trade.isPayoutPublished()) trade.setState(Trade.State.SELLER_CONFIRMED_IN_UI_FIAT_PAYMENT_RECEIPT);
+//        TODO after that it delegates to PendingTradesDataModel which does some more checks and calls onFiatPaymentReceived on the trade
         if (!Trade.State.SELLER_RECEIVED_FIAT_PAYMENT_INITIATED_MSG.equals(trade.getState())) {
-            return failFuture(futureResult, new ValidationException("Trade is not in the correct state to receive payment: " + trade.getState()));
+            return CompletableFuture.failedFuture(new ValidationException("Trade is not in the correct state to receive payment: " + trade.getState()));
         }
-        TradeProtocol tradeProtocol = trade.getTradeProtocol();
-
-        if (!(tradeProtocol instanceof SellerAsTakerProtocol || tradeProtocol instanceof SellerAsMakerProtocol)) {
-            return failFuture(futureResult, new ValidationException("Trade is not in the correct state to receive payment: " + trade.getState()));
-        }
-
-        ResultHandler resultHandler = () -> futureResult.complete(null);
-        ErrorMessageHandler errorResultHandler = message -> futureResult.completeExceptionally(new RuntimeException(message));
-
-        if (tradeProtocol instanceof SellerAsMakerProtocol) {
-            ((SellerAsMakerProtocol) tradeProtocol).onFiatPaymentReceived(resultHandler, errorResultHandler);
-        } else {
-            ((SellerAsTakerProtocol) tradeProtocol).onFiatPaymentReceived(resultHandler, errorResultHandler);
-        }
-        return futureResult;
+        return tradeManager.paymentReceived(trade);
     }
 
     public void moveFundsToBisqWallet(String tradeId) {
