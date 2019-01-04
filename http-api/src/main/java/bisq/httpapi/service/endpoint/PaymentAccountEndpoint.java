@@ -58,7 +58,7 @@ public class PaymentAccountEndpoint {
         });
     }
 
-    @Operation(summary = "Create payment account", description = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =PaymentAccount.class))))
+    @Operation(summary = "Create payment account", description = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = PaymentAccount.class))))
     @POST
     public void create(@Suspended AsyncResponse asyncResponse, @Valid PaymentAccount account) {
         UserThread.execute(() -> {
@@ -73,12 +73,11 @@ public class PaymentAccountEndpoint {
         });
     }
 
-    @Operation(summary = "Get existing payment accounts", responses =  @ApiResponse(content = @Content(schema = @Schema(implementation =PaymentAccountList.class))), description = ExperimentalFeature.NOTE)
+    @Operation(summary = "Get existing payment accounts", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = PaymentAccountList.class))))
     @GET
     public void find(@Suspended AsyncResponse asyncResponse) {
         UserThread.execute(() -> {
             try {
-                experimentalFeature.assertEnabled();
                 asyncResponse.resume(paymentAccountFacade.getAccountList());
             } catch (Throwable e) {
                 asyncResponse.resume(e);
