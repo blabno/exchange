@@ -28,6 +28,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "paymentMethod", include = JsonTypeInfo.As.EXISTING_PROPERTY)
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = AdvancedCashPaymentAccount.class, name = PaymentMethod.ADVANCED_CASH_ID),
         @JsonSubTypes.Type(value = AliPayPaymentAccount.class, name = PaymentMethod.ALI_PAY_ID),
         @JsonSubTypes.Type(value = CashAppPaymentAccount.class, name = PaymentMethod.CASH_APP_ID),
         @JsonSubTypes.Type(value = CashDepositPaymentAccount.class, name = PaymentMethod.CASH_DEPOSIT_ID),
@@ -44,6 +45,7 @@ import org.hibernate.validator.constraints.NotEmpty;
         @JsonSubTypes.Type(value = OKPayPaymentAccount.class, name = PaymentMethod.OK_PAY_ID),
         @JsonSubTypes.Type(value = PerfectMoneyPaymentAccount.class, name = PaymentMethod.PERFECT_MONEY_ID),
         @JsonSubTypes.Type(value = PopmoneyPaymentAccount.class, name = PaymentMethod.POPMONEY_ID),
+        @JsonSubTypes.Type(value = PromptPayPaymentAccount.class, name = PaymentMethod.PROMPT_PAY_ID),
         @JsonSubTypes.Type(value = RevolutPaymentAccount.class, name = PaymentMethod.REVOLUT_ID),
         @JsonSubTypes.Type(value = SameBankAccountPaymentAccount.class, name = PaymentMethod.SAME_BANK_ID),
         @JsonSubTypes.Type(value = SepaPaymentAccount.class, name = PaymentMethod.SEPA_ID),

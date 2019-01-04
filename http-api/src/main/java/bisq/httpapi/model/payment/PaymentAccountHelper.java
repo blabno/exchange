@@ -16,6 +16,7 @@ public final class PaymentAccountHelper {
     private static Map<String, PaymentAccountConverter<? extends bisq.core.payment.PaymentAccount, ? extends PaymentAccountPayload, ? extends PaymentAccount>> converters = new HashMap<>();
 
     static {
+        converters.put(PaymentMethod.ADVANCED_CASH_ID, new AdvancedCashPaymentAccountConverter());
         converters.put(PaymentMethod.ALI_PAY_ID, new AliPayPaymentAccountConverter());
         converters.put(PaymentMethod.BLOCK_CHAINS_ID, new CryptoCurrencyPaymentAccountConverter());
         converters.put(PaymentMethod.CASH_APP_ID, new CashAppPaymentAccountConverter());
@@ -32,6 +33,7 @@ public final class PaymentAccountHelper {
         converters.put(PaymentMethod.OK_PAY_ID, new OKPayPaymentAccountConverter());
         converters.put(PaymentMethod.PERFECT_MONEY_ID, new PerfectMoneyPaymentAccountConverter());
         converters.put(PaymentMethod.POPMONEY_ID, new PopmoneyPaymentAccountConverter());
+        converters.put(PaymentMethod.PROMPT_PAY_ID, new PromptPayPaymentAccountConverter());
         converters.put(PaymentMethod.REVOLUT_ID, new RevolutPaymentAccountConverter());
         converters.put(PaymentMethod.SAME_BANK_ID, new SameBankAccountPaymentAccountConverter());
         converters.put(PaymentMethod.SEPA_ID, new SepaPaymentAccountConverter());

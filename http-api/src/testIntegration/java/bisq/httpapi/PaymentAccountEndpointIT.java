@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 
 
 
+import bisq.httpapi.model.payment.AdvancedCashPaymentAccount;
 import bisq.httpapi.model.payment.AliPayPaymentAccount;
 import bisq.httpapi.model.payment.CashAppPaymentAccount;
 import bisq.httpapi.model.payment.CashDepositPaymentAccount;
@@ -32,6 +33,7 @@ import bisq.httpapi.model.payment.OKPayPaymentAccount;
 import bisq.httpapi.model.payment.PaymentAccount;
 import bisq.httpapi.model.payment.PerfectMoneyPaymentAccount;
 import bisq.httpapi.model.payment.PopmoneyPaymentAccount;
+import bisq.httpapi.model.payment.PromptPayPaymentAccount;
 import bisq.httpapi.model.payment.RevolutPaymentAccount;
 import bisq.httpapi.model.payment.SameBankAccountPaymentAccount;
 import bisq.httpapi.model.payment.SepaInstantPaymentAccount;
@@ -117,6 +119,39 @@ public class PaymentAccountEndpointIT {
                 and().body("paymentAccounts[0].tradeCurrencies", equalTo(accountToCreate.tradeCurrencies)).
                 and().body("paymentAccounts[0].acceptedCountries", equalTo(accountToCreate.acceptedCountries)).
                 and().body("paymentAccounts[0].size()", equalTo(11))
+        ;
+    }
+
+    @InSequence(1)
+    @Test
+    public void create_validAdvancedCash_returnsCreatedAccount() {
+        int alicePort = getAlicePort();
+        Faker faker = new Faker();
+
+        AdvancedCashPaymentAccount accountToCreate = new AdvancedCashPaymentAccount();
+        ApiTestHelper.randomizeAccountPayload(accountToCreate);
+        accountToCreate.accountNr = faker.finance().iban();
+
+        String expectedPaymentDetails = String.format("Advanced Cash - Wallet ID: %s", accountToCreate.accountNr);
+
+        given().
+                port(alicePort).
+                contentType(ContentType.JSON).
+                body(accountToCreate).
+//
+        when().
+                post("/api/v1/payment-accounts").
+//
+        then().
+                statusCode(200).
+                and().body("id", isA(String.class)).
+                and().body("paymentMethod", equalTo(accountToCreate.paymentMethod)).
+                and().body("accountName", equalTo(accountToCreate.accountName)).
+                and().body("paymentDetails", equalTo(expectedPaymentDetails)).
+                and().body("selectedTradeCurrency", equalTo(accountToCreate.selectedTradeCurrency)).
+                and().body("tradeCurrencies", equalTo(accountToCreate.tradeCurrencies)).
+                and().body("accountNr", equalTo(accountToCreate.accountNr)).
+                and().body("size()", equalTo(7))
         ;
     }
 
@@ -704,6 +739,39 @@ public class PaymentAccountEndpointIT {
         ;
     }
 
+    @InSequence(1)
+    @Test
+    public void create_validPromptPay_returnsCreatedAccount() {
+        int alicePort = getAlicePort();
+        Faker faker = new Faker();
+
+        PromptPayPaymentAccount accountToCreate = new PromptPayPaymentAccount();
+        ApiTestHelper.randomizeAccountPayload(accountToCreate);
+        accountToCreate.promptPayId = faker.finance().iban();
+
+        String expectedPaymentDetails = String.format("Citizen ID/Tax ID or phone no.: %s", accountToCreate.promptPayId);
+
+        given().
+                port(alicePort).
+                contentType(ContentType.JSON).
+                body(accountToCreate).
+//
+        when().
+                post("/api/v1/payment-accounts").
+//
+        then().
+                statusCode(200).
+                and().body("id", isA(String.class)).
+                and().body("paymentMethod", equalTo(accountToCreate.paymentMethod)).
+                and().body("accountName", equalTo(accountToCreate.accountName)).
+                and().body("paymentDetails", equalTo(expectedPaymentDetails)).
+                and().body("selectedTradeCurrency", equalTo(accountToCreate.selectedTradeCurrency)).
+                and().body("tradeCurrencies", equalTo(accountToCreate.tradeCurrencies)).
+                and().body("promptPayId", equalTo(accountToCreate.promptPayId)).
+                and().body("size()", equalTo(7))
+        ;
+    }
+
     @InSequence(2)
     @Test
     public void create_validRevolut_returnsCreatedAccount() {
@@ -1211,7 +1279,7 @@ public class PaymentAccountEndpointIT {
         then().
                 statusCode(422).
                 and().body("errors.size()", equalTo(1)).
-                and().body("errors[0]", equalTo("Unable to recognize sub type of PaymentAccount. Value 'null' is invalid. Allowed values are: ALI_PAY, CASH_APP, CASH_DEPOSIT, CHASE_QUICK_PAY, CLEAR_X_CHANGE, BLOCK_CHAINS, F2F, FASTER_PAYMENTS, HAL_CASH, INTERAC_E_TRANSFER, MONEY_BEAM, MONEY_GRAM, NATIONAL_BANK, OK_PAY, PERFECT_MONEY, POPMONEY, REVOLUT, SAME_BANK, SEPA, SEPA_INSTANT, SPECIFIC_BANKS, SWISH, UPHOLD, US_POSTAL_MONEY_ORDER, VENMO, WECHAT_PAY, WESTERN_UNION"))
+                and().body("errors[0]", equalTo("Unable to recognize sub type of PaymentAccount. Value 'null' is invalid. Allowed values are: ADVANCED_CASH, ALI_PAY, CASH_APP, CASH_DEPOSIT, CHASE_QUICK_PAY, CLEAR_X_CHANGE, BLOCK_CHAINS, F2F, FASTER_PAYMENTS, HAL_CASH, INTERAC_E_TRANSFER, MONEY_BEAM, MONEY_GRAM, NATIONAL_BANK, OK_PAY, PERFECT_MONEY, POPMONEY, PROMPT_PAY, REVOLUT, SAME_BANK, SEPA, SEPA_INSTANT, SPECIFIC_BANKS, SWISH, UPHOLD, US_POSTAL_MONEY_ORDER, VENMO, WECHAT_PAY, WESTERN_UNION"))
         ;
     }
 
