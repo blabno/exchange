@@ -110,15 +110,12 @@ public class OfferFacade {
         long fiatPrice = input.fixedPrice;
         Long buyerSecurityDeposit = input.buyerSecurityDeposit;
 
-        CompletableFuture<Offer> futureResult = new CompletableFuture<>();
-
         Offer offer;
         try {
             offer = offerBuilder.build(accountId, direction, amount, minAmount, useMarketBasedPrice,
                     marketPriceMargin, marketPair, fiatPrice, buyerSecurityDeposit);
         } catch (Exception e) {
-            futureResult.completeExceptionally(e);
-            return futureResult;
+            return CompletableFuture.failedFuture(e);
         }
 
         boolean isBuyOffer = OfferUtil.isBuyOffer(direction);
@@ -126,8 +123,8 @@ public class OfferFacade {
         if (!isBuyOffer)
             reservedFundsForOffer = reservedFundsForOffer.add(Coin.valueOf(amount));
 
+        CompletableFuture<Offer> futureResult = new CompletableFuture<>();
 //        TODO check if there is sufficient money cause openOfferManager will log exception and pass just message
-//        TODO openOfferManager should return CompletableFuture or at least send full exception to error handler
 
         // @bernard: ValidateOffer returns plenty of diff. error messages. To handle all separately would be a big
         // overkill. I think it should be ok to just display the errorMessage and not handle the diff. errors on your
