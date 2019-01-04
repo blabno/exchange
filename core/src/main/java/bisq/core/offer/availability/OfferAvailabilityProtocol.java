@@ -33,10 +33,10 @@ import bisq.network.p2p.SendDirectMessageListener;
 import bisq.common.Timer;
 import bisq.common.UserThread;
 import bisq.common.crypto.PubKeyRing;
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.proto.network.NetworkEnvelope;
 import bisq.common.taskrunner.TaskRunner;
+
+import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,22 +47,19 @@ public class OfferAvailabilityProtocol {
     private static final long TIMEOUT = 90;
 
     private final OfferAvailabilityModel model;
-    private final ResultHandler resultHandler;
-    private final ErrorMessageHandler errorMessageHandler;
     private final DecryptedDirectMessageListener decryptedDirectMessageListener;
 
     private TaskRunner<OfferAvailabilityModel> taskRunner;
     private Timer timeoutTimer;
+    private CompletableFuture<Void> availabilityRequestFuture;
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Constructor
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public OfferAvailabilityProtocol(OfferAvailabilityModel model, ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public OfferAvailabilityProtocol(OfferAvailabilityModel model) {
         this.model = model;
-        this.resultHandler = resultHandler;
-        this.errorMessageHandler = errorMessageHandler;
 
         decryptedDirectMessageListener = (decryptedMessageWithPubKey, peersNodeAddress) -> {
             NetworkEnvelope networkEnvelope = decryptedMessageWithPubKey.getNetworkEnvelope();
@@ -88,7 +85,7 @@ public class OfferAvailabilityProtocol {
     // Called from UI
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void sendOfferAvailabilityRequest() {
+    public CompletableFuture<Void> sendOfferAvailabilityRequest() {
         // reset
         model.getOffer().setState(Offer.State.UNKNOWN);
 
@@ -98,6 +95,7 @@ public class OfferAvailabilityProtocol {
         taskRunner = new TaskRunner<>(model);
         taskRunner.addTasks(SendOfferAvailabilityRequest.class);
         startTimeout();
+        availabilityRequestFuture = new CompletableFuture<>();
         taskRunner.run().whenComplete((aVoid, throwable) -> {
             if (throwable != null) {
                 handleTaskRunnerFault(throwable.getMessage(), null);
@@ -105,6 +103,7 @@ public class OfferAvailabilityProtocol {
                 handleTaskRunnerSuccess("TaskRunner at sendOfferAvailabilityRequest completed", null);
             }
         });
+        return availabilityRequestFuture;
     }
 
     public void cancel() {
@@ -134,7 +133,8 @@ public class OfferAvailabilityProtocol {
                 handleTaskRunnerSuccess("TaskRunner at handle OfferAvailabilityResponse completed", message);
 
                 stopTimeout();
-                resultHandler.handleResult();
+                if (availabilityRequestFuture != null)
+                    availabilityRequestFuture.complete(null);
             }
         });
     }
@@ -144,7 +144,8 @@ public class OfferAvailabilityProtocol {
             timeoutTimer = UserThread.runAfter(() -> {
                 log.debug("Timeout reached at " + this);
                 model.getOffer().setState(Offer.State.MAKER_OFFLINE);
-                errorMessageHandler.handleErrorMessage("Timeout reached: Peer has not responded.");
+                if (availabilityRequestFuture != null)
+                    availabilityRequestFuture.completeExceptionally(new RuntimeException("Timeout reached: Peer has not responded."));
             }, TIMEOUT);
         } else {
             log.warn("timeoutTimer already created. That must not happen.");
@@ -169,7 +170,8 @@ public class OfferAvailabilityProtocol {
         log.error(errorMessage);
 
         stopTimeout();
-        errorMessageHandler.handleErrorMessage(errorMessage);
+        if (availabilityRequestFuture != null)
+            availabilityRequestFuture.completeExceptionally(new RuntimeException(errorMessage));
 
         if (message != null)
             sendAckMessage(message, false, errorMessage);

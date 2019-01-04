@@ -32,8 +32,6 @@ import bisq.network.p2p.NodeAddress;
 
 import bisq.common.crypto.KeyRing;
 import bisq.common.crypto.PubKeyRing;
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.proto.network.NetworkPayload;
 import bisq.common.proto.persistable.PersistablePayload;
 import bisq.common.util.JsonExclude;
@@ -57,6 +55,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -137,20 +136,16 @@ public class Offer implements NetworkPayload, PersistablePayload {
     // Availability
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void checkOfferAvailability(OfferAvailabilityModel model, ResultHandler resultHandler,
-                                       ErrorMessageHandler errorMessageHandler) {
-        availabilityProtocol = new OfferAvailabilityProtocol(model,
-                () -> {
-                    cancelAvailabilityRequest();
-                    resultHandler.handleResult();
-                },
-                (errorMessage) -> {
-                    if (availabilityProtocol != null)
-                        availabilityProtocol.cancel();
-                    log.error(errorMessage);
-                    errorMessageHandler.handleErrorMessage(errorMessage);
-                });
-        availabilityProtocol.sendOfferAvailabilityRequest();
+    public CompletableFuture<Void> checkOfferAvailability(OfferAvailabilityModel model) {
+        availabilityProtocol = new OfferAvailabilityProtocol(model);
+        final CompletableFuture<Void> future = availabilityProtocol.sendOfferAvailabilityRequest();
+        future.whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                log.error(throwable.getMessage());
+            }
+            cancelAvailabilityRequest();
+        });
+        return future;
     }
 
     public void cancelAvailabilityRequest() {

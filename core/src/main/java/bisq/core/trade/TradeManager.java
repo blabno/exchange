@@ -412,10 +412,8 @@ public class TradeManager implements PersistedDataHost {
     // Take offer
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void checkOfferAvailability(Offer offer,
-                                       ResultHandler resultHandler,
-                                       ErrorMessageHandler errorMessageHandler) {
-        offer.checkOfferAvailability(getOfferAvailabilityModel(offer), resultHandler, errorMessageHandler);
+    public CompletableFuture<Void> checkOfferAvailability(Offer offer) {
+        return offer.checkOfferAvailability(getOfferAvailabilityModel(offer));
     }
 
     // When closing take offer view, we are not interested in the onCheckOfferAvailability result anymore, so remove from the map
@@ -478,39 +476,31 @@ public class TradeManager implements PersistedDataHost {
          * - TODO check if user has enough funds here
          * - TODO instead of coin we might use long
          */
-        CompletableFuture<Trade> completableFuture = new CompletableFuture<>();
         try {
             validateOnTakeOffer(amount, txFee, takerFee, tradePrice, fundsNeededForTrade, offer, paymentAccountId, maxFundsForTrade);
         } catch (Exception e) {
-            completableFuture.completeExceptionally(e);
-            return completableFuture;
+            return CompletableFuture.failedFuture(e);
         }
         OfferAvailabilityModel model = getOfferAvailabilityModel(offer);
-        offer.checkOfferAvailability(model, () -> {
-//            TODO what if offer is in invalid state?
-//            TODO what if exception is thrown inside createTrade?
-                    try {
-                        if (offer.getState() == Offer.State.AVAILABLE) {
-                            Trade trade = createTrade(amount,
-                                    txFee,
-                                    takerFee,
-                                    isCurrencyForTakerFeeBtc,
-                                    tradePrice,
-                                    fundsNeededForTrade,
-                                    offer,
-                                    paymentAccountId,
-                                    useSavingsWallet,
-                                    model);
-                            completableFuture.complete(trade);
-                        } else {
-                            throw new ValidationException("Offer not available");
-                        }
-                    } catch (Exception e) {
-                        completableFuture.completeExceptionally(e);
+        return offer.checkOfferAvailability(model)
+                .exceptionally(throwable -> {
+                    throw new TradeFailedException(throwable.getMessage(), throwable);
+                }).thenCompose(aVoid -> {
+                    System.out.println("offer.getState(): "+offer.getState());
+                    if (offer.getState() != Offer.State.AVAILABLE) {
+                        throw new ValidationException("Offer not available");
                     }
-                },
-                errorMessage -> completableFuture.completeExceptionally(new TradeFailedException(errorMessage)));
-        return completableFuture;
+                    return CompletableFuture.completedStage(createTrade(amount,
+                            txFee,
+                            takerFee,
+                            isCurrencyForTakerFeeBtc,
+                            tradePrice,
+                            fundsNeededForTrade,
+                            offer,
+                            paymentAccountId,
+                            useSavingsWallet,
+                            model));
+                });
     }
 
     private void validateOnTakeOffer(Coin amount,
