@@ -160,8 +160,8 @@ public class BuyerStep4View extends TradeStepView {
         gridPane.getChildren().add(hBox);
 
         useSavingsWalletButton.setOnAction(e -> {
+            model.dataModel.tradeManager.moveFundsToBisqWallet(trade);
             handleTradeCompleted();
-            model.dataModel.tradeManager.addTradeToClosedTrades(trade);
         });
         withdrawToExternalWalletButton.setOnAction(e -> onWithdrawal());
 
@@ -258,7 +258,10 @@ public class BuyerStep4View extends TradeStepView {
 
     private void doWithdrawal(Coin amount, Coin fee) {
         String toAddress = withdrawAddressTextField.getText();
-        ResultHandler resultHandler = this::handleTradeCompleted;
+        ResultHandler resultHandler = () -> {
+            model.dataModel.btcWalletService.swapTradeEntryToAvailableEntry(trade.getId(), AddressEntry.Context.TRADE_PAYOUT);
+            BuyerStep4View.this.handleTradeCompleted();
+        };
         FaultHandler faultHandler = (errorMessage, throwable) -> {
             useSavingsWalletButton.setDisable(false);
             withdrawToExternalWalletButton.setDisable(false);
@@ -290,8 +293,6 @@ public class BuyerStep4View extends TradeStepView {
     private void handleTradeCompleted() {
         useSavingsWalletButton.setDisable(true);
         withdrawToExternalWalletButton.setDisable(true);
-        model.dataModel.btcWalletService.swapTradeEntryToAvailableEntry(trade.getId(), AddressEntry.Context.TRADE_PAYOUT);
-
         openTradeFeedbackWindow();
     }
 

@@ -1,7 +1,5 @@
 package bisq.httpapi.facade;
 
-import bisq.core.btc.model.AddressEntry;
-import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
 
@@ -21,12 +19,10 @@ import javax.validation.ValidationException;
 
 public class TradeFacade {
 
-    private final BtcWalletService btcWalletService;
     private final TradeManager tradeManager;
 
     @Inject
-    public TradeFacade(BtcWalletService btcWalletService, TradeManager tradeManager) {
-        this.btcWalletService = btcWalletService;
+    public TradeFacade(TradeManager tradeManager) {
         this.tradeManager = tradeManager;
     }
 
@@ -79,11 +75,6 @@ public class TradeFacade {
 
     public void moveFundsToBisqWallet(String tradeId) {
         Trade trade = getTrade(tradeId);
-        Trade.State tradeState = trade.getState();
-        if (!Trade.State.SELLER_SAW_ARRIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState) && !Trade.State.BUYER_RECEIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState))
-            throw new ValidationException("Trade is not in the correct state to transfer funds out: " + tradeState);
-        btcWalletService.swapTradeEntryToAvailableEntry(trade.getId(), AddressEntry.Context.TRADE_PAYOUT);
-        // TODO do we need to handle this ui stuff? --> handleTradeCompleted();
-        tradeManager.addTradeToClosedTrades(trade);
+        tradeManager.moveFundsToBisqWallet(trade);
     }
 }

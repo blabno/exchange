@@ -796,6 +796,14 @@ public class TradeManager implements PersistedDataHost {
         return completableFuture;
     }
 
+    public void moveFundsToBisqWallet(Trade trade) {
+        Trade.State tradeState = trade.getState();
+        if (!Trade.State.SELLER_SAW_ARRIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState) && !Trade.State.BUYER_RECEIVED_PAYOUT_TX_PUBLISHED_MSG.equals(tradeState))
+            throw new ValidationException("Trade is not in the correct state to transfer funds out: " + tradeState);
+        btcWalletService.swapTradeEntryToAvailableEntry(trade.getId(), AddressEntry.Context.TRADE_PAYOUT);
+        addTradeToClosedTrades(trade);
+    }
+
     public void applyTradePeriodState() {
         updateTradePeriodState();
         clock.addListener(new Clock.Listener() {
