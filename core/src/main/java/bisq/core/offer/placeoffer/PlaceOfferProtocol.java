@@ -55,31 +55,31 @@ public class PlaceOfferProtocol {
 
     public void placeOffer() {
         log.debug("model.offer.id" + model.getOffer().getId());
-        TaskRunner<PlaceOfferModel> taskRunner = new TaskRunner<>(model,
-                () -> {
-                    log.debug("sequence at handleRequestTakeOfferMessage completed");
-                    resultHandler.handleResult(model.getTransaction());
-                },
-                (errorMessage) -> {
-                    log.error(errorMessage);
-
-                    if (model.isOfferAddedToOfferBook()) {
-                        model.getOfferBookService().removeOffer(model.getOffer().getOfferPayload(),
-                                () -> {
-                                    model.setOfferAddedToOfferBook(false);
-                                    log.debug("OfferPayload removed from offer book.");
-                                },
-                                log::error);
-                    }
-                    errorMessageHandler.handleErrorMessage(errorMessage);
-                }
-        );
+        TaskRunner<PlaceOfferModel> taskRunner = new TaskRunner<>(model);
         taskRunner.addTasks(
                 ValidateOffer.class,
                 CreateMakerFeeTx.class,
                 AddToOfferBook.class
         );
 
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                final String errorMessage = throwable.getMessage();
+                log.error(errorMessage);
+
+                if (model.isOfferAddedToOfferBook()) {
+                    model.getOfferBookService().removeOffer(model.getOffer().getOfferPayload(),
+                            () -> {
+                                model.setOfferAddedToOfferBook(false);
+                                log.debug("OfferPayload removed from offer book.");
+                            },
+                            log::error);
+                }
+                errorMessageHandler.handleErrorMessage(errorMessage);
+            } else {
+                log.debug("sequence at handleRequestTakeOfferMessage completed");
+                resultHandler.handleResult(model.getTransaction());
+            }
+        });
     }
 }

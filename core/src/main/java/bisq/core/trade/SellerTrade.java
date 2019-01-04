@@ -23,11 +23,11 @@ import bisq.core.trade.protocol.SellerProtocol;
 
 import bisq.network.p2p.NodeAddress;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.storage.Storage;
 
 import org.bitcoinj.core.Coin;
+
+import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,9 +61,9 @@ public abstract class SellerTrade extends Trade {
         super(offer, txFee, takeOfferFee, isCurrencyForTakerFeeBtc, arbitratorNodeAddress, storage, btcWalletService);
     }
 
-    public void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public CompletableFuture<Void> onFiatPaymentReceived() {
         checkArgument(tradeProtocol instanceof SellerProtocol, "tradeProtocol NOT instanceof SellerProtocol");
-        ((SellerProtocol) tradeProtocol).onFiatPaymentReceived(resultHandler, errorMessageHandler);
+        return ((SellerProtocol) tradeProtocol).onFiatPaymentReceived();
     }
 
     @Override

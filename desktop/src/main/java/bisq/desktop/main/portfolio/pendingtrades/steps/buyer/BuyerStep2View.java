@@ -477,17 +477,20 @@ public class BuyerStep2View extends TradeStepView {
         if (trade.isFiatSent())
             trade.setState(Trade.State.DEPOSIT_CONFIRMED_IN_BLOCK_CHAIN);
 
-        model.dataModel.onPaymentStarted(() -> {
-            // In case the first send failed we got the support button displayed.
-            // If it succeeds at a second try we remove the support button again.
-            //TODO check for support. in case of a dispute we dont want to hide the button
-            //if (notificationGroup != null)
-            //   notificationGroup.setButtonVisible(false);
-        }, errorMessage -> {
-            confirmButton.setDisable(false);
-            busyAnimation.stop();
-            new Popup<>().warning(Res.get("popup.warning.sendMsgFailed")).show();
-        });
+        model.dataModel.onPaymentStarted()
+                .whenComplete((aVoid, throwable) -> {
+                    if (throwable != null) {
+                        confirmButton.setDisable(false);
+                        busyAnimation.stop();
+                        new Popup<>().warning(Res.get("popup.warning.sendMsgFailed")).show();
+                    } else {
+                        // In case the first send failed we got the support button displayed.
+                        // If it succeeds at a second try we remove the support button again.
+                        //TODO check for support. in case of a dispute we dont want to hide the button
+                        //if (notificationGroup != null)
+                        //   notificationGroup.setButtonVisible(false);
+                    }
+                });
     }
 
     @SuppressWarnings("PointlessBooleanExpression")

@@ -17,9 +17,8 @@
 
 package bisq.core.trade.protocol;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
+import java.util.concurrent.CompletableFuture;
 
 public interface SellerProtocol {
-    void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler);
+    CompletableFuture<Void> onFiatPaymentReceived();
 }

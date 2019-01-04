@@ -17,11 +17,9 @@
 
 package bisq.common.taskrunner;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
-
 import java.util.Arrays;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,23 +29,20 @@ public class TaskRunner<T extends Model> {
     private final Queue<Class<? extends Task>> tasks = new LinkedBlockingQueue<>();
     private final T sharedModel;
     private final Class<T> sharedModelClass;
-    private final ResultHandler resultHandler;
-    private final ErrorMessageHandler errorMessageHandler;
     private boolean failed = false;
     private boolean isCanceled;
+    private CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
     private Class<? extends Task> currentTask;
 
 
-    public TaskRunner(T sharedModel, ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public TaskRunner(T sharedModel) {
         //noinspection unchecked
-        this(sharedModel, (Class<T>) sharedModel.getClass(), resultHandler, errorMessageHandler);
+        this(sharedModel, (Class<T>) sharedModel.getClass());
     }
 
-    public TaskRunner(T sharedModel, Class<T> sharedModelClass, ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public TaskRunner(T sharedModel, Class<T> sharedModelClass) {
         this.sharedModel = sharedModel;
-        this.resultHandler = resultHandler;
-        this.errorMessageHandler = errorMessageHandler;
         this.sharedModelClass = sharedModelClass;
     }
 
@@ -56,8 +51,9 @@ public class TaskRunner<T extends Model> {
         tasks.addAll(Arrays.asList(items));
     }
 
-    public void run() {
+    public CompletableFuture<Void> run() {
         next();
+        return completableFuture;
     }
 
     private void next() {
@@ -72,7 +68,7 @@ public class TaskRunner<T extends Model> {
                     handleErrorMessage("Error at taskRunner: " + throwable.getMessage());
                 }
             } else {
-                resultHandler.handleResult();
+                completableFuture.complete(null);
             }
         }
     }
@@ -90,6 +86,6 @@ public class TaskRunner<T extends Model> {
     void handleErrorMessage(String errorMessage) {
         log.error("Task failed: " + currentTask.getSimpleName() + " / errorMessage: " + errorMessage);
         failed = true;
-        errorMessageHandler.handleErrorMessage(errorMessage);
+        completableFuture.completeExceptionally(new RuntimeException(errorMessage));
     }
 }

@@ -373,16 +373,18 @@ public class SellerStep3View extends TradeStepView {
         if (!trade.isPayoutPublished())
             trade.setState(Trade.State.SELLER_CONFIRMED_IN_UI_FIAT_PAYMENT_RECEIPT);
 
-        model.dataModel.onFiatPaymentReceived(() -> {
-            // In case the first send failed we got the support button displayed.
-            // If it succeeds at a second try we remove the support button again.
-            //TODO check for support. in case of a dispute we dont want to hide the button
-            //if (notificationGroup != null)
-            //   notificationGroup.setButtonVisible(false);
-        }, errorMessage -> {
-            confirmButton.setDisable(false);
-            busyAnimation.stop();
-            new Popup<>().warning(Res.get("popup.warning.sendMsgFailed")).show();
+        model.dataModel.onFiatPaymentReceived().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                confirmButton.setDisable(false);
+                busyAnimation.stop();
+                new Popup<>().warning(Res.get("popup.warning.sendMsgFailed")).show();
+            } else {
+                // In case the first send failed we got the support button displayed.
+                // If it succeeds at a second try we remove the support button again.
+                //TODO check for support. in case of a dispute we dont want to hide the button
+                //if (notificationGroup != null)
+                //   notificationGroup.setButtonVisible(false);
+            }
         });
     }
 

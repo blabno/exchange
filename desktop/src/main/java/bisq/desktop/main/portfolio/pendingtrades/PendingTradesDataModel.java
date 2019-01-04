@@ -45,7 +45,6 @@ import bisq.network.p2p.P2PService;
 import bisq.common.app.Log;
 import bisq.common.crypto.KeyRing;
 import bisq.common.crypto.PubKeyRing;
-import bisq.common.handlers.ErrorMessageHandler;
 import bisq.common.handlers.FaultHandler;
 import bisq.common.handlers.ResultHandler;
 
@@ -68,6 +67,7 @@ import org.spongycastle.crypto.params.KeyParameter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -149,26 +149,12 @@ public class PendingTradesDataModel extends ActivatableDataModel {
         doSelectItem(item);
     }
 
-    public void onPaymentStarted(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
-        final Trade trade = getTrade();
-        tradeManager.paymentStarted(trade)
-                .thenRun(resultHandler::handleResult)
-                .exceptionally(throwable -> {
-                    errorMessageHandler.handleErrorMessage(throwable.getMessage());
-                    return null;
-
-                });
+    public CompletableFuture<Void> onPaymentStarted() {
+        return tradeManager.paymentStarted(getTrade());
     }
 
-    public void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
-        final Trade trade = getTrade();
-        tradeManager.paymentReceived(trade)
-                .thenRun(resultHandler::handleResult)
-                .exceptionally(throwable -> {
-                    errorMessageHandler.handleErrorMessage(throwable.getMessage());
-                    return null;
-
-                });
+    public CompletableFuture<Void> onFiatPaymentReceived() {
+        return tradeManager.paymentReceived(getTrade());
     }
 
     public void onWithdrawRequest(String toAddress, Coin amount, Coin fee, KeyParameter aesKey, ResultHandler resultHandler, FaultHandler faultHandler) {

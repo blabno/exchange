@@ -768,32 +768,27 @@ public class TradeManager implements PersistedDataHost {
     }
 
     public CompletableFuture<Void> paymentReceived(Trade trade) {
-        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         try {
             checkNotNull(trade, "trade must not be null");
             checkArgument(trade instanceof SellerTrade, "Check failed: trade not instanceof SellerTrade");
             checkArgument(trade.getDisputeState() == Trade.DisputeState.NO_DISPUTE, "Check failed: trade.getDisputeState() == Trade.DisputeState.NONE");
-            ((SellerTrade) trade).onFiatPaymentReceived(() -> completableFuture.complete(null), errorMessage -> completableFuture.completeExceptionally(new RuntimeException(errorMessage)));
+            return ((SellerTrade) trade).onFiatPaymentReceived();
         } catch (Exception e) {
-            completableFuture.completeExceptionally(e);
+            return CompletableFuture.failedFuture(e);
         }
-        return completableFuture;
     }
 
     public CompletableFuture<Void> paymentStarted(Trade trade) {
-        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         try {
             checkNotNull(trade, "trade must not be null");
             checkArgument(trade instanceof BuyerTrade, "Check failed: trade instanceof BuyerTrade");
             checkArgument(trade.getDisputeState() == Trade.DisputeState.NO_DISPUTE, "Check failed: trade.getDisputeState() == Trade.DisputeState.NONE");
             // TODO UI not impl yet
             trade.setCounterCurrencyTxId("");
-
-            ((BuyerTrade) trade).onFiatPaymentStarted(() -> completableFuture.complete(null), errorMessage -> completableFuture.completeExceptionally(new RuntimeException(errorMessage)));
+            return ((BuyerTrade) trade).onFiatPaymentStarted();
         } catch (Exception e) {
-            completableFuture.completeExceptionally(e);
+            return CompletableFuture.failedFuture(e);
         }
-        return completableFuture;
     }
 
     public void applyTradePeriodState() {

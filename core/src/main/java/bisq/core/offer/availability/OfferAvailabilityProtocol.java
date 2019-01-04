@@ -95,13 +95,16 @@ public class OfferAvailabilityProtocol {
         model.getP2PService().addDecryptedDirectMessageListener(decryptedDirectMessageListener);
         model.setPeerNodeAddress(model.getOffer().getMakerNodeAddress());
 
-        taskRunner = new TaskRunner<>(model,
-                () -> handleTaskRunnerSuccess("TaskRunner at sendOfferAvailabilityRequest completed", null),
-                errorMessage -> handleTaskRunnerFault(errorMessage, null)
-        );
+        taskRunner = new TaskRunner<>(model);
         taskRunner.addTasks(SendOfferAvailabilityRequest.class);
         startTimeout();
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                handleTaskRunnerFault(throwable.getMessage(), null);
+            } else {
+                handleTaskRunnerSuccess("TaskRunner at sendOfferAvailabilityRequest completed", null);
+            }
+        });
     }
 
     public void cancel() {
@@ -122,16 +125,18 @@ public class OfferAvailabilityProtocol {
         startTimeout();
         model.setMessage(message);
 
-        taskRunner = new TaskRunner<>(model,
-                () -> {
-                    handleTaskRunnerSuccess("TaskRunner at handle OfferAvailabilityResponse completed", message);
-
-                    stopTimeout();
-                    resultHandler.handleResult();
-                },
-                errorMessage -> handleTaskRunnerFault(errorMessage, message));
+        taskRunner = new TaskRunner<>(model);
         taskRunner.addTasks(ProcessOfferAvailabilityResponse.class);
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                handleTaskRunnerFault(throwable.getMessage(), message);
+            } else {
+                handleTaskRunnerSuccess("TaskRunner at handle OfferAvailabilityResponse completed", message);
+
+                stopTimeout();
+                resultHandler.handleResult();
+            }
+        });
     }
 
     private void startTimeout() {

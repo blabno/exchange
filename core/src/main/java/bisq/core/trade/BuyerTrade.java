@@ -23,11 +23,11 @@ import bisq.core.trade.protocol.BuyerProtocol;
 
 import bisq.network.p2p.NodeAddress;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.storage.Storage;
 
 import org.bitcoinj.core.Coin;
+
+import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,9 +62,9 @@ public abstract class BuyerTrade extends Trade {
         super(offer, txFee, takerFee, isCurrencyForTakerFeeBtc, arbitratorNodeAddress, storage, btcWalletService);
     }
 
-    public void onFiatPaymentStarted(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public CompletableFuture<Void> onFiatPaymentStarted() {
         checkArgument(tradeProtocol instanceof BuyerProtocol, "Check failed:  tradeProtocol instanceof BuyerProtocol");
-        ((BuyerProtocol) tradeProtocol).onFiatPaymentStarted(resultHandler, errorMessageHandler);
+        return ((BuyerProtocol) tradeProtocol).onFiatPaymentStarted();
     }
 
     @Override

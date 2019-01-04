@@ -19,14 +19,12 @@ package bisq.core.trade.protocol;
 
 import bisq.core.trade.Trade;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.taskrunner.TaskRunner;
 
 public class TradeTaskRunner extends TaskRunner<Trade> {
 
-    public TradeTaskRunner(Trade sharedModel, ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public TradeTaskRunner(Trade sharedModel) {
         //noinspection unchecked
-        super(sharedModel, (Class<Trade>) sharedModel.getClass().getSuperclass().getSuperclass(), resultHandler, errorMessageHandler);
+        super(sharedModel, (Class<Trade>) sharedModel.getClass().getSuperclass().getSuperclass());
     }
 }

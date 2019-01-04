@@ -44,9 +44,9 @@ import bisq.core.trade.protocol.tasks.taker.TakerVerifyMakerFeePayment;
 import bisq.network.p2p.MailboxMessage;
 import bisq.network.p2p.NodeAddress;
 
-import bisq.common.handlers.ErrorMessageHandler;
-import bisq.common.handlers.ResultHandler;
 import bisq.common.proto.network.NetworkEnvelope;
+
+import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,9 +99,7 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
 
     @Override
     public void takeAvailableOffer() {
-        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade,
-                () -> handleTaskRunnerSuccess("takeAvailableOffer"),
-                this::handleTaskRunnerFault);
+        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade);
 
         taskRunner.addTasks(
                 TakerVerifyMakerAccount.class,
@@ -115,7 +113,13 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
         //TODO if peer does get an error he does not respond and all we get is the timeout now knowing why it failed.
         // We should add an error message the peer sends us in such cases.
         startTimeout();
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                this.handleTaskRunnerFault(throwable.getMessage());
+            } else {
+                handleTaskRunnerSuccess("takeAvailableOffer");
+            }
+        });
     }
 
 
@@ -127,12 +131,7 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
         processModel.setTradeMessage(tradeMessage);
         processModel.setTempTradingPeerNodeAddress(sender);
 
-        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade,
-                () -> {
-                    stopTimeout();
-                    handleTaskRunnerSuccess(tradeMessage, "PublishDepositTxRequest");
-                },
-                errorMessage -> handleTaskRunnerFault(tradeMessage, errorMessage));
+        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade);
 
         taskRunner.addTasks(
                 TakerProcessPublishDepositTxRequest.class,
@@ -145,7 +144,14 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
                 TakerSendDepositTxPublishedMessage.class,
                 PublishTradeStatistics.class
         );
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                handleTaskRunnerFault(tradeMessage, throwable.getMessage());
+            } else {
+                stopTimeout();
+                handleTaskRunnerSuccess(tradeMessage, "PublishDepositTxRequest");
+            }
+        });
     }
 
 
@@ -157,16 +163,20 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
         processModel.setTradeMessage(tradeMessage);
         processModel.setTempTradingPeerNodeAddress(sender);
 
-        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade,
-                () -> handleTaskRunnerSuccess(tradeMessage, "CounterCurrencyTransferStartedMessage"),
-                errorMessage -> handleTaskRunnerFault(tradeMessage, errorMessage));
+        TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade);
 
         taskRunner.addTasks(
                 SellerProcessCounterCurrencyTransferStartedMessage.class,
                 TakerVerifyMakerAccount.class,
                 TakerVerifyMakerFeePayment.class
         );
-        taskRunner.run();
+        taskRunner.run().whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                handleTaskRunnerFault(tradeMessage, throwable.getMessage());
+            } else {
+                handleTaskRunnerSuccess(tradeMessage, "CounterCurrencyTransferStartedMessage");
+            }
+        });
     }
 
 
@@ -176,18 +186,13 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
 
     // User clicked the "bank transfer received" button, so we release the funds for pay out
     @Override
-    public void onFiatPaymentReceived(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+    public CompletableFuture<Void> onFiatPaymentReceived() {
+        CompletableFuture<Void> future;
+        String successMessage;
         if (trade.getPayoutTx() == null) {
             sellerAsTakerTrade.setState(Trade.State.SELLER_CONFIRMED_IN_UI_FIAT_PAYMENT_RECEIPT);
-            TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade,
-                    () -> {
-                        resultHandler.handleResult();
-                        handleTaskRunnerSuccess("onFiatPaymentReceived 1");
-                    },
-                    (errorMessage) -> {
-                        errorMessageHandler.handleErrorMessage(errorMessage);
-                        handleTaskRunnerFault(errorMessage);
-                    });
+            TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade);
+            successMessage = "onFiatPaymentReceived 1";
 
             taskRunner.addTasks(
                     CheckIfPeerIsBanned.class,
@@ -197,22 +202,15 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
                     SellerBroadcastPayoutTx.class,
                     SellerSendPayoutTxPublishedMessage.class
             );
-            taskRunner.run();
+            future = taskRunner.run();
         } else {
             // we don't set the state as we have already a higher phase reached
             log.info("onFiatPaymentReceived called twice. " +
                     "That can happen if message did not arrive first time and we send msg again.\n" +
                     "state=" + sellerAsTakerTrade.getState());
 
-            TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade,
-                    () -> {
-                        resultHandler.handleResult();
-                        handleTaskRunnerSuccess("onFiatPaymentReceived 2");
-                    },
-                    (errorMessage) -> {
-                        errorMessageHandler.handleErrorMessage(errorMessage);
-                        handleTaskRunnerFault(errorMessage);
-                    });
+            TradeTaskRunner taskRunner = new TradeTaskRunner(sellerAsTakerTrade);
+            successMessage = "onFiatPaymentReceived 2";
 
             taskRunner.addTasks(
                     CheckIfPeerIsBanned.class,
@@ -220,8 +218,16 @@ public class SellerAsTakerProtocol extends TradeProtocol implements SellerProtoc
                     TakerVerifyMakerFeePayment.class,
                     SellerSendPayoutTxPublishedMessage.class
             );
-            taskRunner.run();
+            future = taskRunner.run();
         }
+        future.whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+                handleTaskRunnerFault(throwable.getMessage());
+            } else {
+                handleTaskRunnerSuccess(successMessage);
+            }
+        });
+        return future;
     }
 
 
