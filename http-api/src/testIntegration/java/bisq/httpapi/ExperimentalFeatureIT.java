@@ -158,12 +158,6 @@ public class ExperimentalFeatureIT {
 
     @InSequence(1)
     @Test
-    public void listPaymentAccount_always_returns501() {
-        expect501(given().port(getAlicePort()).when().get("/api/v1/payment-accounts"));
-    }
-
-    @InSequence(1)
-    @Test
     public void getPreferencesAvailableValues_always_returns501() {
         expect501(given().port(getAlicePort()).when().get("/api/v1/preferences/available-values"));
     }

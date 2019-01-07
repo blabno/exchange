@@ -354,7 +354,7 @@ public class OfferEndpointIT {
                         and().body("isCurrencyForMakerFeeBtc", equalTo(true)).
                         and().body("isPrivateOffer", equalTo(false)).
                         and().body("lowerClosePrice", equalTo(0)).
-                        and().body("makerFee", equalTo(5000)).
+                        and().body("makerFee", equalTo(6250)).
                         and().body("makerPaymentAccountId", equalTo(alicePaymentAccount.id)).
                         and().body("marketPriceMargin", equalTo(0f)).
                         and().body("maxTradeLimit", equalTo(6250000)).
@@ -407,7 +407,7 @@ public class OfferEndpointIT {
                 and().body("offers[0].isCurrencyForMakerFeeBtc", equalTo(true)).
                 and().body("offers[0].isPrivateOffer", equalTo(false)).
                 and().body("offers[0].lowerClosePrice", equalTo(0)).
-                and().body("offers[0].makerFee", equalTo(5000)).
+                and().body("offers[0].makerFee", equalTo(6250)).
                 and().body("offers[0].makerPaymentAccountId", equalTo(alicePaymentAccount.id)).
                 and().body("offers[0].marketPriceMargin", equalTo(0f)).
                 and().body("offers[0].maxTradeLimit", equalTo(6250000)).
@@ -465,7 +465,7 @@ public class OfferEndpointIT {
                 and().body("isCurrencyForMakerFeeBtc", equalTo(true)).
                 and().body("isPrivateOffer", equalTo(false)).
                 and().body("lowerClosePrice", equalTo(0)).
-                and().body("makerFee", equalTo(43300)).
+                and().body("makerFee", equalTo(6250)).
                 and().body("makerPaymentAccountId", equalTo(alicePaymentAccount.id)).
                 and().body("marketPriceMargin", equalTo(.12f)).
                 and().body("maxTradeLimit", equalTo(6250000)).
@@ -746,7 +746,7 @@ public class OfferEndpointIT {
                 and().body("offer.isCurrencyForMakerFeeBtc", equalTo(true)).
                 and().body("offer.isPrivateOffer", equalTo(false)).
                 and().body("offer.lowerClosePrice", equalTo(0)).
-                and().body("offer.makerFee", equalTo(5000)).
+                and().body("offer.makerFee", equalTo(6250)).
                 and().body("offer.makerPaymentAccountId", equalTo(alicePaymentAccount.id)).
                 and().body("offer.marketPriceMargin", equalTo(0f)).
                 and().body("offer.maxTradeLimit", equalTo(6250000)).

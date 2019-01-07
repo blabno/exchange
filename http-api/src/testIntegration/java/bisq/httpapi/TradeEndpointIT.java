@@ -108,7 +108,7 @@ public class TradeEndpointIT {
                 and().body("trades[0].offer.isCurrencyForMakerFeeBtc", equalTo(true)).
                 and().body("trades[0].offer.isPrivateOffer", equalTo(false)).
                 and().body("trades[0].offer.lowerClosePrice", equalTo(0)).
-                and().body("trades[0].offer.makerFee", equalTo(5000)).
+                and().body("trades[0].offer.makerFee", equalTo(6250)).
                 and().body("trades[0].offer.makerPaymentAccountId", equalTo(alicePaymentAccount.id)).
                 and().body("trades[0].offer.marketPriceMargin", equalTo(0f)).
                 and().body("trades[0].offer.maxTradeLimit", equalTo(6250000)).

@@ -11,7 +11,6 @@ import bisq.core.offer.TxFeeEstimation;
 import bisq.core.payment.AccountAgeWitnessService;
 import bisq.core.payment.PaymentAccount;
 import bisq.core.provider.fee.FeeService;
-import bisq.core.provider.price.MarketPrice;
 import bisq.core.provider.price.PriceFeedService;
 import bisq.core.trade.statistics.ReferralIdService;
 import bisq.core.user.Preferences;
@@ -159,9 +158,7 @@ public class OfferBuilder {
         Map<String, String> extraDataMap = OfferUtil.getExtraDataMap(accountAgeWitnessService, referralIdService,
                 paymentAccount, currencyCode);
         Coin amountAsCoin = Coin.valueOf(amount);
-        final MarketPrice marketPrice = priceFeedService.getMarketPrice(market.getBaseCurrencyCode());
-        boolean marketPriceAvailable = marketPrice != null && marketPrice.isPriceAvailable();
-        Coin makerFeeAsCoin = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin, marketPriceAvailable, marketPriceMargin);
+        Coin makerFeeAsCoin = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin);
         if (makerFeeAsCoin == null) {
             throw new RuntimeException("Unable to calculate maker fee when building an offer");
         }
@@ -169,11 +166,11 @@ public class OfferBuilder {
         Coin buyerSecurityDepositAsCoin = Coin.valueOf(buyerSecurityDeposit);
         OfferUtil.validateOfferData(filterManager, p2PService, buyerSecurityDepositAsCoin, paymentAccount, currencyCode, makerFeeAsCoin);
 
-        boolean isCurrencyForMakerFeeBtc = OfferUtil.isCurrencyForMakerFeeBtc(preferences, bsqWalletService, amountAsCoin, marketPriceAvailable, marketPriceMargin);
+        boolean isCurrencyForMakerFeeBtc = OfferUtil.isCurrencyForMakerFeeBtc(preferences, bsqWalletService, amountAsCoin);
         long sellerSecurityDeposit = Restrictions.getSellerSecurityDeposit().value;
 
         Coin fundsNeededForMaker = OfferUtil.getFundsNeededForOffer(amountAsCoin, buyerSecurityDepositAsCoin, direction);
-        Coin makerFee = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin, marketPriceAvailable, marketPriceMargin);
+        Coin makerFee = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin);
         if (makerFee == null)
             throw new ValidationException("makerFee must not be null");
 
