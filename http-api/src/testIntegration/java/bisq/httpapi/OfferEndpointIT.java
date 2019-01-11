@@ -131,7 +131,7 @@ public class OfferEndpointIT {
     }
 
     private void createOffer_template(InputDataForOffer offer, @SuppressWarnings("SameParameterValue") int expectedStatusCode, String errorMessage) {
-        createOffer_template(offer, expectedStatusCode,equalTo(errorMessage));
+        createOffer_template(offer, expectedStatusCode, equalTo(errorMessage));
     }
 
     private void createOffer_template(InputDataForOffer offer, @SuppressWarnings("SameParameterValue") int expectedStatusCode, Matcher<String> errorMessageMatcher) {
@@ -598,6 +598,25 @@ public class OfferEndpointIT {
         given().
                 port(getBobPort()).
                 body(jsonPayload).
+                contentType(ContentType.JSON).
+//
+        when().
+                post("/api/v1/offers/" + createdOffer.id + "/take").
+//
+        then().
+                statusCode(422)
+                .body("errors[0]", equalTo("amount must be greater than or equal to 1"))
+                .body("errors.size()", equalTo(1))
+        ;
+    }
+
+    @InSequence(10)
+    @Test
+    public void takeOffer_zeroAmount_returns422status() {
+        TakeOffer payload = new TakeOffer(bobPaymentAccount.id, 0);
+        given().
+                port(getBobPort()).
+                body(payload).
                 contentType(ContentType.JSON).
 //
         when().
