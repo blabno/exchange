@@ -16,7 +16,6 @@ COPY gradle /bisq/gradle/
 COPY gradlew build.gradle gradle.properties settings.gradle /bisq/
 RUN ../gradlew --no-daemon -v
 
-COPY http-api/build.gradle /bisq/http-api/
 COPY assets /bisq/assets/
 COPY common /bisq/common/
 COPY core /bisq/core/
