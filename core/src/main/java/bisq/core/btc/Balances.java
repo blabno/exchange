@@ -18,11 +18,14 @@
 package bisq.core.btc;
 
 import bisq.core.btc.listeners.BalanceListener;
+import bisq.core.btc.model.AddressEntry;
 import bisq.core.btc.wallet.BtcWalletService;
 import bisq.core.offer.OpenOffer;
 import bisq.core.offer.OpenOfferManager;
 import bisq.core.trade.Trade;
 import bisq.core.trade.TradeManager;
+import bisq.core.trade.closed.ClosedTradableManager;
+import bisq.core.trade.failed.FailedTradesManager;
 
 import bisq.common.UserThread;
 
@@ -36,15 +39,19 @@ import javafx.beans.property.SimpleObjectProperty;
 
 import javafx.collections.ListChangeListener;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Balances {
-    private final BalanceUtil balanceUtil;
     private final TradeManager tradeManager;
     private final BtcWalletService btcWalletService;
     private final OpenOfferManager openOfferManager;
+    private final ClosedTradableManager closedTradableManager;
+    private final FailedTradesManager failedTradesManager;
 
     @Getter
     private final ObjectProperty<Coin> availableBalance = new SimpleObjectProperty<>();
@@ -54,11 +61,16 @@ public class Balances {
     private final ObjectProperty<Coin> lockedBalance = new SimpleObjectProperty<>();
 
     @Inject
-    public Balances(BalanceUtil balanceUtil, TradeManager tradeManager, BtcWalletService btcWalletService, OpenOfferManager openOfferManager) {
-        this.balanceUtil = balanceUtil;
+    public Balances(TradeManager tradeManager,
+                    BtcWalletService btcWalletService,
+                    OpenOfferManager openOfferManager,
+                    ClosedTradableManager closedTradableManager,
+                    FailedTradesManager failedTradesManager) {
         this.tradeManager = tradeManager;
         this.btcWalletService = btcWalletService;
         this.openOfferManager = openOfferManager;
+        this.closedTradableManager = closedTradableManager;
+        this.failedTradesManager = failedTradesManager;
     }
 
     public void onAllServicesInitialized() {
@@ -70,6 +82,7 @@ public class Balances {
                 updateBalance();
             }
         });
+
         updateBalance();
     }
 
@@ -83,23 +96,30 @@ public class Balances {
     }
 
     private void updateAvailableBalance() {
-        Coin sum = Coin.valueOf(balanceUtil.getAddressEntriesForAvailableFunds()
+        long sum = tradeManager.getAddressEntriesForAvailableBalanceStream()
                 .mapToLong(addressEntry -> btcWalletService.getBalanceForAddress(addressEntry.getAddress()).value)
-                .sum());
-        availableBalance.set(sum);
+                .sum();
+        availableBalance.set(Coin.valueOf(sum));
     }
 
     private void updateReservedBalance() {
-        Coin sum = Coin.valueOf(balanceUtil.getAddressEntriesForReservedFunds()
+        long sum = openOfferManager.getObservableList().stream()
+                .map(openOffer -> btcWalletService.getAddressEntry(openOffer.getId(), AddressEntry.Context.RESERVED_FOR_TRADE)
+                        .orElse(null))
+                .filter(Objects::nonNull)
                 .mapToLong(addressEntry -> btcWalletService.getBalanceForAddress(addressEntry.getAddress()).value)
-                .sum());
-        reservedBalance.set(sum);
+                .sum();
+        reservedBalance.set(Coin.valueOf(sum));
     }
 
     private void updateLockedBalance() {
-        Coin sum = Coin.valueOf(balanceUtil.getAddressEntriesForLockedFunds()
+        Stream<Trade> lockedTrades = Stream.concat(closedTradableManager.getLockedTradesStream(), failedTradesManager.getLockedTradesStream());
+        lockedTrades = Stream.concat(lockedTrades, tradeManager.getLockedTradesStream());
+        long sum = lockedTrades.map(trade -> btcWalletService.getAddressEntry(trade.getId(), AddressEntry.Context.MULTI_SIG)
+                .orElse(null))
+                .filter(Objects::nonNull)
                 .mapToLong(addressEntry -> addressEntry.getCoinLockedInMultiSig().getValue())
-                .sum());
-        lockedBalance.set(sum);
+                .sum();
+        lockedBalance.set(Coin.valueOf(sum));
     }
 }

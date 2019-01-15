@@ -78,7 +78,6 @@ public class BitcoinModule extends AppModule {
         bind(NonBsqCoinSelector.class).in(Singleton.class);
         bind(BtcNodes.class).in(Singleton.class);
         bind(Balances.class).in(Singleton.class);
-        bind(BalanceUtil.class).in(Singleton.class);
 
         bind(PriceNodeHttpClient.class).in(Singleton.class);
 

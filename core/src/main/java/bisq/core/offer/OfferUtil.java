@@ -410,20 +410,20 @@ public class OfferUtil {
                                          P2PService p2PService,
                                          Coin buyerSecurityDepositAsCoin,
                                          PaymentAccount paymentAccount,
-                                         String currencyCode, Coin makerFeeAsCoin) {
+                                         String currencyCode,
+                                         Coin makerFeeAsCoin) {
+        checkNotNull(makerFeeAsCoin, "makerFee must not be null");
+        checkNotNull(p2PService.getAddress(), "Address must not be null");
         checkArgument(buyerSecurityDepositAsCoin.compareTo(Restrictions.getMaxBuyerSecurityDeposit()) <= 0,
                 "securityDeposit must be not exceed " +
                         Restrictions.getMaxBuyerSecurityDeposit().toFriendlyString());
         checkArgument(buyerSecurityDepositAsCoin.compareTo(Restrictions.getMinBuyerSecurityDeposit()) >= 0,
                 "securityDeposit must be not be less than " +
                         Restrictions.getMinBuyerSecurityDeposit().toFriendlyString());
-
         checkArgument(!filterManager.isCurrencyBanned(currencyCode),
                 Res.get("offerbook.warning.currencyBanned"));
         checkArgument(!filterManager.isPaymentMethodBanned(paymentAccount.getPaymentMethod()),
                 Res.get("offerbook.warning.paymentMethodBanned"));
-        checkNotNull(makerFeeAsCoin, "makerFee must not be null");
-        checkNotNull(p2PService.getAddress(), "Address must not be null");
     }
 
     public static Coin getFundsNeededForOffer(Coin tradeAmount, Coin buyerSecurityDeposit, OfferPayload.Direction direction) {

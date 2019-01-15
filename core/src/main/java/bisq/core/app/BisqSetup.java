@@ -589,7 +589,9 @@ public class BisqSetup {
             checkForLockedUpFunds();
 
         openOfferManager.onAllServicesInitialized();
+
         balances.onAllServicesInitialized();
+
         arbitratorManager.onAllServicesInitialized();
 
         alertManager.alertMessageProperty().addListener((observable, oldValue, newValue) ->
