@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
 import javax.validation.ValidationException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -40,6 +41,8 @@ public final class ExceptionMappers {
         environment.register(new ExceptionMappers.NotFoundExceptionMapper());
         environment.register(new ExceptionMappers.ValidationExceptionMapper());
         environment.register(new ExceptionMappers.UnauthorizedExceptionMapper());
+        environment.register(new ExceptionMappers.WebApplicationExceptionMapper());
+        environment.register(new ExceptionMappers.ThrowableMapper());
     }
 
     private static Response toResponse(Throwable throwable, Response.Status status) {
@@ -109,6 +112,21 @@ public final class ExceptionMappers {
         @Override
         public Response toResponse(NotFoundException exception) {
             return Response.status(404).entity(exception.getMessage()).type(MediaType.TEXT_PLAIN_TYPE).build();
+        }
+    }
+
+    public static class ThrowableMapper implements ExceptionMapper<Throwable> {
+        @Override
+        public Response toResponse(Throwable exception) {
+            log.error("Unhandled exception", exception);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public static class WebApplicationExceptionMapper implements ExceptionMapper<WebApplicationException> {
+        @Override
+        public Response toResponse(WebApplicationException exception) {
+            return exception.getResponse();
         }
     }
 

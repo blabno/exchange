@@ -11,12 +11,36 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import static io.restassured.RestAssured.given;
+
 
 
 import com.github.javafaker.Faker;
+import io.restassured.http.ContentType;
 
 @SuppressWarnings("WeakerAccess")
 public final class ApiTestHelper {
+
+    public static void registerArbitrator(int apiPort) throws InterruptedException {
+        given().
+                port(apiPort).
+//
+        when().
+                body("{\"languageCodes\":[\"en\",\"de\"]}").
+                contentType(ContentType.JSON).
+                post("/api/v1/arbitrators").
+//
+        then().
+                statusCode(204);
+
+        /* Wait for arbiter registration message to be broadcast across peers*/
+        waitForP2PMsgPropagation();
+    }
+
+    public static void waitForP2PMsgPropagation() throws InterruptedException {
+        int P2P_MSG_RELAY_DELAY = 1000;
+        Thread.sleep(P2P_MSG_RELAY_DELAY);
+    }
 
     public static void waitForAllServicesToBeReady() throws InterruptedException {
 //        TODO it would be nice to expose endpoint that would respond with 200

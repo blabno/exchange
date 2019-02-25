@@ -2,6 +2,7 @@ package bisq.api.http;
 
 import bisq.api.http.model.AuthForm;
 import bisq.api.http.model.ChangePassword;
+import bisq.api.http.model.RegisterArbitratorRequest;
 import bisq.api.http.model.payment.SepaPaymentAccount;
 
 import org.junit.Test;
@@ -29,6 +30,30 @@ public class ExperimentalFeatureIT {
     @Test
     public void waitForAllServicesToBeReady() throws InterruptedException {
         ApiTestHelper.waitForAllServicesToBeReady();
+    }
+
+    @InSequence(1)
+    @Test
+    public void registerArbitrator_always_returns501() {
+        expect501(given().port(getAlicePort()).body(new RegisterArbitratorRequest()).contentType(ContentType.JSON).when().post("/api/v1/arbitrators"));
+    }
+
+    @InSequence(1)
+    @Test
+    public void searchArbitrators_always_returns501() {
+        expect501(given().port(getAlicePort()).when().get("/api/v1/arbitrators"));
+    }
+
+    @InSequence(1)
+    @Test
+    public void selectArbitrator_always_returns501() {
+        expect501(given().port(getAlicePort()).when().post("/api/v1/arbitrators/xyz/select"));
+    }
+
+    @InSequence(1)
+    @Test
+    public void deselectArbitrator_always_returns501() {
+        expect501(given().port(getAlicePort()).when().post("/api/v1/arbitrators/xyz/deselect"));
     }
 
     @InSequence(1)
@@ -62,7 +87,7 @@ public class ExperimentalFeatureIT {
         given().port(getAlicePort()).when().get("/api/v1/payment-accounts").then().statusCode(200);
     }
 
-    @InSequence(1)
+    @InSequence(3)
     @Test
     public void authenticate_always_returns501() {
 //
@@ -78,7 +103,7 @@ public class ExperimentalFeatureIT {
                 statusCode(200);
     }
 
-    @InSequence(1)
+    @InSequence(2)
     @Test
     public void changePassword_always_returns200() {
 //
@@ -86,7 +111,7 @@ public class ExperimentalFeatureIT {
                 port(getAlicePort()).
                 body(new ChangePassword("abc", null)).
                 contentType(ContentType.JSON).
-//                
+//
         when().
                 post("/api/v1/user/password").
 //

@@ -1,5 +1,6 @@
 package bisq.api.http.service;
 
+import bisq.api.http.service.endpoint.ArbitratorEndpoint;
 import bisq.api.http.service.endpoint.PaymentAccountEndpoint;
 import bisq.api.http.service.endpoint.UserEndpoint;
 import bisq.api.http.service.endpoint.VersionEndpoint;
@@ -27,6 +28,7 @@ import javax.ws.rs.Path;
         info = @Info(version = "0.0.1", title = "Bisq HTTP API"),
         security = @SecurityRequirement(name = "authorization"),
         tags = {
+                @Tag(name = "arbitrators"),
                 @Tag(name = "payment-accounts"),
                 @Tag(name = "user"),
                 @Tag(name = "version")
@@ -34,15 +36,22 @@ import javax.ws.rs.Path;
 )
 @Path("/api/v1")
 public class HttpApiInterfaceV1 {
+    private final ArbitratorEndpoint arbitratorEndpoint;
     private final PaymentAccountEndpoint paymentAccountEndpoint;
     private final UserEndpoint userEndpoint;
     private final VersionEndpoint versionEndpoint;
 
     @Inject
-    public HttpApiInterfaceV1(PaymentAccountEndpoint paymentAccountEndpoint, UserEndpoint userEndpoint, VersionEndpoint versionEndpoint) {
+    public HttpApiInterfaceV1(ArbitratorEndpoint arbitratorEndpoint, PaymentAccountEndpoint paymentAccountEndpoint, UserEndpoint userEndpoint, VersionEndpoint versionEndpoint) {
+        this.arbitratorEndpoint = arbitratorEndpoint;
         this.paymentAccountEndpoint = paymentAccountEndpoint;
         this.userEndpoint = userEndpoint;
         this.versionEndpoint = versionEndpoint;
+    }
+
+    @Path("arbitrators")
+    public ArbitratorEndpoint getArbitratorEndpoint() {
+        return arbitratorEndpoint;
     }
 
     @Path("payment-accounts")

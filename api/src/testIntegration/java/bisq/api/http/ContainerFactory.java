@@ -81,4 +81,9 @@ public final class ContainerFactory {
                 .withEnvironment(ENV_LOG_LEVEL_KEY, ENV_LOG_LEVEL_VALUE);
     }
 
+    public static Container createSeedNodeContainer() {
+        return withRegtestEnv(Container.withContainerName("bisq-seednode").fromImage("bisq/seednode"))
+                .withEnvironment("MY_ADDRESS", SEED_NODE_ADDRESS)
+                .build();
+    }
 }
