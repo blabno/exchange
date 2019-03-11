@@ -25,13 +25,13 @@ public final class ContainerFactory {
     public static final String ENV_BASE_CURRENCY_NETWORK_KEY = "BASE_CURRENCY_NETWORK";
     public static final String ENV_BASE_CURRENCY_NETWORK_VALUE = "BTC_REGTEST";
     public static final String ENV_BITCOIN_REGTEST_HOST_KEY = "BITCOIN_REGTEST_HOST";
-    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "NONE";
+    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "LOCALHOST";
     public static final String ENV_BTC_NODES_KEY = "BTC_NODES";
     public static final String ENV_BTC_NODES_VALUE = "bitcoin:18444";
     public static final String ENV_SEED_NODES_KEY = "SEED_NODES";
     public static final String ENV_SEED_NODES_VALUE = SEED_NODE_ADDRESS;
     public static final String ENV_LOG_LEVEL_KEY = "LOG_LEVEL";
-    public static final String ENV_LOG_LEVEL_VALUE = "debug";
+    public static final String ENV_LOG_LEVEL_VALUE = "warn";
 
     @SuppressWarnings("WeakerAccess")
     public static ContainerBuilder.ContainerOptionsBuilder createApiContainerBuilder(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin, boolean enableExperimentalFeatures) {
