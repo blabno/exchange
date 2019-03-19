@@ -39,8 +39,6 @@ import bisq.common.proto.persistable.PersistedDataHost;
 import bisq.common.storage.Storage;
 import bisq.common.util.Utilities;
 
-import org.bitcoinj.core.Coin;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -487,10 +485,10 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
         withdrawalTxFeeInBytesProperty.set(withdrawalTxFeeInBytes);
     }
 
-    public void setBuyerSecurityDepositAsLong(long buyerSecurityDepositAsLong) {
-        prefPayload.setBuyerSecurityDepositAsLong(Math.min(Restrictions.getMaxBuyerSecurityDeposit().value,
-                Math.max(Restrictions.getMinBuyerSecurityDeposit().value,
-                        buyerSecurityDepositAsLong)));
+    public void setBuyerSecurityDepositAsPercent(double buyerSecurityDepositAsPercent) {
+        double max = Restrictions.getMaxBuyerSecurityDepositAsPercent();
+        double min = Restrictions.getMinBuyerSecurityDepositAsPercent();
+        prefPayload.setBuyerSecurityDepositAsPercent(Math.min(max, Math.max(min, buyerSecurityDepositAsPercent)));
         persist();
     }
 
@@ -651,6 +649,8 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
                 return prefPayload.getBlockChainExplorerTestNet();
             case BTC_DAO_TESTNET:
                 return BTC_DAO_TEST_NET_EXPLORERS.get(0);
+            case BTC_DAO_BETANET:
+                return prefPayload.getBlockChainExplorerMainNet();
             default:
                 throw new RuntimeException("BaseCurrencyNetwork not defined. BaseCurrencyNetwork=" + baseCurrencyNetwork);
         }
@@ -666,6 +666,8 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
                 return BTC_TEST_NET_EXPLORERS;
             case BTC_DAO_TESTNET:
                 return BTC_DAO_TEST_NET_EXPLORERS;
+            case BTC_DAO_BETANET:
+                return BTC_MAIN_NET_EXPLORERS;
             default:
                 throw new RuntimeException("BaseCurrencyNetwork not defined. BaseCurrencyNetwork=" + baseCurrencyNetwork);
         }
@@ -696,8 +698,9 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
         return withdrawalTxFeeInBytesProperty;
     }
 
-    public Coin getBuyerSecurityDepositAsCoin() {
-        return Coin.valueOf(prefPayload.getBuyerSecurityDepositAsLong());
+    public double getBuyerSecurityDepositAsPercent() {
+        double value = prefPayload.getBuyerSecurityDepositAsPercent();
+        return value == 0 ? Restrictions.getDefaultBuyerSecurityDepositAsPercent() : value;
     }
 
     //TODO remove and use isPayFeeInBtc instead
@@ -775,8 +778,6 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
 
         void setWithdrawalTxFeeInBytes(long withdrawalTxFeeInBytes);
 
-        void setBuyerSecurityDepositAsLong(long buyerSecurityDepositAsLong);
-
         void setSelectedPaymentAccountForCreateOffer(@Nullable PaymentAccount paymentAccount);
 
         void setBsqBlockChainExplorer(BlockChainExplorer bsqBlockChainExplorer);
@@ -832,5 +833,9 @@ public class Preferences implements PersistedDataHost, BridgeAddressProvider {
         void setRpcPw(String value);
 
         void setTakeOfferSelectedPaymentAccountId(String value);
+
+        void setBuyerSecurityDepositAsPercent(double buyerSecurityDepositAsPercent);
+
+        double getBuyerSecurityDepositAsPercent();
     }
 }
