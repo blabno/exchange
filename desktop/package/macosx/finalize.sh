@@ -2,12 +2,12 @@
 
 cd ../../
 
-version="0.9.5-SNAPSHOT"
+version="1.1.2-SNAPSHOT"
 
 target_dir="releases/$version"
 
-#vmPath=/Users/christoph/Documents/Workspaces/Java
-vmPath=/Volumes
+vmPath=/Users/christoph/Documents/Workspaces/Java
+#vmPath=/Volumes
 linux64=$vmPath/vm_shared_ubuntu/desktop/package/linux
 win64=$vmPath/vm_shared_windows/desktop/package/windows
 
@@ -59,6 +59,7 @@ gpg --digest-algo SHA256 --verify $deb64{.asc*,}
 gpg --digest-algo SHA256 --verify $rpm64{.asc*,}
 gpg --digest-algo SHA256 --verify $exe64{.asc*,}
 
+mkdir $win64/$version
 cp -r . $win64/$version
 
 open "."

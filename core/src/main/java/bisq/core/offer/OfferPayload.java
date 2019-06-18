@@ -24,6 +24,7 @@ import bisq.network.p2p.storage.payload.RequiresOwnerIsOnlinePayload;
 
 import bisq.common.crypto.PubKeyRing;
 import bisq.common.proto.ProtoUtil;
+import bisq.common.util.ExtraDataMapValidator;
 import bisq.common.util.JsonExclude;
 
 import io.bisq.generated.protobuffer.PB;
@@ -32,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.security.PublicKey;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -235,7 +237,7 @@ public final class OfferPayload implements ProtectedStoragePayload, ExpirablePay
         this.upperClosePrice = upperClosePrice;
         this.isPrivateOffer = isPrivateOffer;
         this.hashOfChallenge = hashOfChallenge;
-        this.extraDataMap = extraDataMap;
+        this.extraDataMap = ExtraDataMapValidator.getValidatedExtraDataMap(extraDataMap);
         this.protocolVersion = protocolVersion;
     }
 
@@ -377,7 +379,7 @@ public final class OfferPayload implements ProtectedStoragePayload, ExpirablePay
     public String toString() {
         return "OfferPayload{" +
                 "\n     id='" + id + '\'' +
-                ",\n     date=" + date +
+                ",\n     date=" + new Date(date) +
                 ",\n     ownerNodeAddress=" + ownerNodeAddress +
                 ",\n     pubKeyRing=" + pubKeyRing +
                 ",\n     direction=" + direction +

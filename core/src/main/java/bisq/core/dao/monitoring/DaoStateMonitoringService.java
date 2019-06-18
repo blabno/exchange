@@ -20,16 +20,20 @@ package bisq.core.dao.monitoring;
 import bisq.core.dao.DaoSetupService;
 import bisq.core.dao.monitoring.model.DaoStateBlock;
 import bisq.core.dao.monitoring.model.DaoStateHash;
+import bisq.core.dao.monitoring.model.UtxoMismatch;
 import bisq.core.dao.monitoring.network.DaoStateNetworkService;
 import bisq.core.dao.monitoring.network.messages.GetDaoStateHashesRequest;
 import bisq.core.dao.monitoring.network.messages.NewDaoStateHashMessage;
 import bisq.core.dao.state.DaoStateListener;
 import bisq.core.dao.state.DaoStateService;
 import bisq.core.dao.state.GenesisTxInfo;
+import bisq.core.dao.state.model.blockchain.BaseTxOutput;
 import bisq.core.dao.state.model.blockchain.Block;
+import bisq.core.dao.state.model.governance.IssuanceType;
 
 import bisq.network.p2p.NodeAddress;
 import bisq.network.p2p.network.Connection;
+import bisq.network.p2p.seed.SeedNodeRepository;
 
 import bisq.common.UserThread;
 import bisq.common.crypto.Hash;
@@ -38,10 +42,14 @@ import javax.inject.Inject;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -77,6 +85,8 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
     private final DaoStateService daoStateService;
     private final DaoStateNetworkService daoStateNetworkService;
     private final GenesisTxInfo genesisTxInfo;
+    private final Set<String> seedNodeAddresses;
+
 
     @Getter
     private final LinkedList<DaoStateBlock> daoStateBlockChain = new LinkedList<>();
@@ -85,7 +95,11 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
     private final List<Listener> listeners = new CopyOnWriteArrayList<>();
     private boolean parseBlockChainComplete;
     @Getter
-    private boolean isInConflict;
+    private boolean isInConflictWithNonSeedNode;
+    @Getter
+    private boolean isInConflictWithSeedNode;
+    @Getter
+    private ObservableList<UtxoMismatch> utxoMismatches = FXCollections.observableArrayList();
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -95,10 +109,14 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
     @Inject
     public DaoStateMonitoringService(DaoStateService daoStateService,
                                      DaoStateNetworkService daoStateNetworkService,
-                                     GenesisTxInfo genesisTxInfo) {
+                                     GenesisTxInfo genesisTxInfo,
+                                     SeedNodeRepository seedNodeRepository) {
         this.daoStateService = daoStateService;
         this.daoStateNetworkService = daoStateNetworkService;
         this.genesisTxInfo = genesisTxInfo;
+        seedNodeAddresses = seedNodeRepository.getSeedNodeAddresses().stream()
+                .map(NodeAddress::getFullAddress)
+                .collect(Collectors.toSet());
     }
 
 
@@ -132,6 +150,21 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
         // We wait for processing messages until we have completed batch processing
         int fromHeight = daoStateService.getChainHeight() - 10;
         daoStateNetworkService.requestHashesFromAllConnectedSeedNodes(fromHeight);
+    }
+
+    @Override
+    public void onDaoStateChanged(Block block) {
+        long genesisTotalSupply = daoStateService.getGenesisTotalSupply().value;
+        long compensationIssuance = daoStateService.getTotalIssuedAmount(IssuanceType.COMPENSATION);
+        long reimbursementIssuance = daoStateService.getTotalIssuedAmount(IssuanceType.REIMBURSEMENT);
+        long totalAmountOfBurntBsq = daoStateService.getTotalAmountOfBurntBsq();
+        // confiscated funds are still in the utxo set
+        long sumUtxo = daoStateService.getUnspentTxOutputMap().values().stream().mapToLong(BaseTxOutput::getValue).sum();
+        long sumBsq = genesisTotalSupply + compensationIssuance + reimbursementIssuance - totalAmountOfBurntBsq;
+
+        if (sumBsq != sumUtxo) {
+            utxoMismatches.add(new UtxoMismatch(block.getHeight(), sumUtxo, sumBsq));
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -235,7 +268,7 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
                     height, daoStateBlockChain.getLast().getHeight());
             prevHash = daoStateBlockChain.getLast().getHash();
         }
-        byte[] stateHash = daoStateService.getSerializedDaoState();
+        byte[] stateHash = daoStateService.getSerializedStateForHashChain();
         // We include the prev. hash in our new hash so we can be sure that if one hash is matching all the past would
         // match as well.
         byte[] combined = ArrayUtils.addAll(prevHash, stateHash);
@@ -260,7 +293,8 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
 
     private boolean processPeersDaoStateHash(DaoStateHash daoStateHash, Optional<NodeAddress> peersNodeAddress, boolean notifyListeners) {
         AtomicBoolean changed = new AtomicBoolean(false);
-        AtomicBoolean isInConflict = new AtomicBoolean(this.isInConflict);
+        AtomicBoolean inConflictWithNonSeedNode = new AtomicBoolean(this.isInConflictWithNonSeedNode);
+        AtomicBoolean inConflictWithSeedNode = new AtomicBoolean(this.isInConflictWithSeedNode);
         StringBuilder sb = new StringBuilder();
         daoStateBlockChain.stream()
                 .filter(e -> e.getHeight() == daoStateHash.getHeight()).findAny()
@@ -270,7 +304,11 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
                     daoStateBlock.putInPeersMap(peersNodeAddressAsString, daoStateHash);
                     if (!daoStateBlock.getMyStateHash().hasEqualHash(daoStateHash)) {
                         daoStateBlock.putInConflictMap(peersNodeAddressAsString, daoStateHash);
-                        isInConflict.set(true);
+                        if (seedNodeAddresses.contains(peersNodeAddressAsString)) {
+                            inConflictWithSeedNode.set(true);
+                        } else {
+                            inConflictWithNonSeedNode.set(true);
+                        }
                         sb.append("We received a block hash from peer ")
                                 .append(peersNodeAddressAsString)
                                 .append(" which conflicts with our block hash.\n")
@@ -282,12 +320,17 @@ public class DaoStateMonitoringService implements DaoSetupService, DaoStateListe
                     changed.set(true);
                 });
 
-        this.isInConflict = isInConflict.get();
+        this.isInConflictWithNonSeedNode = inConflictWithNonSeedNode.get();
+        this.isInConflictWithSeedNode = inConflictWithSeedNode.get();
 
         String conflictMsg = sb.toString();
-        if (this.isInConflict && !conflictMsg.isEmpty()) {
-            log.warn(conflictMsg);
+        if (!conflictMsg.isEmpty()) {
+            if (this.isInConflictWithSeedNode)
+                log.warn("Conflict with seed nodes: {}", conflictMsg);
+            else if (this.isInConflictWithNonSeedNode)
+                log.info("Conflict with non-seed nodes: {}", conflictMsg);
         }
+
 
         if (notifyListeners && changed.get()) {
             listeners.forEach(Listener::onChangeAfterBatchProcessing);

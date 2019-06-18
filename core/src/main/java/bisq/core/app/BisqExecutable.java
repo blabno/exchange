@@ -503,7 +503,7 @@ public abstract class BisqExecutable implements GracefulShutDownHandler, BisqSet
                 format("Base currency network (default: %s)", BisqEnvironment.getDefaultBaseCurrencyNetwork().name()))
                 .withRequiredArg()
                 .ofType(String.class)
-                .describedAs(format("%s|%s|%s|%s", BTC_MAINNET, BTC_TESTNET, BTC_REGTEST, BTC_DAO_TESTNET, BTC_DAO_BETANET));
+                .describedAs(format("%s|%s|%s|%s", BTC_MAINNET, BTC_TESTNET, BTC_REGTEST, BTC_DAO_TESTNET, BTC_DAO_BETANET, BTC_DAO_REGTEST));
 
         parser.accepts(BtcOptionKeys.REG_TEST_HOST,
                 format("Bitcoin regtest host when using BTC_REGTEST network (default: %s)", RegTestHost.DEFAULT_HOST))
@@ -579,7 +579,7 @@ public abstract class BisqExecutable implements GracefulShutDownHandler, BisqSet
                 .withRequiredArg();
 
         parser.accepts(DaoOptionKeys.DAO_ACTIVATED,
-                format("Developer flag. If true it enables dao phase 2 features. (default: %s)", "false"))
+                format("Developer flag. If true it enables dao phase 2 features. (default: %s)", "true"))
                 .withRequiredArg()
                 .ofType(boolean.class);
     }

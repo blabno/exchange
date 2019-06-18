@@ -17,6 +17,7 @@
 
 package bisq.core.btc.wallet;
 
+import bisq.core.btc.exceptions.BsqChangeBelowDustException;
 import bisq.core.btc.exceptions.InsufficientBsqException;
 import bisq.core.btc.exceptions.TransactionVerificationException;
 import bisq.core.btc.exceptions.WalletException;
@@ -314,8 +315,9 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
 
     private void updateBsqWalletTransactions() {
         walletTransactions.setAll(getTransactions(false));
-        // walletTransactions.setAll(getBsqWalletTransactions());
-        updateBsqBalance();
+        if (daoStateService.isParseBlockChainComplete()) {
+            updateBsqBalance();
+        }
     }
 
     private Set<Transaction> getBsqWalletTransactions() {
@@ -474,7 +476,7 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     public Transaction getPreparedSendBsqTx(String receiverAddress, Coin receiverAmount)
-            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException {
+            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException, BsqChangeBelowDustException {
         return getPreparedSendTx(receiverAddress, receiverAmount, bsqCoinSelector);
     }
 
@@ -483,12 +485,12 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     public Transaction getPreparedSendBtcTx(String receiverAddress, Coin receiverAmount)
-            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException {
+            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException, BsqChangeBelowDustException {
         return getPreparedSendTx(receiverAddress, receiverAmount, nonBsqCoinSelector);
     }
 
     private Transaction getPreparedSendTx(String receiverAddress, Coin receiverAmount, CoinSelector coinSelector)
-            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException {
+            throws AddressFormatException, InsufficientBsqException, WalletException, TransactionVerificationException, BsqChangeBelowDustException {
         DaoKillSwitch.assertDaoIsNotDisabled();
         Transaction tx = new Transaction(params);
         checkArgument(Restrictions.isAboveDust(receiverAmount),
@@ -509,6 +511,18 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
             checkWalletConsistency(wallet);
             verifyTransaction(tx);
             // printTx("prepareSendTx", tx);
+
+            // Tx has as first output BSQ and an optional second BSQ change output.
+            // At that stage we do not have added the BTC inputs so there is no BTC change output here.
+            if (tx.getOutputs().size() == 2) {
+                TransactionOutput bsqChangeOutput = tx.getOutputs().get(1);
+                if (!Restrictions.isAboveDust(bsqChangeOutput.getValue())) {
+                    String msg = "BSQ change output is below dust limit. outputValue=" + bsqChangeOutput.getValue().toFriendlyString();
+                    log.warn(msg);
+                    throw new BsqChangeBelowDustException(msg, bsqChangeOutput.getValue());
+                }
+            }
+
             return tx;
         } catch (InsufficientMoneyException e) {
             log.error(e.toString());
@@ -523,19 +537,23 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
 
     // We create a tx with Bsq inputs for the fee and optional BSQ change output.
     // As the fee amount will be missing in the output those BSQ fees are burned.
-    public Transaction getPreparedProposalTx(Coin fee) throws InsufficientBsqException {
-        return getPreparedBurnFeeTx(fee);
+    public Transaction getPreparedProposalTx(Coin fee, boolean requireChangeOutput) throws InsufficientBsqException {
+        return getPreparedBurnFeeTx(fee, requireChangeOutput);
     }
 
     public Transaction getPreparedBurnFeeTx(Coin fee) throws InsufficientBsqException {
+        return getPreparedBurnFeeTx(fee, false);
+    }
+
+    private Transaction getPreparedBurnFeeTx(Coin fee, boolean requireChangeOutput) throws InsufficientBsqException {
         DaoKillSwitch.assertDaoIsNotDisabled();
         final Transaction tx = new Transaction(params);
-        addInputsAndChangeOutputForTx(tx, fee, bsqCoinSelector);
+        addInputsAndChangeOutputForTx(tx, fee, bsqCoinSelector, requireChangeOutput);
         // printTx("getPreparedFeeTx", tx);
         return tx;
     }
 
-    private void addInputsAndChangeOutputForTx(Transaction tx, Coin fee, BsqCoinSelector bsqCoinSelector)
+    private void addInputsAndChangeOutputForTx(Transaction tx, Coin fee, BsqCoinSelector bsqCoinSelector, boolean requireChangeOutput)
             throws InsufficientBsqException {
         Coin requiredInput;
         // If our fee is less then dust limit we increase it so we are sure to not get any dust output.
@@ -548,9 +566,20 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
         coinSelection.gathered.forEach(tx::addInput);
         try {
             // TODO why is fee passed to getChange ???
-            Coin change = this.bsqCoinSelector.getChange(fee, coinSelection);
+            Coin change = bsqCoinSelector.getChange(fee, coinSelection);
+            if (requireChangeOutput) {
+                checkArgument(change.isPositive(),
+                        "This transaction requires a mandatory BSQ change output. " +
+                                "At least " + Restrictions.getMinNonDustOutput().add(fee).value / 100d + " " +
+                                "BSQ is needed for this transaction");
+            }
+
             if (change.isPositive()) {
-                checkArgument(Restrictions.isAboveDust(change), "We must not get dust output here.");
+                checkArgument(Restrictions.isAboveDust(change),
+                        "The change output of " + change.value / 100d + " BSQ is below the min. dust value of "
+                                + Restrictions.getMinNonDustOutput().value / 100d +
+                                ". At least " + Restrictions.getMinNonDustOutput().add(fee).value / 100d + " " +
+                                "BSQ is needed for this transaction");
                 tx.addOutput(change, getChangeAddress());
             }
         } catch (InsufficientMoneyException e) {
@@ -569,7 +598,7 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
         DaoKillSwitch.assertDaoIsNotDisabled();
         Transaction tx = new Transaction(params);
         tx.addOutput(new TransactionOutput(params, tx, stake, getUnusedAddress()));
-        addInputsAndChangeOutputForTx(tx, fee.add(stake), bsqCoinSelector);
+        addInputsAndChangeOutputForTx(tx, fee.add(stake), bsqCoinSelector, false);
         //printTx("getPreparedBlindVoteTx", tx);
         return tx;
     }
@@ -603,7 +632,7 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
         Transaction tx = new Transaction(params);
         checkArgument(Restrictions.isAboveDust(lockupAmount), "The amount is too low (dust limit).");
         tx.addOutput(new TransactionOutput(params, tx, lockupAmount, getUnusedAddress()));
-        addInputsAndChangeOutputForTx(tx, lockupAmount, bsqCoinSelector);
+        addInputsAndChangeOutputForTx(tx, lockupAmount, bsqCoinSelector, false);
         printTx("prepareLockupTx", tx);
         return tx;
     }
@@ -652,5 +681,12 @@ public class BsqWalletService extends WalletService implements DaoStateListener 
 
     public String getUnusedBsqAddressAsString() {
         return "B" + getUnusedAddress().toBase58();
+    }
+
+    // For BSQ we do not check for dust attack utxos as they are 5.46 BSQ and a considerable value.
+    // The default 546 sat dust limit is handled in the BitcoinJ side anyway.
+    @Override
+    protected boolean isDustAttackUtxo(TransactionOutput output) {
+        return false;
     }
 }

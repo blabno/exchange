@@ -751,6 +751,11 @@ public class GUIUtil {
             log.warn("showNotReadyForTxBroadcastPopups called but no case matched. This should never happen if isReadyForTxBroadcast was called before.");
     }
 
+    public static void showWantToBurnBTCPopup(Coin miningFee, Coin amount, BSFormatter btcFormatter) {
+        new Popup<>().warning(Res.get("popup.warning.burnBTC", btcFormatter.formatCoinWithCode(miningFee),
+                btcFormatter.formatCoinWithCode(amount))).show();
+    }
+
     public static void requestFocus(Node node) {
         UserThread.execute(node::requestFocus);
     }
@@ -849,21 +854,42 @@ public class GUIUtil {
         }
     }
 
-    public static void showBsqFeeInfoPopup(Coin fee, Coin miningFee, int txSize, BsqFormatter bsqFormatter,
+    public static void showBsqFeeInfoPopup(Coin fee, Coin miningFee, Coin btcForIssuance, int txSize, BsqFormatter bsqFormatter,
                                            BSFormatter btcFormatter, String type,
                                            Runnable actionHandler) {
+        String confirmationMessage;
+
+        if (btcForIssuance != null) {
+            confirmationMessage = Res.get("dao.feeTx.issuanceProposal.confirm.details",
+                    StringUtils.capitalize(type),
+                    bsqFormatter.formatCoinWithCode(fee),
+                    bsqFormatter.formatBTCWithCode(btcForIssuance),
+                    100,
+                    btcFormatter.formatCoinWithCode(miningFee),
+                    CoinUtil.getFeePerByte(miningFee, txSize),
+                    txSize / 1000d,
+                    type);
+        } else {
+            confirmationMessage = Res.get("dao.feeTx.confirm.details",
+                    StringUtils.capitalize(type),
+                    bsqFormatter.formatCoinWithCode(fee),
+                    btcFormatter.formatCoinWithCode(miningFee),
+                    CoinUtil.getFeePerByte(miningFee, txSize),
+                    txSize / 1000d,
+                    type);
+        }
         new Popup<>().headLine(Res.get("dao.feeTx.confirm", type))
-                .confirmation(Res.get("dao.feeTx.confirm.details",
-                        StringUtils.capitalize(type),
-                        bsqFormatter.formatCoinWithCode(fee),
-                        btcFormatter.formatCoinWithCode(miningFee),
-                        CoinUtil.getFeePerByte(miningFee, txSize),
-                        txSize / 1000d,
-                        type))
+                .confirmation(confirmationMessage)
                 .actionButtonText(Res.get("shared.yes"))
                 .onAction(actionHandler)
                 .closeButtonText(Res.get("shared.cancel"))
                 .show();
+    }
+
+    public static void showBsqFeeInfoPopup(Coin fee, Coin miningFee, int txSize, BsqFormatter bsqFormatter,
+                                           BSFormatter btcFormatter, String type,
+                                           Runnable actionHandler) {
+        showBsqFeeInfoPopup(fee, miningFee, null, txSize, bsqFormatter, btcFormatter, type, actionHandler);
     }
 
     public static void setFitToRowsForTableView(TableView tableView, int rowHeight, int headerHeight, int minNumRows, int maxNumRows) {

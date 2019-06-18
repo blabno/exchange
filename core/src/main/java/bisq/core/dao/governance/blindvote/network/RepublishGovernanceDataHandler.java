@@ -92,7 +92,8 @@ public final class RepublishGovernanceDataHandler {
     private void sendRepublishRequest(NodeAddress nodeAddress) {
         RepublishGovernanceDataRequest republishGovernanceDataRequest = new RepublishGovernanceDataRequest();
         if (timeoutTimer == null) {
-            timeoutTimer = UserThread.runAfter(() -> {  // setup before sending to avoid race conditions
+            timeoutTimer = UserThread.runAfter(() -> {
+                        // setup before sending to avoid race conditions
                         if (!stopped) {
                             String errorMessage = "A timeout occurred at sending republishGovernanceDataRequest:" +
                                     " to nodeAddress:" + nodeAddress;
@@ -164,6 +165,7 @@ public final class RepublishGovernanceDataHandler {
         }
     }
 
+    // TODO support also lite nodes
     private void connectToAnyFullNode() {
         Capabilities required = new Capabilities(Capability.DAO_FULL_NODE);
 

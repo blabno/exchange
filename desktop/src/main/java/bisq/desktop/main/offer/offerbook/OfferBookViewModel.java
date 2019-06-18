@@ -505,7 +505,17 @@ class OfferBookViewModel extends ActivatableViewModel {
     }
 
     boolean isAnyPaymentAccountValidForOffer(Offer offer) {
-        return user.getPaymentAccounts() != null && PaymentAccountUtil.isAnyPaymentAccountValidForOffer(offer, user.getPaymentAccounts());
+        return user.getPaymentAccounts() != null &&
+                PaymentAccountUtil.isAnyTakerPaymentAccountValidForOffer(offer, user.getPaymentAccounts());
+    }
+
+    boolean isSellOfferAndAllTakerPaymentAccountsForOfferImmature(Offer offer) {
+        return user.getPaymentAccounts() != null &&
+                PaymentAccountUtil.isSellOfferAndAllTakerPaymentAccountsForOfferImmature(offer, user.getPaymentAccounts(), accountAgeWitnessService);
+    }
+
+    boolean isRiskyBuyOfferWithImmatureAccountAge(Offer offer) {
+        return PaymentAccountUtil.isRiskyBuyOfferWithImmatureAccountAge(offer, accountAgeWitnessService);
     }
 
     boolean hasPaymentAccountForCurrency() {
@@ -513,6 +523,12 @@ class OfferBookViewModel extends ActivatableViewModel {
                 user.getPaymentAccounts() != null &&
                 !user.getPaymentAccounts().isEmpty()) ||
                 user.hasPaymentAccountForCurrency(selectedTradeCurrency);
+    }
+
+    boolean hasMakerAnyMatureAccountForBuyOffer() {
+        return direction == OfferPayload.Direction.SELL ||
+                (user.getPaymentAccounts() != null &&
+                        PaymentAccountUtil.hasMakerAnyMatureAccountForBuyOffer(user.getPaymentAccounts(), accountAgeWitnessService));
     }
 
     boolean hasAcceptedArbitrators() {
@@ -538,7 +554,7 @@ class OfferBookViewModel extends ActivatableViewModel {
 
     boolean isIgnored(Offer offer) {
         return preferences.getIgnoreTradersList().stream()
-                .anyMatch(i -> i.equals(offer.getMakerNodeAddress().getHostNameWithoutPostFix()));
+                .anyMatch(i -> i.equals(offer.getMakerNodeAddress().getFullAddress()));
     }
 
     boolean isOfferBanned(Offer offer) {
@@ -555,6 +571,10 @@ class OfferBookViewModel extends ActivatableViewModel {
 
     boolean isNodeAddressBanned(Offer offer) {
         return filterManager.isNodeAddressBanned(offer.getMakerNodeAddress());
+    }
+
+    boolean requireUpdateToNewVersion() {
+        return filterManager.requireUpdateToNewVersionForTrading();
     }
 
     boolean isInsufficientTradeLimit(Offer offer) {

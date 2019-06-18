@@ -115,22 +115,14 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         return MainView.rootContainer;
     }
 
-    @SuppressWarnings("PointlessBooleanExpression")
-    public static void blur() {
-        transitions.blur(MainView.rootContainer);
-    }
-
-    @SuppressWarnings("PointlessBooleanExpression")
     public static void blurLight() {
-        transitions.blur(MainView.rootContainer, Transitions.DEFAULT_DURATION, -0.1, false, 5);
+        transitions.blur(MainView.rootContainer, Transitions.DEFAULT_DURATION, -0.6, false, 5);
     }
 
-    @SuppressWarnings("PointlessBooleanExpression")
     public static void blurUltraLight() {
-        transitions.blur(MainView.rootContainer, Transitions.DEFAULT_DURATION, -0.1, false, 2);
+        transitions.blur(MainView.rootContainer, Transitions.DEFAULT_DURATION, -0.6, false, 2);
     }
 
-    @SuppressWarnings("PointlessBooleanExpression")
     public static void darken() {
         transitions.darken(MainView.rootContainer, Transitions.DEFAULT_DURATION, false);
     }
@@ -159,7 +151,6 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
     private Label btcSplashInfo;
     private Popup<?> p2PNetworkWarnMsgPopup, btcNetworkWarnMsgPopup;
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     public MainView(MainViewModel model,
                     CachingViewLoader viewLoader,
@@ -229,9 +220,8 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         Tuple2<ComboBox<PriceFeedComboBoxItem>, VBox> marketPriceBox = getMarketPriceBox();
         ComboBox<PriceFeedComboBoxItem> priceComboBox = marketPriceBox.first;
 
-        priceComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            model.setPriceFeedComboBoxItem(newValue);
-        });
+        priceComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+                model.setPriceFeedComboBoxItem(newValue));
         ChangeListener<PriceFeedComboBoxItem> selectedPriceFeedItemListener = (observable, oldValue, newValue) -> {
             if (newValue != null)
                 priceComboBox.getSelectionModel().select(newValue);
@@ -332,7 +322,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         priceAndBalance.setMaxHeight(41);
 
         priceAndBalance.setAlignment(Pos.CENTER);
-        priceAndBalance.setSpacing(11);
+        priceAndBalance.setSpacing(9);
         priceAndBalance.getStyleClass().add("nav-price-balance");
 
         HBox navPane = new HBox(primaryNav, secondaryNav,
@@ -388,9 +378,12 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
 
         model.getShowAppScreen().addListener((ov, oldValue, newValue) -> {
             if (newValue) {
+
                 navigation.navigateToPreviousVisitedView();
 
-                transitions.fadeOutAndRemove(splashScreen, 1500, actionEvent -> disposeSplashScreen());
+                transitions.fadeOutAndRemove(splashScreen, 1500, actionEvent -> {
+                    disposeSplashScreen();
+                });
             }
         });
 
@@ -429,7 +422,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
     }
 
     private ListCell<PriceFeedComboBoxItem> getPriceFeedComboBoxListCell() {
-        return new ListCell<PriceFeedComboBoxItem>() {
+        return new ListCell<>() {
             @Override
             protected void updateItem(PriceFeedComboBoxItem item, boolean empty) {
                 super.updateItem(item, empty);
@@ -452,7 +445,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         priceComboBox.setVisibleRowCount(12);
         priceComboBox.setFocusTraversable(false);
         priceComboBox.setId("price-feed-combo");
-        priceComboBox.setPadding(new Insets(0, 0, -4, 0));
+        priceComboBox.setPadding(new Insets(0, -4, -4, 0));
         priceComboBox.setCellFactory(p -> getPriceFeedComboBoxListCell());
         ListCell<PriceFeedComboBoxItem> buttonCell = getPriceFeedComboBoxListCell();
         buttonCell.setId("price-feed-combo");
@@ -467,9 +460,8 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
 
         marketPriceBox.getChildren().addAll(priceComboBox, marketPriceLabel);
 
-        model.getMarketPriceUpdated().addListener((observable, oldValue, newValue) -> {
-            updateMarketPriceLabel(marketPriceLabel);
-        });
+        model.getMarketPriceUpdated().addListener((observable, oldValue, newValue) ->
+                updateMarketPriceLabel(marketPriceLabel));
 
         return new Tuple2<>(priceComboBox, marketPriceBox);
     }
@@ -574,9 +566,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         Button showTorNetworkSettingsButton = new AutoTooltipButton(Res.get("settings.net.openTorSettingsButton"));
         showTorNetworkSettingsButton.setVisible(false);
         showTorNetworkSettingsButton.setManaged(false);
-        showTorNetworkSettingsButton.setOnAction(e -> {
-            model.getTorNetworkSettingsWindow().show();
-        });
+        showTorNetworkSettingsButton.setOnAction(e -> model.getTorNetworkSettingsWindow().show());
 
         splashP2PNetworkBusyAnimation = new BusyAnimation(false);
 
@@ -610,11 +600,6 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         Timer showTorNetworkSettingsTimer = UserThread.runAfter(() -> {
             showTorNetworkSettingsButton.setVisible(true);
             showTorNetworkSettingsButton.setManaged(true);
-            if (btcSyncIndicator.progressProperty().getValue() <= 0) {
-                // If no progress has been made, hide the BTC status since tor is not working
-                btcSyncIndicator.setVisible(false);
-                btcSplashInfo.setVisible(false);
-            }
         }, SHOW_TOR_SETTINGS_DELAY_SEC);
 
         splashP2PNetworkIconIdListener = (ov, oldValue, newValue) -> {
@@ -715,9 +700,8 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         versionLabel.setTextAlignment(TextAlignment.CENTER);
         versionLabel.setAlignment(Pos.BASELINE_CENTER);
         versionLabel.setText("v" + Version.VERSION);
-        root.widthProperty().addListener((ov, oldValue, newValue) -> {
-            versionLabel.setLayoutX(((double) newValue - versionLabel.getWidth()) / 2);
-        });
+        root.widthProperty().addListener((ov, oldValue, newValue) ->
+                versionLabel.setLayoutX(((double) newValue - versionLabel.getWidth()) / 2));
         setBottomAnchor(versionLabel, 7d);
         model.getNewVersionAvailableProperty().addListener((observable, oldValue, newValue) -> {
             versionLabel.getStyleClass().removeAll("version-new", "version");
@@ -799,9 +783,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
             this.setToggleGroup(navButtons);
             this.getStyleClass().add("nav-button");
 
-            this.selectedProperty().addListener((ov, oldValue, newValue) -> {
-                this.setMouseTransparent(newValue);
-            });
+            this.selectedProperty().addListener((ov, oldValue, newValue) -> this.setMouseTransparent(newValue));
 
             this.setOnAction(e -> navigation.navigateTo(MainView.class, viewClass));
         }

@@ -21,7 +21,8 @@ import lombok.Getter;
 
 // Need to be in sync with TxOutputType
 enum JsonTxType {
-    UNDEFINED_TX_TYPE("Undefined"),
+    UNDEFINED("Undefined"),
+    UNDEFINED_TX_TYPE("Undefined tx type"),
     UNVERIFIED("Unverified"),
     INVALID("Invalid"),
     GENESIS("Genesis"),
@@ -35,7 +36,8 @@ enum JsonTxType {
     LOCKUP("Lockup"),
     UNLOCK("Unlock"),
     ASSET_LISTING_FEE("Asset listing fee"),
-    PROOF_OF_BURN("Proof of burn");
+    PROOF_OF_BURN("Proof of burn"),
+    IRREGULAR("Irregular");
 
     @Getter
     private String displayString;

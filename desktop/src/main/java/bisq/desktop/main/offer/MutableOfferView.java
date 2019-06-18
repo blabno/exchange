@@ -250,13 +250,6 @@ public abstract class MutableOfferView<M extends MutableOfferViewModel> extends 
             balanceTextField.setTargetAmount(model.getDataModel().totalToPayAsCoinProperty().get());
             updatePriceToggle();
 
-            if (CurrencyUtil.isFiatCurrency(model.tradeCurrencyCode.get()) && !DevEnv.isDevMode()) {
-                new Popup<>().headLine(Res.get("popup.roundedFiatValues.headline"))
-                        .information(Res.get("popup.roundedFiatValues.msg", model.tradeCurrencyCode.get()))
-                        .dontShowAgainId("FiatValuesRoundedWarning")
-                        .show();
-            }
-
             boolean currencyForMakerFeeBtc = model.getDataModel().isCurrencyForMakerFeeBtc();
             tradeFeeInBtcToggle.setSelected(currencyForMakerFeeBtc);
             tradeFeeInBsqToggle.setSelected(!currencyForMakerFeeBtc);
@@ -350,6 +343,15 @@ public abstract class MutableOfferView<M extends MutableOfferViewModel> extends 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // UI actions
     ///////////////////////////////////////////////////////////////////////////////////////////
+
+    protected void showFiatRoundingInfoPopup() {
+        if (CurrencyUtil.isFiatCurrency(model.tradeCurrencyCode.get()) && !DevEnv.isDevMode()) {
+            new Popup<>().headLine(Res.get("popup.roundedFiatValues.headline"))
+                    .information(Res.get("popup.roundedFiatValues.msg", model.tradeCurrencyCode.get()))
+                    .dontShowAgainId("FiatValuesRoundedWarning")
+                    .show();
+        }
+    }
 
     private void onPlaceOffer() {
         if (model.isReadyForTxBroadcast()) {
@@ -532,6 +534,8 @@ public abstract class MutableOfferView<M extends MutableOfferViewModel> extends 
                 model.onPaymentAccountSelected(paymentAccount);
                 model.onCurrencySelected(model.getDataModel().getTradeCurrency());
             }
+
+            showFiatRoundingInfoPopup();
         } else {
             currencySelection.setVisible(false);
             currencySelection.setManaged(false);

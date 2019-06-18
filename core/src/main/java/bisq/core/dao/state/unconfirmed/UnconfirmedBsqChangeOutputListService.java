@@ -115,6 +115,8 @@ public class UnconfirmedBsqChangeOutputListService implements PersistedDataHost 
             case PROOF_OF_BURN:
                 changeOutputIndex = 0;
                 break;
+            case IRREGULAR:
+                return;
             default:
                 return;
         }
@@ -145,7 +147,6 @@ public class UnconfirmedBsqChangeOutputListService implements PersistedDataHost 
         persist();
     }
 
-    //TODO not sure how we should handle it but seems safest to just clear all
     public void onReorganize() {
         unconfirmedBsqChangeOutputList.clear();
         persist();

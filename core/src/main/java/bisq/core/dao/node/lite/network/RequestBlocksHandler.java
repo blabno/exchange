@@ -108,7 +108,7 @@ public class RequestBlocksHandler implements MessageListener {
 
     public void requestBlocks() {
         if (!stopped) {
-            GetBlocksRequest getBlocksRequest = new GetBlocksRequest(startBlockHeight, nonce);
+            GetBlocksRequest getBlocksRequest = new GetBlocksRequest(startBlockHeight, nonce, networkNode.getNodeAddress());
             log.debug("getBlocksRequest " + getBlocksRequest);
             if (timeoutTimer == null) {
                 timeoutTimer = UserThread.runAfter(() -> {  // setup before sending to avoid race conditions
@@ -128,11 +128,11 @@ public class RequestBlocksHandler implements MessageListener {
             log.info("We request blocks from peer {} from block height {}.", nodeAddress, getBlocksRequest.getFromBlockHeight());
             networkNode.addMessageListener(this);
             SettableFuture<Connection> future = networkNode.sendMessage(nodeAddress, getBlocksRequest);
-            Futures.addCallback(future, new FutureCallback<Connection>() {
+            Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(Connection connection) {
                     if (!stopped) {
-                        log.info("Sending of GetBlocksRequest message to peer {} succeeded.", nodeAddress.getHostName());
+                        log.info("Sending of GetBlocksRequest message to peer {} succeeded.", nodeAddress.getFullAddress());
                     } else {
                         log.trace("We have stopped already. We ignore that networkNode.sendMessage.onSuccess call." +
                                 "Might be caused by an previous timeout.");

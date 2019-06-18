@@ -44,6 +44,7 @@ import bisq.core.monetary.Price;
 import bisq.core.monetary.Volume;
 import bisq.core.offer.Offer;
 import bisq.core.offer.OfferPayload;
+import bisq.core.offer.OfferRestrictions;
 import bisq.core.offer.OfferUtil;
 import bisq.core.payment.PaymentAccount;
 import bisq.core.provider.price.MarketPrice;
@@ -84,7 +85,7 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> extends ActivatableWithDataModel<M> {
     private final BtcValidator btcValidator;
     private final BsqValidator bsqValidator;
-    private final SecurityDepositValidator securityDepositValidator;
+    protected final SecurityDepositValidator securityDepositValidator;
     private final P2PService p2PService;
     private final WalletsSetup walletsSetup;
     private final PriceFeedService priceFeedService;
@@ -104,7 +105,7 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
 
     public final StringProperty amount = new SimpleStringProperty();
     public final StringProperty minAmount = new SimpleStringProperty();
-    final StringProperty buyerSecurityDeposit = new SimpleStringProperty();
+    protected final StringProperty buyerSecurityDeposit = new SimpleStringProperty();
     final StringProperty buyerSecurityDepositInBTC = new SimpleStringProperty();
     final StringProperty buyerSecurityDepositLabel = new SimpleStringProperty();
 
@@ -227,7 +228,6 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
                 minAmount.set(amount.get());
                 onFocusOutPriceAsPercentageTextField(true, false);
                 applyMakerFee();
-                updateButtonDisableState();
                 setAmountToModel();
                 setMinAmountToModel();
                 setPriceToModel();
@@ -600,6 +600,7 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
         amountDescription = Res.get("createOffer.amountPriceBox.amountDescription",
                 isBuy ? Res.get("shared.buy") : Res.get("shared.sell"));
 
+        securityDepositValidator.setPaymentAccount(dataModel.paymentAccount);
         buyerSecurityDeposit.set(btcFormatter.formatToPercent(dataModel.getBuyerSecurityDeposit().get()));
         buyerSecurityDepositLabel.set(getSecurityDepositLabel());
 
@@ -664,6 +665,8 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
 
         btcValidator.setMaxValue(dataModel.paymentAccount.getPaymentMethod().getMaxTradeLimitAsCoin(dataModel.getTradeCurrencyCode().get()));
         btcValidator.setMaxTradeLimit(Coin.valueOf(dataModel.getMaxTradeLimit()));
+
+        securityDepositValidator.setPaymentAccount(paymentAccount);
     }
 
     public void onCurrencySelected(TradeCurrency tradeCurrency) {
@@ -726,6 +729,11 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
 
                 if (minAmount.get() != null)
                     minAmountValidationResult.set(isBtcInputValid(minAmount.get()));
+            } else if (amount.get() != null && btcValidator.getMaxTradeLimit() != null && btcValidator.getMaxTradeLimit().value == OfferRestrictions.TOLERATED_SMALL_TRADE_AMOUNT.value) {
+                new Popup<>().information(Res.get("popup.warning.tradeLimitDueAccountAgeRestriction.buyer",
+                        Res.get("offerbook.warning.newVersionAnnouncement")))
+                        .width(900)
+                        .show();
             }
             // We want to trigger a recalculation of the volume
             UserThread.execute(() -> {
@@ -743,6 +751,18 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
                 Coin minAmountAsCoin = dataModel.getMinAmount().get();
                 syncMinAmountWithAmount = minAmountAsCoin != null && minAmountAsCoin.equals(dataModel.getAmount().get());
                 setMinAmountToModel();
+
+                dataModel.calculateMinVolume();
+
+                if (dataModel.getMinVolume().get() != null) {
+                    InputValidator.ValidationResult minVolumeResult = isVolumeInputValid(
+                            btcFormatter.formatVolume(dataModel.getMinVolume().get()));
+
+                    volumeValidationResult.set(minVolumeResult);
+
+                    updateButtonDisableState();
+                }
+
                 this.minAmount.set(btcFormatter.formatCoin(minAmountAsCoin));
 
                 if (!dataModel.isMinAmountLessOrEqualAmount()) {
@@ -842,7 +862,7 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
             InputValidator.ValidationResult result = securityDepositValidator.validate(buyerSecurityDeposit.get());
             buyerSecurityDepositValidationResult.set(result);
             if (result.isValid) {
-                double defaultSecurityDeposit = Restrictions.getDefaultBuyerSecurityDepositAsPercent();
+                double defaultSecurityDeposit = Restrictions.getDefaultBuyerSecurityDepositAsPercent(getPaymentAccount());
                 String key = "buyerSecurityDepositIsLowerAsDefault";
                 double depositAsDouble = btcFormatter.parsePercentStringToDouble(buyerSecurityDeposit.get());
                 if (preferences.showAgain(key) && depositAsDouble < defaultSecurityDeposit) {
@@ -1110,7 +1130,7 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
         if (buyerSecurityDeposit.get() != null && !buyerSecurityDeposit.get().isEmpty()) {
             dataModel.setBuyerSecurityDeposit(btcFormatter.parsePercentStringToDouble(buyerSecurityDeposit.get()));
         } else {
-            dataModel.setBuyerSecurityDeposit(Restrictions.getDefaultBuyerSecurityDepositAsPercent());
+            dataModel.setBuyerSecurityDeposit(Restrictions.getDefaultBuyerSecurityDepositAsPercent(getPaymentAccount()));
         }
     }
 
@@ -1167,6 +1187,7 @@ public abstract class MutableOfferViewModel<M extends MutableOfferDataModel> ext
                 dataModel.getPrice().get() != null &&
                 dataModel.getPrice().get().getValue() != 0 &&
                 isVolumeInputValid(volume.get()).isValid &&
+                isVolumeInputValid(btcFormatter.formatVolume(dataModel.getMinVolume().get())).isValid &&
                 dataModel.isMinAmountLessOrEqualAmount();
 
         isNextButtonDisabled.set(!inputDataValid);

@@ -49,6 +49,7 @@ import bisq.network.p2p.SendMailboxMessageListener;
 
 import bisq.common.Timer;
 import bisq.common.UserThread;
+import bisq.common.app.Version;
 import bisq.common.crypto.KeyRing;
 import bisq.common.crypto.PubKeyRing;
 import bisq.common.handlers.FaultHandler;
@@ -337,8 +338,8 @@ public class DisputeManager implements PersistedDataHost {
             final Optional<Dispute> storedDisputeOptional = findDispute(dispute.getTradeId(), dispute.getTraderId());
             if (!storedDisputeOptional.isPresent() || reOpen) {
                 String sysMsg = dispute.isSupportTicket() ?
-                        Res.get("support.youOpenedTicket", disputeInfo)
-                        : Res.get("support.youOpenedDispute", disputeInfo);
+                        Res.get("support.youOpenedTicket", disputeInfo, Version.VERSION)
+                        : Res.get("support.youOpenedDispute", disputeInfo, Version.VERSION);
 
                 DisputeCommunicationMessage disputeCommunicationMessage = new DisputeCommunicationMessage(
                         dispute.getTradeId(),
@@ -450,7 +451,7 @@ public class DisputeManager implements PersistedDataHost {
         final Optional<Dispute> storedDisputeOptional = findDispute(dispute.getTradeId(), dispute.getTraderId());
         if (!storedDisputeOptional.isPresent()) {
             String sysMsg = dispute.isSupportTicket() ?
-                    Res.get("support.peerOpenedTicket")
+                    Res.get("support.peerOpenedTicket", disputeInfo)
                     : Res.get("support.peerOpenedDispute", disputeInfo);
             DisputeCommunicationMessage disputeCommunicationMessage = new DisputeCommunicationMessage(
                     dispute.getTradeId(),
@@ -877,10 +878,9 @@ public class DisputeManager implements PersistedDataHost {
             }
             return;
         }
-
+        Dispute dispute = disputeOptional.get();
         try {
             cleanupRetryMap(uid);
-            Dispute dispute = disputeOptional.get();
             arbitratorsPubKeyRing = dispute.getArbitratorPubKeyRing();
             DisputeCommunicationMessage disputeCommunicationMessage = disputeResult.getDisputeCommunicationMessage();
             if (!dispute.getDisputeCommunicationMessages().contains(disputeCommunicationMessage))
@@ -996,10 +996,25 @@ public class DisputeManager implements PersistedDataHost {
 
                 success = true;
             }
-        } catch (AddressFormatException | WalletException | TransactionVerificationException e) {
-            e.printStackTrace();
+        } catch (TransactionVerificationException e) {
             errorMessage = "Error at traderSignAndFinalizeDisputedPayoutTx " + e.toString();
-            log.error(errorMessage);
+            log.error(errorMessage, e);
+            success = false;
+
+            // We prefer to close the dispute in that case. If there was no deposit tx and a random tx was used
+            // we get a TransactionVerificationException. No reason to keep that dispute open...
+            if (tradeManager.getTradeById(dispute.getTradeId()).isPresent())
+                tradeManager.closeDisputedTrade(dispute.getTradeId());
+            else {
+                Optional<OpenOffer> openOfferOptional = openOfferManager.getOpenOfferById(dispute.getTradeId());
+                openOfferOptional.ifPresent(openOffer -> openOfferManager.closeOpenOffer(openOffer.getOffer()));
+            }
+            dispute.setIsClosed(true);
+
+            throw new RuntimeException(errorMessage);
+        } catch (AddressFormatException | WalletException e) {
+            errorMessage = "Error at traderSignAndFinalizeDisputedPayoutTx " + e.toString();
+            log.error(errorMessage, e);
             success = false;
             throw new RuntimeException(errorMessage);
         } finally {

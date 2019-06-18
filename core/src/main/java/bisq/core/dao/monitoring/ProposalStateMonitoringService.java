@@ -36,6 +36,7 @@ import bisq.core.dao.state.model.governance.Proposal;
 
 import bisq.network.p2p.NodeAddress;
 import bisq.network.p2p.network.Connection;
+import bisq.network.p2p.seed.SeedNodeRepository;
 
 import bisq.common.UserThread;
 import bisq.common.crypto.Hash;
@@ -49,6 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -81,6 +83,8 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
     private final GenesisTxInfo genesisTxInfo;
     private final PeriodService periodService;
     private final ProposalService proposalService;
+    private final Set<String> seedNodeAddresses;
+
 
     @Getter
     private final LinkedList<ProposalStateBlock> proposalStateBlockChain = new LinkedList<>();
@@ -88,7 +92,9 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
     private final LinkedList<ProposalStateHash> proposalStateHashChain = new LinkedList<>();
     private final List<Listener> listeners = new CopyOnWriteArrayList<>();
     @Getter
-    private boolean isInConflict;
+    private boolean isInConflictWithNonSeedNode;
+    @Getter
+    private boolean isInConflictWithSeedNode;
     private boolean parseBlockChainComplete;
 
 
@@ -101,12 +107,16 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
                                           ProposalStateNetworkService proposalStateNetworkService,
                                           GenesisTxInfo genesisTxInfo,
                                           PeriodService periodService,
-                                          ProposalService proposalService) {
+                                          ProposalService proposalService,
+                                          SeedNodeRepository seedNodeRepository) {
         this.daoStateService = daoStateService;
         this.proposalStateNetworkService = proposalStateNetworkService;
         this.genesisTxInfo = genesisTxInfo;
         this.periodService = periodService;
         this.proposalService = proposalService;
+        seedNodeAddresses = seedNodeRepository.getSeedNodeAddresses().stream()
+                .map(NodeAddress::getFullAddress)
+                .collect(Collectors.toSet());
     }
 
 
@@ -134,15 +144,21 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
         int blockHeight = block.getHeight();
         int genesisBlockHeight = genesisTxInfo.getGenesisBlockHeight();
 
+        boolean hashChainUpdated = false;
         if (proposalStateBlockChain.isEmpty() && blockHeight > genesisBlockHeight) {
             // Takes about 150 ms for dao testnet data
             long ts = System.currentTimeMillis();
             for (int i = genesisBlockHeight; i < blockHeight; i++) {
-                maybeUpdateHashChain(i);
+                boolean isHashChainUpdated = maybeUpdateHashChain(i);
+                if (isHashChainUpdated) {
+                    hashChainUpdated = true;
+                }
             }
-            log.info("updateHashChain for {} items took {} ms",
-                    blockHeight - genesisBlockHeight,
-                    System.currentTimeMillis() - ts);
+            if (hashChainUpdated) {
+                log.info("updateHashChain for {} blocks took {} ms",
+                        blockHeight - genesisBlockHeight,
+                        System.currentTimeMillis() - ts);
+            }
         }
         maybeUpdateHashChain(blockHeight);
     }
@@ -155,7 +171,7 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
 
         // We wait for processing messages until we have completed batch processing
 
-        // We request data from last 5 cycles. We ignore possible duration changes done by voting as that request
+        // We request data from last 5 cycles. We ignore possible duration changes done by voting.
         // period is arbitrary anyway...
         Cycle currentCycle = periodService.getCurrentCycle();
         checkNotNull(currentCycle, "currentCycle must not be null");
@@ -228,17 +244,19 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    private void maybeUpdateHashChain(int blockHeight) {
+    private boolean maybeUpdateHashChain(int blockHeight) {
         // We use first block in blind vote phase to create the hash of our proposals. We prefer to wait as long as
         // possible to increase the chance that we have received all proposals.
         if (!isFirstBlockOfBlindVotePhase(blockHeight)) {
-            return;
+            return false;
         }
 
         periodService.getCycle(blockHeight).ifPresent(cycle -> {
             List<Proposal> proposals = proposalService.getValidatedProposals().stream()
                     .filter(e -> periodService.isTxInPhaseAndCycle(e.getTxId(), DaoPhase.Phase.PROPOSAL, blockHeight))
-                    .sorted(Comparator.comparing(Proposal::getTxId)).collect(Collectors.toList());
+                    .filter(e -> e.getTxId() != null)
+                    .sorted(Comparator.comparing(Proposal::getTxId))
+                    .collect(Collectors.toList());
 
             // We use MyProposalList to get the serialized bytes from the proposals list
             byte[] serializedProposals = new MyProposalList(proposals).toProtoMessage().toByteArray();
@@ -267,11 +285,13 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
                 UserThread.runAfter(() -> proposalStateNetworkService.broadcastMyStateHash(myProposalStateHash), delayInSec);
             }
         });
+        return true;
     }
 
     private boolean processPeersProposalStateHash(ProposalStateHash proposalStateHash, Optional<NodeAddress> peersNodeAddress, boolean notifyListeners) {
         AtomicBoolean changed = new AtomicBoolean(false);
-        AtomicBoolean isInConflict = new AtomicBoolean(this.isInConflict);
+        AtomicBoolean inConflictWithNonSeedNode = new AtomicBoolean(this.isInConflictWithNonSeedNode);
+        AtomicBoolean inConflictWithSeedNode = new AtomicBoolean(this.isInConflictWithSeedNode);
         StringBuilder sb = new StringBuilder();
         proposalStateBlockChain.stream()
                 .filter(e -> e.getHeight() == proposalStateHash.getHeight()).findAny()
@@ -281,7 +301,11 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
                     daoStateBlock.putInPeersMap(peersNodeAddressAsString, proposalStateHash);
                     if (!daoStateBlock.getMyStateHash().hasEqualHash(proposalStateHash)) {
                         daoStateBlock.putInConflictMap(peersNodeAddressAsString, proposalStateHash);
-                        isInConflict.set(true);
+                        if (seedNodeAddresses.contains(peersNodeAddressAsString)) {
+                            inConflictWithSeedNode.set(true);
+                        } else {
+                            inConflictWithNonSeedNode.set(true);
+                        }
                         sb.append("We received a block hash from peer ")
                                 .append(peersNodeAddressAsString)
                                 .append(" which conflicts with our block hash.\n")
@@ -293,11 +317,15 @@ public class ProposalStateMonitoringService implements DaoSetupService, DaoState
                     changed.set(true);
                 });
 
-        this.isInConflict = isInConflict.get();
+        this.isInConflictWithNonSeedNode = inConflictWithNonSeedNode.get();
+        this.isInConflictWithSeedNode = inConflictWithSeedNode.get();
 
         String conflictMsg = sb.toString();
-        if (this.isInConflict && !conflictMsg.isEmpty()) {
-            log.warn(conflictMsg);
+        if (!conflictMsg.isEmpty()) {
+            if (this.isInConflictWithSeedNode)
+                log.warn("Conflict with seed nodes: {}", conflictMsg);
+            else if (this.isInConflictWithNonSeedNode)
+                log.info("Conflict with non-seed nodes: {}", conflictMsg);
         }
 
         if (notifyListeners && changed.get()) {

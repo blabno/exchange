@@ -19,6 +19,7 @@ package bisq.desktop.main.dao.monitor.daostate;
 
 import bisq.desktop.common.view.FxmlView;
 import bisq.desktop.main.dao.monitor.StateMonitorView;
+import bisq.desktop.main.overlays.Overlay;
 import bisq.desktop.main.overlays.popups.Popup;
 import bisq.desktop.util.FormBuilder;
 
@@ -28,10 +29,21 @@ import bisq.core.dao.governance.period.PeriodService;
 import bisq.core.dao.monitoring.DaoStateMonitoringService;
 import bisq.core.dao.monitoring.model.DaoStateBlock;
 import bisq.core.dao.monitoring.model.DaoStateHash;
+import bisq.core.dao.monitoring.model.UtxoMismatch;
 import bisq.core.dao.state.DaoStateService;
 import bisq.core.locale.Res;
 
+import bisq.network.p2p.seed.SeedNodeRepository;
+
+import bisq.common.storage.Storage;
+import bisq.common.util.Utilities;
+
 import javax.inject.Inject;
+import javax.inject.Named;
+
+import javafx.collections.ListChangeListener;
+
+import java.io.File;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +52,9 @@ import java.util.stream.Collectors;
 public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoStateBlock, DaoStateBlockListItem, DaoStateInConflictListItem>
         implements DaoStateMonitoringService.Listener {
     private final DaoStateMonitoringService daoStateMonitoringService;
+    private ListChangeListener<UtxoMismatch> utxoMismatchListChangeListener;
+    private Overlay warningPopup;
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Constructor, lifecycle
@@ -51,14 +66,18 @@ public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoState
                                 DaoFacade daoFacade,
                                 DaoStateMonitoringService daoStateMonitoringService,
                                 CycleService cycleService,
-                                PeriodService periodService) {
-        super(daoStateService, daoFacade, cycleService, periodService);
+                                PeriodService periodService,
+                                SeedNodeRepository seedNodeRepository,
+                                @Named(Storage.STORAGE_DIR) File storageDir) {
+        super(daoStateService, daoFacade, cycleService, periodService, seedNodeRepository, storageDir);
 
         this.daoStateMonitoringService = daoStateMonitoringService;
     }
 
     @Override
     public void initialize() {
+        utxoMismatchListChangeListener = c -> updateUtxoMismatches();
+
         FormBuilder.addTitledGroupBg(root, gridRow, 3, Res.get("dao.monitor.daoState.headline"));
 
         statusTextField = FormBuilder.addTopLabelTextField(root, ++gridRow,
@@ -71,20 +90,19 @@ public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoState
     @Override
     protected void activate() {
         super.activate();
-        daoStateMonitoringService.addListener(this);
 
-        resyncButton.setOnAction(e -> daoFacade.resyncDao(() ->
-                new Popup<>().attention(Res.get("setting.preferences.dao.resync.popup"))
-                        .useShutDownButton()
-                        .hideCloseButton()
-                        .show())
-        );
+        daoStateMonitoringService.addListener(this);
+        daoStateMonitoringService.getUtxoMismatches().addListener(utxoMismatchListChangeListener);
+
+        updateUtxoMismatches();
     }
 
     @Override
     protected void deactivate() {
         super.deactivate();
+
         daoStateMonitoringService.removeListener(this);
+        daoStateMonitoringService.getUtxoMismatches().removeListener(utxoMismatchListChangeListener);
     }
 
 
@@ -114,7 +132,7 @@ public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoState
     protected DaoStateInConflictListItem getStateInConflictListItem(Map.Entry<String, DaoStateHash> mapEntry) {
         DaoStateHash daoStateHash = mapEntry.getValue();
         int cycleIndex = periodService.getCycle(daoStateHash.getHeight()).map(cycleService::getCycleIndex).orElse(0);
-        return new DaoStateInConflictListItem(mapEntry.getKey(), daoStateHash, cycleIndex);
+        return new DaoStateInConflictListItem(mapEntry.getKey(), daoStateHash, cycleIndex, seedNodeAddresses);
     }
 
     @Override
@@ -164,15 +182,8 @@ public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoState
 
     @Override
     protected void onDataUpdate() {
-        isInConflict.set(daoStateMonitoringService.isInConflict());
-
-        if (isInConflict.get()) {
-            statusTextField.setText(Res.get("dao.monitor.daoState.daoStateNotInSync"));
-            statusTextField.getStyleClass().add("dao-inConflict");
-        } else {
-            statusTextField.setText(Res.get("dao.monitor.daoState.daoStateInSync"));
-            statusTextField.getStyleClass().remove("dao-inConflict");
-        }
+        isInConflictWithSeedNode.set(daoStateMonitoringService.isInConflictWithSeedNode());
+        isInConflictWithNonSeedNode.set(daoStateMonitoringService.isInConflictWithNonSeedNode());
 
         listItems.setAll(daoStateMonitoringService.getDaoStateBlockChain().stream()
                 .map(this::getStateBlockListItem)
@@ -184,5 +195,29 @@ public class DaoStateMonitorView extends StateMonitorView<DaoStateHash, DaoState
     @Override
     protected void requestHashesFromGenesisBlockHeight(String peerAddress) {
         daoStateMonitoringService.requestHashesFromGenesisBlockHeight(peerAddress);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Private
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    private void updateUtxoMismatches() {
+        if (!daoStateMonitoringService.getUtxoMismatches().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            daoStateMonitoringService.getUtxoMismatches().forEach(e -> {
+                sb.append("\n").append(Res.get("dao.monitor.daoState.utxoConflicts.blockHeight", e.getHeight())).append("\n")
+                        .append(Res.get("dao.monitor.daoState.utxoConflicts.sumUtxo", e.getSumUtxo() / 100)).append("\n")
+                        .append(Res.get("dao.monitor.daoState.utxoConflicts.sumBsq", e.getSumBsq() / 100));
+            });
+
+            if (warningPopup == null) {
+                warningPopup = new Popup<>().headLine(Res.get("dao.monitor.daoState.utxoConflicts"))
+                        .warning(Utilities.toTruncatedString(sb.toString(), 500, false)).onClose(() -> {
+                            warningPopup = null;
+                        });
+                warningPopup.show();
+            }
+        }
     }
 }

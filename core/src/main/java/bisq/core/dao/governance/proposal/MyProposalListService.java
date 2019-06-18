@@ -25,12 +25,12 @@ import bisq.core.dao.governance.period.PeriodService;
 import bisq.core.dao.governance.proposal.storage.temp.TempProposalPayload;
 import bisq.core.dao.state.DaoStateListener;
 import bisq.core.dao.state.DaoStateService;
-import bisq.core.dao.state.model.blockchain.Tx;
 import bisq.core.dao.state.model.governance.DaoPhase;
 import bisq.core.dao.state.model.governance.Proposal;
 
 import bisq.network.p2p.P2PService;
 
+import bisq.common.UserThread;
 import bisq.common.app.DevEnv;
 import bisq.common.crypto.KeyRing;
 import bisq.common.handlers.ErrorMessageHandler;
@@ -94,7 +94,7 @@ public class MyProposalListService implements PersistedDataHost, DaoStateListene
 
         signaturePubKey = keyRing.getPubKeyRing().getSignaturePubKey();
 
-        numConnectedPeersListener = (observable, oldValue, newValue) -> rePublishOnceWellConnected();
+        numConnectedPeersListener = (observable, oldValue, newValue) -> rePublishMyProposalsOnceWellConnected();
         daoStateService.addDaoStateListener(this);
         p2PService.getNumConnectedPeers().addListener(numConnectedPeersListener);
     }
@@ -123,7 +123,7 @@ public class MyProposalListService implements PersistedDataHost, DaoStateListene
 
     @Override
     public void onParseBlockChainComplete() {
-        rePublishOnceWellConnected();
+        rePublishMyProposalsOnceWellConnected();
     }
 
 
@@ -217,24 +217,21 @@ public class MyProposalListService implements PersistedDataHost, DaoStateListene
         return p2PService.addProtectedStorageEntry(new TempProposalPayload(proposal, signaturePubKey), true);
     }
 
-    private void rePublishOnceWellConnected() {
+    private void rePublishMyProposalsOnceWellConnected() {
+        // We republish at each startup at any block during the cycle. We filter anyway for valid blind votes
+        // of that cycle so it is 1 blind vote getting rebroadcast at each startup to my neighbors.
         int minPeers = BisqEnvironment.getBaseCurrencyNetwork().isMainnet() ? 4 : 1;
         if ((p2PService.getNumConnectedPeers().get() >= minPeers && p2PService.isBootstrapped()) ||
                 BisqEnvironment.getBaseCurrencyNetwork().isRegtest()) {
-            p2PService.getNumConnectedPeers().removeListener(numConnectedPeersListener);
-            rePublish();
-        }
-    }
+            myProposalList.stream()
+                    .filter(proposal -> periodService.isTxInPhaseAndCycle(proposal.getTxId(),
+                            DaoPhase.Phase.PROPOSAL,
+                            periodService.getChainHeight()))
+                    .forEach(this::addToP2PNetworkAsProtectedData);
 
-    private void rePublish() {
-        myProposalList.forEach(proposal -> {
-            final String txId = proposal.getTxId();
-            if (periodService.isTxInPhaseAndCycle(txId, DaoPhase.Phase.PROPOSAL, periodService.getChainHeight())) {
-                boolean result = addToP2PNetworkAsProtectedData(proposal);
-                if (!result)
-                    log.warn("Adding of proposal to P2P network failed.\nproposal=" + proposal);
-            }
-        });
+            // We delay removal of listener as we call that inside listener itself.
+            UserThread.execute(() -> p2PService.getNumConnectedPeers().removeListener(numConnectedPeersListener));
+        }
     }
 
     private void persist() {
@@ -245,10 +242,5 @@ public class MyProposalListService implements PersistedDataHost, DaoStateListene
         boolean inPhase = periodService.isInPhase(daoStateService.getChainHeight(), DaoPhase.Phase.PROPOSAL);
         return isMine(proposal) && inPhase;
 
-    }
-
-    private boolean isTxInProposalPhaseAndCycle(Tx tx, PeriodService periodService, DaoStateService daoStateService) {
-        return periodService.isInPhase(tx.getBlockHeight(), DaoPhase.Phase.PROPOSAL) &&
-                periodService.isTxInCorrectCycle(tx.getBlockHeight(), daoStateService.getChainHeight());
     }
 }

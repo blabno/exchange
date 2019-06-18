@@ -26,10 +26,12 @@ import bisq.core.dao.state.model.blockchain.TxType;
 import bisq.common.proto.ProtobufferRuntimeException;
 import bisq.common.proto.network.NetworkPayload;
 import bisq.common.proto.persistable.PersistablePayload;
+import bisq.common.util.ExtraDataMapValidator;
 
 import io.bisq.generated.protobuffer.PB;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.EqualsAndHashCode;
@@ -51,18 +53,25 @@ public abstract class Proposal implements PersistablePayload, NetworkPayload, Co
     protected final String link;
     protected final byte version;
     protected final long creationDate;
+    @Nullable
     protected final String txId;
+
+    // This hash map allows addition of data in future versions without breaking consensus
+    @Nullable
+    protected final Map<String, String> extraDataMap;
 
     protected Proposal(String name,
                        String link,
                        byte version,
                        long creationDate,
-                       @Nullable String txId) {
+                       @Nullable String txId,
+                       @Nullable Map<String, String> extraDataMap) {
         this.name = name;
         this.link = link;
         this.version = version;
         this.creationDate = creationDate;
         this.txId = txId;
+        this.extraDataMap = ExtraDataMapValidator.getValidatedExtraDataMap(extraDataMap);
     }
 
 
@@ -76,6 +85,7 @@ public abstract class Proposal implements PersistablePayload, NetworkPayload, Co
                 .setLink(link)
                 .setVersion(version)
                 .setCreationDate(creationDate);
+        Optional.ofNullable(extraDataMap).ifPresent(builder::putAllExtraData);
         Optional.ofNullable(txId).ifPresent(builder::setTxId);
         return builder;
     }
@@ -112,8 +122,8 @@ public abstract class Proposal implements PersistablePayload, NetworkPayload, Co
     // Utils
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public Date getCreationDate() {
-        return new Date(creationDate);
+    public Date getCreationDateAsDate() {
+        return new Date(getCreationDate());
     }
 
 
@@ -134,7 +144,7 @@ public abstract class Proposal implements PersistablePayload, NetworkPayload, Co
     @Override
     public String toString() {
         return "Proposal{" +
-                "\n     uid='" + txId + '\'' +
+                "\n     txId='" + txId + '\'' +
                 ",\n     name='" + name + '\'' +
                 ",\n     link='" + link + '\'' +
                 ",\n     txId='" + txId + '\'' +

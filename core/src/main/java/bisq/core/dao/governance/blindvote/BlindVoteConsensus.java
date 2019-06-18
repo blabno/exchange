@@ -72,7 +72,7 @@ public class BlindVoteConsensus {
         List<BlindVote> list = blindVoteList.stream()
                 .sorted(Comparator.comparing(BlindVote::getTxId))
                 .collect(Collectors.toList());
-        log.info("Sorted blindVote txId list: " + list.stream()
+        log.debug("Sorted blindVote txId list: " + list.stream()
                 .map(BlindVote::getTxId)
                 .collect(Collectors.toList()));
         return list;
@@ -95,8 +95,8 @@ public class BlindVoteConsensus {
         return Encryption.encrypt(bytes, secretKey);
     }
 
-    public static byte[] getHashOfEncryptedProposalList(byte[] encryptedProposalList) {
-        return Hash.getSha256Ripemd160hash(encryptedProposalList);
+    public static byte[] getHashOfEncryptedVotes(byte[] encryptedVotes) {
+        return Hash.getSha256Ripemd160hash(encryptedVotes);
     }
 
     public static byte[] getOpReturnData(byte[] hash) throws IOException {

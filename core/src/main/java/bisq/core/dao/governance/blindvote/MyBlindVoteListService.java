@@ -73,6 +73,8 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -134,7 +136,7 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
         this.myVoteListService = myVoteListService;
         this.myProposalListService = myProposalListService;
 
-        numConnectedPeersListener = (observable, oldValue, newValue) -> rePublishOnceWellConnected();
+        numConnectedPeersListener = (observable, oldValue, newValue) -> maybeRePublishMyBlindVote();
     }
 
 
@@ -175,7 +177,7 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
 
     @Override
     public void onParseBlockChainComplete() {
-        rePublishOnceWellConnected();
+        maybeRePublishMyBlindVote();
     }
 
 
@@ -209,7 +211,12 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
             // blind vote stored and broadcasted to the p2p network. The tx might get re-broadcasted at a restart and
             // in worst case if it does not succeed the blind vote will be ignored anyway.
             // Inconsistently propagated blind votes in the p2p network could have potentially worse effects.
-            BlindVote blindVote = new BlindVote(encryptedVotes, blindVoteTxId, stake.value, encryptedMeritList);
+            BlindVote blindVote = new BlindVote(encryptedVotes,
+                    blindVoteTxId,
+                    stake.value,
+                    encryptedMeritList,
+                    new Date().getTime(),
+                    new HashMap<>());
             addBlindVoteToList(blindVote);
 
             addToP2PNetwork(blindVote, errorMessage -> {
@@ -256,7 +263,7 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
     private byte[] getOpReturnData(byte[] encryptedVotes) throws IOException {
         // We cannot use hash of whole blindVote data because we create the merit signature with the blindVoteTxId
         // So we use the encryptedVotes for the hash only.
-        final byte[] hash = BlindVoteConsensus.getHashOfEncryptedProposalList(encryptedVotes);
+        final byte[] hash = BlindVoteConsensus.getHashOfEncryptedVotes(encryptedVotes);
         log.info("Sha256Ripemd160 hash of encryptedVotes: " + Utilities.bytesAsHexString(hash));
         return BlindVoteConsensus.getOpReturnData(hash);
     }
@@ -309,7 +316,9 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
                         // The EC key is in the blockchain already. We prefer here to stick with EC key. If any change
                         // in BitcoinJ would break our consensus we would need to fall back to the old BitcoinJ EC
                         // implementation.
-                        ECKey.ECDSASignature signature = key.sign(Sha256Hash.wrap(blindVoteTxId));
+                        ECKey.ECDSASignature signature = bsqWalletService.isEncrypted() ?
+                                key.sign(Sha256Hash.wrap(blindVoteTxId), bsqWalletService.getAesKey()) :
+                                key.sign(Sha256Hash.wrap(blindVoteTxId));
                         signatureAsBytes = signature.toCanonicalised().encodeToDER();
                     } else {
                         // In case we use it for requesting the currently available merit we don't apply a signature
@@ -334,8 +343,6 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
 
             @Override
             public void onFailure(TxBroadcastException exception) {
-                // TODO handle
-                // We need to be sure that in case of a failed tx the locked stake gets unlocked!
                 exceptionHandler.handleException(exception);
             }
         });
@@ -348,31 +355,45 @@ public class MyBlindVoteListService implements PersistedDataHost, DaoStateListen
         return bsqWalletService.signTx(txWithBtcFee);
     }
 
-    private void rePublishOnceWellConnected() {
-        int minPeers = BisqEnvironment.getBaseCurrencyNetwork().isMainnet() ? 4 : 1;
-        if ((p2PService.getNumConnectedPeers().get() >= minPeers && p2PService.isBootstrapped()) ||
-                BisqEnvironment.getBaseCurrencyNetwork().isRegtest()) {
-            int chainHeight = periodService.getChainHeight();
-            myBlindVoteList.stream()
-                    .filter(blindVote -> periodService.isTxInPhaseAndCycle(blindVote.getTxId(),
-                            DaoPhase.Phase.BLIND_VOTE,
-                            chainHeight))
-                    .forEach(blindVote -> addToP2PNetwork(blindVote, null));
+    private void maybeRePublishMyBlindVote() {
+        // We do not republish during vote reveal phase as peer would reject blindVote data to protect against
+        // late publishing attacks.
+        // This attack is only relevant during the vote reveal phase as there it could cause damage by disturbing the
+        // data view of the blind votes of the voter for creating the majority hash.
+        // To republish after the vote reveal phase still makes sense to reduce risk that some nodes have not received
+        // it and would need to request the data then in the vote result phase.
+        if (!periodService.isInPhase(daoStateService.getChainHeight(), DaoPhase.Phase.VOTE_REVEAL)) {
+            // We republish at each startup at any block during the cycle. We filter anyway for valid blind votes
+            // of that cycle so it is 1 blind vote getting rebroadcast at each startup to my neighbors.
+            // Republishing only will have effect if the payload creation date is < 5 hours as other nodes would not
+            // accept payloads which are too old or are in future.
+            // Only payloads received from seed nodes would ignore that date check.
+            int minPeers = BisqEnvironment.getBaseCurrencyNetwork().isMainnet() ? 4 : 1;
+            if ((p2PService.getNumConnectedPeers().get() >= minPeers && p2PService.isBootstrapped()) ||
+                    BisqEnvironment.getBaseCurrencyNetwork().isRegtest()) {
+                myBlindVoteList.stream()
+                        .filter(blindVote -> periodService.isTxInPhaseAndCycle(blindVote.getTxId(),
+                                DaoPhase.Phase.BLIND_VOTE,
+                                periodService.getChainHeight()))
+                        .forEach(blindVote -> addToP2PNetwork(blindVote, null));
 
-            // We delay removal of listener as we call that inside listener itself.
-            UserThread.execute(() -> p2PService.getNumConnectedPeers().removeListener(numConnectedPeersListener));
+                // We delay removal of listener as we call that inside listener itself.
+                UserThread.execute(() -> p2PService.getNumConnectedPeers().removeListener(numConnectedPeersListener));
+            }
         }
     }
 
     private void addToP2PNetwork(BlindVote blindVote, @Nullable ErrorMessageHandler errorMessageHandler) {
         BlindVotePayload blindVotePayload = new BlindVotePayload(blindVote);
+        // We use reBroadcast flag here as we only broadcast our own blindVote and want to be sure it gets distributed
+        // well.
         boolean success = p2PService.addPersistableNetworkPayload(blindVotePayload, true);
 
         if (success) {
             log.info("We added a blindVotePayload to the P2P network as append only data. blindVoteTxId={}",
                     blindVote.getTxId());
         } else {
-            final String msg = "Adding of blindVotePayload to P2P network failed. blindVoteTxId=" + blindVote.getTxId();
+            String msg = "Adding of blindVotePayload to P2P network failed. blindVoteTxId=" + blindVote.getTxId();
             log.error(msg);
             if (errorMessageHandler != null)
                 errorMessageHandler.handleErrorMessage(msg);

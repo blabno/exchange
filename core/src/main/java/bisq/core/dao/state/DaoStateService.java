@@ -123,9 +123,6 @@ public class DaoStateService implements DaoSetupService {
         daoState.getUnspentTxOutputMap().clear();
         daoState.getUnspentTxOutputMap().putAll(snapshot.getUnspentTxOutputMap());
 
-        daoState.getNonBsqTxOutputMap().clear();
-        daoState.getNonBsqTxOutputMap().putAll(snapshot.getNonBsqTxOutputMap());
-
         daoState.getSpentInfoMap().clear();
         daoState.getSpentInfoMap().putAll(snapshot.getSpentInfoMap());
 
@@ -153,8 +150,8 @@ public class DaoStateService implements DaoSetupService {
         return DaoState.getClone(snapshotCandidate);
     }
 
-    public byte[] getSerializedDaoState() {
-        return daoState.toProtoMessage().toByteArray();
+    public byte[] getSerializedStateForHashChain() {
+        return daoState.getSerializedStateForHashChain();
     }
 
 
@@ -223,13 +220,15 @@ public class DaoStateService implements DaoSetupService {
         } else {
             daoState.getBlocks().add(block);
 
-            log.info("New Block added at blockHeight {}", block.getHeight());
+            if (parseBlockChainComplete)
+                log.info("New Block added at blockHeight {}", block.getHeight());
         }
     }
 
     // Third we get the onParseBlockComplete called after all rawTxs of blocks have been parsed
     public void onParseBlockComplete(Block block) {
-        log.info("Parse block completed: Block height {}, {} BSQ transactions.", block.getHeight(), block.getTxs().size());
+        if (parseBlockChainComplete)
+            log.info("Parse block completed: Block height {}, {} BSQ transactions.", block.getHeight(), block.getTxs().size());
 
         // Need to be called before onParseTxsCompleteAfterBatchProcessing as we use it in
         // VoteResult and other listeners like balances usually listen on onParseTxsCompleteAfterBatchProcessing
@@ -275,8 +274,6 @@ public class DaoStateService implements DaoSetupService {
      * {@code false}.
      */
     public boolean isBlockHashKnown(String blockHash) {
-        // TODO(chirhonul): If performance of O(n) time in number of blocks becomes an issue,
-        // we should keep a HashMap of block hash -> Block to make this method O(1).
         return getBlocks().stream().anyMatch(block -> block.getHash().equals(blockHash));
     }
 
@@ -358,6 +355,14 @@ public class DaoStateService implements DaoSetupService {
         return getTxStream().filter(tx -> tx.getId().equals(txId)).findAny();
     }
 
+    public List<Tx> getInvalidTxs() {
+        return getTxStream().filter(tx -> tx.getTxType() == TxType.INVALID).collect(Collectors.toList());
+    }
+
+    public List<Tx> getIrregularTxs() {
+        return getTxStream().filter(tx -> tx.getTxType() == TxType.IRREGULAR).collect(Collectors.toList());
+    }
+
     public boolean containsTx(String txId) {
         return getTx(txId).isPresent();
     }
@@ -385,9 +390,7 @@ public class DaoStateService implements DaoSetupService {
     }
 
     public long getTotalBurntFee() {
-        return getTxStream()
-                .mapToLong(Tx::getBurntFee)
-                .sum();
+        return getTxStream().mapToLong(Tx::getBurntFee).sum();
     }
 
     public Set<Tx> getBurntFeeTxs() {
@@ -620,28 +623,17 @@ public class DaoStateService implements DaoSetupService {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    // Non-BSQ
+    // Not accepted issuance candidate outputs of past cycles
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    //TODO we never remove NonBsqTxOutput!
-    //FIXME called at result phase even if there is not a new one (passed txo from prev. cycle which was already added)
-    public void addNonBsqTxOutput(TxOutput txOutput) {
-        assertDaoStateChange();
-        checkArgument(txOutput.getTxOutputType() == TxOutputType.ISSUANCE_CANDIDATE_OUTPUT,
-                "txOutput must be type ISSUANCE_CANDIDATE_OUTPUT");
-        daoState.getNonBsqTxOutputMap().put(txOutput.getKey(), txOutput);
-    }
+    public boolean isRejectedIssuanceOutput(TxOutputKey txOutputKey) {
+        Cycle currentCycle = getCurrentCycle();
+        return currentCycle != null &&
+                getIssuanceCandidateTxOutputs().stream()
+                        .filter(txOutput -> txOutput.getKey().equals(txOutputKey))
+                        .filter(txOutput -> !currentCycle.isInCycle(txOutput.getBlockHeight()))
+                        .anyMatch(txOutput -> !isIssuanceTx(txOutput.getTxId()));
 
-    public Optional<TxOutput> getBtcTxOutput(TxOutputKey key) {
-        // Issuance candidates which did not got accepted in voting are covered here
-        TreeMap<TxOutputKey, TxOutput> nonBsqTxOutputMap = daoState.getNonBsqTxOutputMap();
-        if (nonBsqTxOutputMap.containsKey(key))
-            return Optional.of(nonBsqTxOutputMap.get(key));
-
-        // We might have also outputs of type BTC_OUTPUT
-        return getTxOutputsByTxOutputType(TxOutputType.BTC_OUTPUT).stream()
-                .filter(output -> output.getKey().equals(key))
-                .findAny();
     }
 
 
@@ -820,10 +812,18 @@ public class DaoStateService implements DaoSetupService {
     public long getTotalAmountOfConfiscatedTxOutputs() {
         return daoState.getConfiscatedLockupTxList()
                 .stream()
-                .map(txId -> getTx(txId))
-                .filter(optionalTx -> optionalTx.isPresent())
-                .mapToLong(optionalTx -> optionalTx.get().getLockupOutput().getValue())
+                .flatMap(e -> getTx(e).stream())
+                .mapToLong(tx -> tx.getLockupOutput().getValue())
                 .sum();
+    }
+
+    public long getTotalAmountOfInvalidatedBsq() {
+        return getTxStream().mapToLong(Tx::getInvalidatedBsq).sum();
+    }
+
+    // Contains burnt fee and invalidated bsq due invalid txs
+    public long getTotalAmountOfBurntBsq() {
+        return getTxStream().mapToLong(Tx::getBurntBsq).sum();
     }
 
     // Confiscate bond
@@ -897,21 +897,6 @@ public class DaoStateService implements DaoSetupService {
                 });
     }
 
-    public Coin getParamValueAsCoin(Param param, int blockHeight) {
-        String paramValue = getParamValue(param, blockHeight);
-        return bsqFormatter.parseParamValueToCoin(param, paramValue);
-    }
-
-    public double getParamValueAsPercentDouble(Param param, int blockHeight) {
-        String paramValue = getParamValue(param, blockHeight);
-        return bsqFormatter.parsePercentStringToDouble(paramValue);
-    }
-
-    public int getParamValueAsBlock(Param param, int blockHeight) {
-        String paramValue = getParamValue(param, blockHeight);
-        return Integer.parseInt(paramValue);
-    }
-
     public String getParamValue(Param param, int blockHeight) {
         List<ParamChange> paramChangeList = new ArrayList<>(daoState.getParamChangeList());
         if (!paramChangeList.isEmpty()) {
@@ -927,6 +912,30 @@ public class DaoStateService implements DaoSetupService {
 
         // If no value found we use default values
         return param.getDefaultValue();
+    }
+
+    public Coin getParamValueAsCoin(Param param, String paramValue) {
+        return bsqFormatter.parseParamValueToCoin(param, paramValue);
+    }
+
+    public double getParamValueAsPercentDouble(String paramValue) {
+        return bsqFormatter.parsePercentStringToDouble(paramValue);
+    }
+
+    public int getParamValueAsBlock(String paramValue) {
+        return Integer.parseInt(paramValue);
+    }
+
+    public Coin getParamValueAsCoin(Param param, int blockHeight) {
+        return getParamValueAsCoin(param, getParamValue(param, blockHeight));
+    }
+
+    public double getParamValueAsPercentDouble(Param param, int blockHeight) {
+        return getParamValueAsPercentDouble(getParamValue(param, blockHeight));
+    }
+
+    public int getParamValueAsBlock(Param param, int blockHeight) {
+        return getParamValueAsBlock(getParamValue(param, blockHeight));
     }
 
 

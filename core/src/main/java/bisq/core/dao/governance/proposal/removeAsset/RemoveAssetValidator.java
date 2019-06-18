@@ -17,8 +17,9 @@
 
 package bisq.core.dao.governance.proposal.removeAsset;
 
-import bisq.core.dao.exceptions.ValidationException;
+import bisq.core.dao.governance.ConsensusCritical;
 import bisq.core.dao.governance.period.PeriodService;
+import bisq.core.dao.governance.proposal.ProposalValidationException;
 import bisq.core.dao.governance.proposal.ProposalValidator;
 import bisq.core.dao.state.DaoStateService;
 import bisq.core.dao.state.model.governance.Proposal;
@@ -28,8 +29,14 @@ import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.apache.commons.lang3.Validate.notEmpty;
+
+/**
+ * Changes here can potentially break consensus!
+ */
 @Slf4j
-public class RemoveAssetValidator extends ProposalValidator {
+public class RemoveAssetValidator extends ProposalValidator implements ConsensusCritical {
 
     @Inject
     public RemoveAssetValidator(DaoStateService daoStateService, PeriodService periodService) {
@@ -37,14 +44,20 @@ public class RemoveAssetValidator extends ProposalValidator {
     }
 
     @Override
-    public void validateDataFields(Proposal proposal) throws ValidationException {
+    public void validateDataFields(Proposal proposal) throws ProposalValidationException {
         try {
             super.validateDataFields(proposal);
 
             RemoveAssetProposal removeAssetProposal = (RemoveAssetProposal) proposal;
-            //TODO
+            notEmpty(removeAssetProposal.getTickerSymbol(), "TickerSymbol must not be empty");
+
+            // We want to avoid that someone cause damage by inserting a super long string. Real ticker symbols
+            // are usually very short but we don't want to add additional restrictions here.
+            checkArgument(removeAssetProposal.getTickerSymbol().length() <= 100, "TickerSymbol must not exceed 100 chars");
+        } catch (ProposalValidationException e) {
+            throw e;
         } catch (Throwable throwable) {
-            throw new ValidationException(throwable);
+            throw new ProposalValidationException(throwable);
         }
     }
 }

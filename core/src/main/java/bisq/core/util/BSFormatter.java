@@ -421,6 +421,10 @@ public class BSFormatter {
         }
     }
 
+    public String formatPrice(Price price, boolean appendCurrencyCode) {
+        return formatPrice(price, fiatPriceFormat, true);
+    }
+
     public String formatPrice(Price price) {
         return formatPrice(price, fiatPriceFormat, false);
     }
@@ -556,7 +560,7 @@ public class BSFormatter {
         String input = percentString.replace("%", "");
         input = cleanDoubleInput(input);
         double value = Double.parseDouble(input);
-        return value / 100d;
+        return MathUtils.roundDouble(value / 100d, 4);
     }
 
     public long parsePriceStringToLong(String currencyCode, String amount, int precision) {
@@ -628,8 +632,9 @@ public class BSFormatter {
 
         if (showSeconds) {
             format += "H\' " + hours + ", \'m\' " + minutes + ", \'s\' " + seconds + "\'";
-        } else
+        } else {
             format += "H\' " + hours + ", \'m\' " + minutes + "\'";
+        }
 
         String duration = durationMillis > 0 ? DurationFormatUtils.formatDuration(durationMillis, format) : "";
 
@@ -642,10 +647,10 @@ public class BSFormatter {
             duration = duration.replace(", 0 seconds", "");
             duration = duration.replace(", 0 minutes", "");
             duration = duration.replace(", 0 hours", "");
-            duration = duration.replace("0 days", "");
-            duration = duration.replace("0 hours, ", "");
-            duration = duration.replace("0 minutes, ", "");
-            duration = duration.replace("0 seconds", "");
+            duration = StringUtils.replacePattern(duration, "^0 days, ", "");
+            duration = StringUtils.replacePattern(duration, "^0 hours, ", "");
+            duration = StringUtils.replacePattern(duration, "^0 minutes, ", "");
+            duration = StringUtils.replacePattern(duration, "^0 seconds, ", "");
         }
         return duration.trim();
     }

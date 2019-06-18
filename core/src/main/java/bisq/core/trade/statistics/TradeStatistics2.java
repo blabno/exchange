@@ -32,6 +32,7 @@ import bisq.common.app.Capabilities;
 import bisq.common.app.Capability;
 import bisq.common.crypto.Hash;
 import bisq.common.proto.persistable.PersistableEnvelope;
+import bisq.common.util.ExtraDataMapValidator;
 import bisq.common.util.JsonExclude;
 import bisq.common.util.Utilities;
 
@@ -44,6 +45,8 @@ import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;
 
 import org.springframework.util.CollectionUtils;
+
+import com.google.common.base.Charsets;
 
 import java.util.Date;
 import java.util.Map;
@@ -150,12 +153,12 @@ public final class TradeStatistics2 implements LazyProcessedPayload, Persistable
         this.tradeAmount = tradeAmount;
         this.tradeDate = tradeDate;
         this.depositTxId = depositTxId;
-        this.extraDataMap = extraDataMap;
+        this.extraDataMap = ExtraDataMapValidator.getValidatedExtraDataMap(extraDataMap);
 
         if (hash == null)
             // We create hash from all fields excluding hash itself. We use json as simple data serialisation.
             // tradeDate is different for both peers so we ignore it for hash.
-            this.hash = Hash.getSha256Ripemd160hash(Utilities.objectToJson(this).getBytes());
+            this.hash = Hash.getSha256Ripemd160hash(Utilities.objectToJson(this).getBytes(Charsets.UTF_8));
         else
             this.hash = hash;
     }

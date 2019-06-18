@@ -140,33 +140,33 @@ public final class PaymentMethod implements PersistablePayload, Comparable {
     @Getter
     private final static List<PaymentMethod> paymentMethods = new ArrayList<>(Arrays.asList(
             // EUR
-            SEPA = new PaymentMethod(SEPA_ID, 6 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
-            SEPA_INSTANT = new PaymentMethod(SEPA_INSTANT_ID, DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            SEPA = new PaymentMethod(SEPA_ID, 6 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
+            SEPA_INSTANT = new PaymentMethod(SEPA_INSTANT_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
             MONEY_BEAM = new PaymentMethod(MONEY_BEAM_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
 
             // UK
-            FASTER_PAYMENTS = new PaymentMethod(FASTER_PAYMENTS_ID, DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            FASTER_PAYMENTS = new PaymentMethod(FASTER_PAYMENTS_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
 
             // Sweden
             SWISH = new PaymentMethod(SWISH_ID, DAY, DEFAULT_TRADE_LIMIT_LOW_RISK),
 
             // US
-            CLEAR_X_CHANGE = new PaymentMethod(CLEAR_X_CHANGE_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            CLEAR_X_CHANGE = new PaymentMethod(CLEAR_X_CHANGE_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
 
             POPMONEY = new PaymentMethod(POPMONEY_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
-            CHASE_QUICK_PAY = new PaymentMethod(CHASE_QUICK_PAY_ID, DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
-            US_POSTAL_MONEY_ORDER = new PaymentMethod(US_POSTAL_MONEY_ORDER_ID, 8 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            CHASE_QUICK_PAY = new PaymentMethod(CHASE_QUICK_PAY_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
+            US_POSTAL_MONEY_ORDER = new PaymentMethod(US_POSTAL_MONEY_ORDER_ID, 8 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
 
             // Canada
-            INTERAC_E_TRANSFER = new PaymentMethod(INTERAC_E_TRANSFER_ID, DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            INTERAC_E_TRANSFER = new PaymentMethod(INTERAC_E_TRANSFER_ID, DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
 
             // Global
-            CASH_DEPOSIT = new PaymentMethod(CASH_DEPOSIT_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            CASH_DEPOSIT = new PaymentMethod(CASH_DEPOSIT_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
             MONEY_GRAM = new PaymentMethod(MONEY_GRAM_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
             WESTERN_UNION = new PaymentMethod(WESTERN_UNION_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
-            NATIONAL_BANK = new PaymentMethod(NATIONAL_BANK_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
-            SAME_BANK = new PaymentMethod(SAME_BANK_ID, 2 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
-            SPECIFIC_BANKS = new PaymentMethod(SPECIFIC_BANKS_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_MID_RISK),
+            NATIONAL_BANK = new PaymentMethod(NATIONAL_BANK_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
+            SAME_BANK = new PaymentMethod(SAME_BANK_ID, 2 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
+            SPECIFIC_BANKS = new PaymentMethod(SPECIFIC_BANKS_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_HIGH_RISK),
             HAL_CASH = new PaymentMethod(HAL_CASH_ID, DAY, DEFAULT_TRADE_LIMIT_LOW_RISK),
             F2F = new PaymentMethod(F2F_ID, 4 * DAY, DEFAULT_TRADE_LIMIT_LOW_RISK),
 
@@ -315,5 +315,24 @@ public final class PaymentMethod implements PersistablePayload, Comparable {
 
     public boolean isAsset() {
         return this.equals(BLOCK_CHAINS_INSTANT) || this.equals(BLOCK_CHAINS);
+    }
+
+    public static boolean hasChargebackRisk(PaymentMethod paymentMethod) {
+        if (paymentMethod == null)
+            return false;
+
+        String id = paymentMethod.getId();
+        return id.equals(PaymentMethod.SEPA_ID) ||
+                id.equals(PaymentMethod.SEPA_INSTANT_ID) ||
+                id.equals(PaymentMethod.INTERAC_E_TRANSFER_ID) ||
+                id.equals(PaymentMethod.CLEAR_X_CHANGE_ID) ||
+                id.equals(PaymentMethod.REVOLUT_ID) ||
+                id.equals(PaymentMethod.NATIONAL_BANK_ID) ||
+                id.equals(PaymentMethod.SAME_BANK_ID) ||
+                id.equals(PaymentMethod.SPECIFIC_BANKS_ID) ||
+                id.equals(PaymentMethod.CHASE_QUICK_PAY_ID) ||
+                id.equals(PaymentMethod.POPMONEY_ID) ||
+                id.equals(PaymentMethod.MONEY_BEAM_ID) ||
+                id.equals(PaymentMethod.UPHOLD_ID);
     }
 }

@@ -26,6 +26,7 @@ import bisq.core.dao.governance.proposal.storage.temp.TempProposalPayload;
 import bisq.core.dao.governance.proposal.storage.temp.TempProposalStorageService;
 import bisq.core.dao.state.DaoStateListener;
 import bisq.core.dao.state.DaoStateService;
+import bisq.core.dao.state.model.blockchain.BaseTx;
 import bisq.core.dao.state.model.blockchain.Block;
 import bisq.core.dao.state.model.blockchain.Tx;
 import bisq.core.dao.state.model.governance.DaoPhase;
@@ -39,6 +40,8 @@ import bisq.network.p2p.storage.payload.ProtectedStoragePayload;
 import bisq.network.p2p.storage.persistence.AppendOnlyDataStoreListener;
 import bisq.network.p2p.storage.persistence.AppendOnlyDataStoreService;
 import bisq.network.p2p.storage.persistence.ProtectedDataStoreService;
+
+import org.bitcoinj.core.Coin;
 
 import com.google.inject.Inject;
 
@@ -64,7 +67,7 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
     private final P2PService p2PService;
     private final PeriodService periodService;
     private final DaoStateService daoStateService;
-    private final ProposalValidator proposalValidator;
+    private final ProposalValidatorProvider validatorProvider;
 
     // Proposals we receive in the proposal phase. They can be removed in that phase. That list must not be used for
     // consensus critical code.
@@ -90,12 +93,12 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
                            AppendOnlyDataStoreService appendOnlyDataStoreService,
                            ProtectedDataStoreService protectedDataStoreService,
                            DaoStateService daoStateService,
-                           ProposalValidator proposalValidator,
+                           ProposalValidatorProvider validatorProvider,
                            @Named(DaoOptionKeys.DAO_ACTIVATED) boolean daoActivated) {
         this.p2PService = p2PService;
         this.periodService = periodService;
         this.daoStateService = daoStateService;
-        this.proposalValidator = proposalValidator;
+        this.validatorProvider = validatorProvider;
 
         if (daoActivated) {
             // We add our stores to the global stores
@@ -156,11 +159,12 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
 
     @Override
     public void onParseBlockCompleteAfterBatchProcessing(Block block) {
-        int heightForRepublishing = periodService.getFirstBlockOfPhase(daoStateService.getChainHeight(), DaoPhase.Phase.BREAK1);
-        if (block.getHeight() == heightForRepublishing) {
+        // We try to broadcast at any  block in the break1 phase. If we have received the data already we do not
+        // broadcast so we do not flood the network.
+        if (periodService.isInPhase(block.getHeight(), DaoPhase.Phase.BREAK1)) {
             // We only republish if we are completed with parsing old blocks, otherwise we would republish old
             // proposals all the time
-            publishToAppendOnlyDataStore();
+            maybePublishToAppendOnlyDataStore();
             fillListFromAppendOnlyDataStore();
         }
     }
@@ -180,8 +184,22 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
     public List<Proposal> getValidatedProposals() {
         return proposalPayloads.stream()
                 .map(ProposalPayload::getProposal)
-                .filter(proposalValidator::isTxTypeValid)
+                .filter(proposal -> validatorProvider.getValidator(proposal).isTxTypeValid(proposal))
                 .collect(Collectors.toList());
+    }
+
+    public Coin getRequiredQuorum(Proposal proposal) {
+        int chainHeight = daoStateService.getTx(proposal.getTxId())
+                .map(BaseTx::getBlockHeight).
+                        orElse(daoStateService.getChainHeight());
+        return daoStateService.getParamValueAsCoin(proposal.getQuorumParam(), chainHeight);
+    }
+
+    public double getRequiredThreshold(Proposal proposal) {
+        int chainHeight = daoStateService.getTx(proposal.getTxId())
+                .map(BaseTx::getBlockHeight).
+                        orElse(daoStateService.getChainHeight());
+        return daoStateService.getParamValueAsPercentDouble(proposal.getThresholdParam(), chainHeight);
     }
 
 
@@ -197,36 +215,49 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
         p2PService.getP2PDataStorage().getAppendOnlyDataStoreMap().values().forEach(e -> onAppendOnlyDataAdded(e, false));
     }
 
-    private void publishToAppendOnlyDataStore() {
+    private void maybePublishToAppendOnlyDataStore() {
+        // We set reBroadcast to false to avoid to flood the network.
+        // If we have 20 proposals and 200 nodes with 10 neighbor peers we would send 40 000 messages if we would set
+        // reBroadcast to !
         tempProposals.stream()
-                .filter(proposalValidator::isValidAndConfirmed)
+                .filter(proposal -> validatorProvider.getValidator(proposal).isValidAndConfirmed(proposal))
                 .map(ProposalPayload::new)
                 .forEach(proposalPayload -> {
-                    boolean success = p2PService.addPersistableNetworkPayload(proposalPayload, true);
-                    if (success)
+                    boolean success = p2PService.addPersistableNetworkPayload(proposalPayload, false);
+                    if (success) {
                         log.info("We published a ProposalPayload to the P2P network as append-only data. proposalTxId={}",
                                 proposalPayload.getProposal().getTxId());
-                    else
-                        log.warn("publishToAppendOnlyDataStore failed for proposal " + proposalPayload.getProposal());
+                    }
+                    // If we had data already we did not broadcast and success is false
                 });
     }
 
-    private void onProtectedDataAdded(ProtectedStorageEntry entry, boolean doLog) {
+    private void onProtectedDataAdded(ProtectedStorageEntry entry, boolean fromBroadcastMessage) {
         ProtectedStoragePayload protectedStoragePayload = entry.getProtectedStoragePayload();
         if (protectedStoragePayload instanceof TempProposalPayload) {
             Proposal proposal = ((TempProposalPayload) protectedStoragePayload).getProposal();
             // We do not validate if we are in current cycle and if tx is confirmed yet as the tx might be not
-            // available/confirmed. But we check if we are in the proposal phase.
-            if (!tempProposals.contains(proposal)) {
-                if (proposalValidator.isValidOrUnconfirmed(proposal)) {
-                    if (doLog) {
-                        log.info("We received a TempProposalPayload and store it to our protectedStoreList. proposalTxId={}",
-                                proposal.getTxId());
+            // available/confirmed.
+            // We check if we are in the proposal or break1 phase. We are tolerant to accept tempProposals in the break1
+            // phase to avoid risks that a proposal published very closely to the end of the proposal phase will not be
+            // sufficiently broadcast.
+            // When we receive tempProposals from the seed node at startup we only keep those which are in the current
+            // proposal/break1 phase if we are in that phase. We ignore tempProposals in case we are not in the
+            // proposal/break1 phase as they are not used anyway but the proposalPayloads will be relevant once we
+            // left the proposal/break1 phase.
+            if (periodService.isInPhase(daoStateService.getChainHeight(), DaoPhase.Phase.PROPOSAL) ||
+                    periodService.isInPhase(daoStateService.getChainHeight(), DaoPhase.Phase.BREAK1)) {
+                if (!tempProposals.contains(proposal)) {
+                    if (validatorProvider.getValidator(proposal).areDataFieldsValid(proposal)) {
+                        if (fromBroadcastMessage) {
+                            log.info("We received a TempProposalPayload and store it to our protectedStoreList. proposalTxId={}",
+                                    proposal.getTxId());
+                        }
+                        tempProposals.add(proposal);
+                    } else {
+                        log.debug("We received an invalid proposal from the P2P network. Proposal.txId={}, blockHeight={}",
+                                proposal.getTxId(), daoStateService.getChainHeight());
                     }
-                    tempProposals.add(proposal);
-                } else {
-                    log.debug("We received an invalid proposal from the P2P network. Proposal.txId={}, blockHeight={}",
-                            proposal.getTxId(), daoStateService.getChainHeight());
                 }
             }
         }
@@ -248,23 +279,27 @@ public class ProposalService implements HashMapChangedListener, AppendOnlyDataSt
                     log.info("We received a remove request for a TempProposalPayload and have removed the proposal " +
                                     "from our list. proposal creation date={}, proposalTxId={}, inPhase={}, " +
                                     "txInPastCycle={}, unconfirmedOrNonBsqTx={}",
-                            proposal.getCreationDate(), proposal.getTxId(), inPhase, txInPastCycle, unconfirmedOrNonBsqTx);
+                            proposal.getCreationDateAsDate(), proposal.getTxId(), inPhase, txInPastCycle, unconfirmedOrNonBsqTx);
                 }
             } else {
                 log.warn("We received a remove request outside the PROPOSAL phase. " +
                                 "Proposal creation date={}, proposal.txId={}, current blockHeight={}",
-                        proposal.getCreationDate(), proposal.getTxId(), daoStateService.getChainHeight());
+                        proposal.getCreationDateAsDate(), proposal.getTxId(), daoStateService.getChainHeight());
             }
         }
     }
 
-    private void onAppendOnlyDataAdded(PersistableNetworkPayload persistableNetworkPayload, boolean doLog) {
+    private void onAppendOnlyDataAdded(PersistableNetworkPayload persistableNetworkPayload, boolean fromBroadcastMessage) {
         if (persistableNetworkPayload instanceof ProposalPayload) {
             ProposalPayload proposalPayload = (ProposalPayload) persistableNetworkPayload;
             if (!proposalPayloads.contains(proposalPayload)) {
                 Proposal proposal = proposalPayload.getProposal();
-                if (proposalValidator.areDataFieldsValid(proposal)) {
-                    if (doLog) {
+
+                // We don't validate phase and cycle as we might receive proposals from other cycles or phases at startup.
+                // Beside that we might receive payloads we requested at the vote result phase in case we missed some
+                // payloads. We prefer here resilience over protection against late publishing attacks.
+                if (validatorProvider.getValidator(proposal).areDataFieldsValid(proposal)) {
+                    if (fromBroadcastMessage) {
                         log.info("We received a ProposalPayload and store it to our appendOnlyStoreList. proposalTxId={}",
                                 proposal.getTxId());
                     }

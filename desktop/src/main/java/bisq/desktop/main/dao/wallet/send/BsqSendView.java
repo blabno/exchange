@@ -33,6 +33,7 @@ import bisq.desktop.util.validation.BsqAddressValidator;
 import bisq.desktop.util.validation.BsqValidator;
 import bisq.desktop.util.validation.BtcValidator;
 
+import bisq.core.btc.exceptions.BsqChangeBelowDustException;
 import bisq.core.btc.exceptions.TxBroadcastException;
 import bisq.core.btc.listeners.BsqBalanceListener;
 import bisq.core.btc.setup.WalletsSetup;
@@ -85,7 +86,7 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
 
     private int gridRow = 0;
     private InputTextField amountInputTextField, btcAmountInputTextField;
-    private Button sendButton, sendBtcButton;
+    private Button sendBsqButton, sendBtcButton;
     private InputTextField receiversAddressInputTextField, receiversBtcAddressInputTextField;
     private ChangeListener<Boolean> focusOutListener;
     private TitledGroupBg btcTitledGroupBg;
@@ -200,7 +201,7 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
         bsqValidator.setAvailableBalance(availableConfirmedBalance);
         boolean isValid = bsqAddressValidator.validate(receiversAddressInputTextField.getText()).isValid &&
                 bsqValidator.validate(amountInputTextField.getText()).isValid;
-        sendButton.setDisable(!isValid);
+        sendBsqButton.setDisable(!isValid);
 
         boolean isBtcValid = btcAddressValidator.validate(receiversBtcAddressInputTextField.getText()).isValid &&
                 btcValidator.validate(btcAmountInputTextField.getText()).isValid;
@@ -227,9 +228,9 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
                 onUpdateBalances();
         };
 
-        sendButton = addButtonAfterGroup(root, ++gridRow, Res.get("dao.wallet.send.send"));
+        sendBsqButton = addButtonAfterGroup(root, ++gridRow, Res.get("dao.wallet.send.send"));
 
-        sendButton.setOnAction((event) -> {
+        sendBsqButton.setOnAction((event) -> {
             // TODO break up in methods
             if (GUIUtil.isReadyForTxBroadcast(p2PService, walletsSetup)) {
                 String receiversAddressString = bsqFormatter.getAddressFromBsqAddress(receiversAddressInputTextField.getText()).toString();
@@ -252,6 +253,9 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
                                 receiversAddressInputTextField.setText("");
                                 amountInputTextField.setText("");
                             });
+                } catch (BsqChangeBelowDustException e) {
+                    String msg = Res.get("popup.warning.bsqChangeBelowDustException", bsqFormatter.formatCoinWithCode(e.getOutputValue()));
+                    new Popup<>().warning(msg).show();
                 } catch (Throwable t) {
                     handleError(t);
                 }
@@ -296,18 +300,27 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
                     Transaction txWithBtcFee = btcWalletService.completePreparedSendBsqTx(preparedSendTx, true);
                     Transaction signedTx = bsqWalletService.signTx(txWithBtcFee);
                     Coin miningFee = signedTx.getFee();
-                    int txSize = signedTx.bitcoinSerialize().length;
-                    showPublishTxPopup(receiverAmount,
-                            txWithBtcFee,
-                            TxType.INVALID,
-                            miningFee,
-                            txSize, receiversBtcAddressInputTextField.getText(),
-                            btcFormatter,
-                            btcFormatter,
-                            () -> {
-                                receiversBtcAddressInputTextField.setText("");
-                                btcAmountInputTextField.setText("");
-                            });
+
+                    if (miningFee.getValue() >= receiverAmount.getValue())
+                        GUIUtil.showWantToBurnBTCPopup(miningFee, receiverAmount, btcFormatter);
+                    else {
+                        int txSize = signedTx.bitcoinSerialize().length;
+                        showPublishTxPopup(receiverAmount,
+                                txWithBtcFee,
+                                TxType.INVALID,
+                                miningFee,
+                                txSize, receiversBtcAddressInputTextField.getText(),
+                                btcFormatter,
+                                btcFormatter,
+                                () -> {
+                                    receiversBtcAddressInputTextField.setText("");
+                                    btcAmountInputTextField.setText("");
+                                });
+
+                    }
+                } catch (BsqChangeBelowDustException e) {
+                    String msg = Res.get("popup.warning.btcChangeBelowDustException", btcFormatter.formatCoinWithCode(e.getOutputValue()));
+                    new Popup<>().warning(msg).show();
                 } catch (Throwable t) {
                     handleError(t);
                 }
@@ -358,7 +371,6 @@ public class BsqSendView extends ActivatableView<GridPane, Void> implements BsqB
 
                         @Override
                         public void onFailure(TxBroadcastException exception) {
-                            //TODO handle
                             new Popup<>().warning(exception.toString());
                         }
                     });

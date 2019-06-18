@@ -30,6 +30,7 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public enum TxType implements ImmutableDaoStateModel {
+    UNDEFINED(false, false), // only fallback for backward compatibility in case we add a new value and old clients fall back to UNDEFINED
     UNDEFINED_TX_TYPE(false, false),
     UNVERIFIED(false, false),
     INVALID(false, false),
@@ -44,7 +45,8 @@ public enum TxType implements ImmutableDaoStateModel {
     LOCKUP(true, false),
     UNLOCK(true, false),
     ASSET_LISTING_FEE(true, true),
-    PROOF_OF_BURN(true, true);
+    PROOF_OF_BURN(true, true),
+    IRREGULAR(false, false); // the params are here irrelevant as we can have any tx which violated the rules set to irregular
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////

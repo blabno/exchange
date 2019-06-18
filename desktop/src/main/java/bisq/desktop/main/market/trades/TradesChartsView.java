@@ -59,6 +59,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -126,6 +127,7 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
     private ChangeListener<Number> parentHeightListener;
     private Pane rootParent;
     private ChangeListener<String> priceColumnLabelListener;
+    private AnchorPane priceChartPane, volumeChartPane;
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +154,7 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
         nrOfTradeStatisticsLabel = new AutoTooltipLabel(" "); // set empty string for layout
         nrOfTradeStatisticsLabel.setId("num-offers");
         nrOfTradeStatisticsLabel.setPadding(new Insets(-5, 0, -10, 5));
-        root.getChildren().addAll(toolBox, priceChart, volumeChart, tableView, nrOfTradeStatisticsLabel);
+        root.getChildren().addAll(toolBox, priceChartPane, volumeChartPane, tableView, nrOfTradeStatisticsLabel);
 
         timeUnitChangeListener = (observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -340,14 +342,23 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
             }
         });
         priceChart.setId("price-chart");
-        priceChart.setMinHeight(198);
-        priceChart.setPrefHeight(198);
+        priceChart.setMinHeight(178);
+        priceChart.setPrefHeight(178);
         priceChart.setMaxHeight(300);
         priceChart.setLegendVisible(false);
         priceChart.setPadding(new Insets(0));
         //noinspection unchecked
         priceChart.setData(FXCollections.observableArrayList(priceSeries));
 
+        priceChartPane = new AnchorPane();
+        priceChartPane.getStyleClass().add("chart-pane");
+
+        AnchorPane.setTopAnchor(priceChart, 15d);
+        AnchorPane.setBottomAnchor(priceChart, 10d);
+        AnchorPane.setLeftAnchor(priceChart, 0d);
+        AnchorPane.setRightAnchor(priceChart, 10d);
+
+        priceChartPane.getChildren().add(priceChart);
 
         volumeSeries = new XYChart.Series<>();
 
@@ -387,11 +398,21 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
         //noinspection unchecked
         volumeChart.setId("volume-chart");
         volumeChart.setData(FXCollections.observableArrayList(volumeSeries));
-        volumeChart.setMinHeight(148);
-        volumeChart.setPrefHeight(148);
+        volumeChart.setMinHeight(128);
+        volumeChart.setPrefHeight(128);
         volumeChart.setMaxHeight(200);
         volumeChart.setLegendVisible(false);
         volumeChart.setPadding(new Insets(0));
+
+        volumeChartPane = new AnchorPane();
+        volumeChartPane.getStyleClass().add("chart-pane");
+
+        AnchorPane.setTopAnchor(volumeChart, 15d);
+        AnchorPane.setBottomAnchor(volumeChart, 10d);
+        AnchorPane.setLeftAnchor(volumeChart, 0d);
+        AnchorPane.setRightAnchor(volumeChart, 10d);
+
+        volumeChartPane.getChildren().add(volumeChart);
     }
 
     private void updateChartData() {
@@ -496,7 +517,7 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
 
     private void createTable() {
         tableView = new TableView<>();
-        tableView.setMinHeight(130);
+        tableView.setMinHeight(120);
         tableView.setPrefHeight(130);
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
@@ -711,9 +732,9 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
             else
                 available = root.getHeight();
 
-            available = available - volumeChart.getHeight() - toolBox.getHeight() - nrOfTradeStatisticsLabel.getHeight() - 65;
+            available = available - volumeChartPane.getHeight() - toolBox.getHeight() - nrOfTradeStatisticsLabel.getHeight() - 75;
             if (priceChart.isManaged())
-                available = available - priceChart.getHeight();
+                available = available - priceChartPane.getHeight();
             else
                 available = available + 10;
             tableView.setPrefHeight(available);
