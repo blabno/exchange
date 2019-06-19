@@ -19,6 +19,7 @@ package bisq.api.http;
 
 import bisq.api.http.service.HttpApiServer;
 import bisq.api.http.service.auth.ApiPasswordManager;
+import bisq.api.http.service.endpoint.PaymentAccountEndpoint;
 import bisq.api.http.service.endpoint.UserEndpoint;
 import bisq.api.http.service.endpoint.VersionEndpoint;
 
@@ -41,6 +42,7 @@ public class HttpApiModule extends AppModule {
     protected void configure() {
         bind(HttpApiServer.class).in(Singleton.class);
         bind(ApiPasswordManager.class).in(Singleton.class);
+        bind(PaymentAccountEndpoint.class).in(Singleton.class);
         bind(UserEndpoint.class).in(Singleton.class);
         bind(VersionEndpoint.class).in(Singleton.class);
 
