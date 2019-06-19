@@ -25,7 +25,7 @@ public final class ContainerFactory {
     public static final String ENV_BASE_CURRENCY_NETWORK_KEY = "BASE_CURRENCY_NETWORK";
     public static final String ENV_BASE_CURRENCY_NETWORK_VALUE = "BTC_REGTEST";
     public static final String ENV_BITCOIN_REGTEST_HOST_KEY = "BITCOIN_REGTEST_HOST";
-    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "bitcoin";
+    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "LOCALHOST";
     public static final String ENV_BTC_NODES_KEY = "BTC_NODES";
     public static final String ENV_BTC_NODES_VALUE = "bitcoin:18444";
     public static final String ENV_SEED_NODES_KEY = "SEED_NODES";

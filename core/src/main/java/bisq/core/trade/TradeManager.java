@@ -534,8 +534,9 @@ public class TradeManager implements PersistedDataHost {
             throw new ValidationException("Funds needed for traded calculated by Bisq exceed specified limit");
         }
 //        TODO shouldn't we compare available balance against funds needed for trade?
-        if (btcWalletService.getAvailableBalance().isLessThan(amount)) {
-            String errorMessage = String.format("Available balance %s is less than needed amount: %s", btcWalletService.getAvailableBalance().toString(), amount.toString());
+        Coin availableBalance = btcWalletService.getAvailableConfirmedBalance();
+        if (availableBalance.isLessThan(amount)) {
+            String errorMessage = String.format("Available balance %s is less than needed amount: %s", availableBalance.toString(), amount.toString());
             throw new ValidationException(errorMessage);
         }
     }

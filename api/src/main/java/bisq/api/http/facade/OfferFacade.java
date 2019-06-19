@@ -120,7 +120,7 @@ public class OfferFacade {
         }
 
         boolean isBuyOffer = OfferUtil.isBuyOffer(direction);
-        Coin reservedFundsForOffer = isBuyOffer ? preferences.getBuyerSecurityDepositAsCoin() : Restrictions.getSellerSecurityDeposit();
+        Coin reservedFundsForOffer = isBuyOffer ? Coin.valueOf(preferences.getBuyerSecurityDepositAsLong()) : Restrictions.getMinSellerSecurityDepositAsCoin();
         if (!isBuyOffer)
             reservedFundsForOffer = reservedFundsForOffer.add(Coin.valueOf(amount));
 

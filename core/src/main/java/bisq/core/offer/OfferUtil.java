@@ -367,7 +367,7 @@ public class OfferUtil {
 
     public static Coin getFundsNeededForOffer(Coin tradeAmount, Coin buyerSecurityDeposit, OfferPayload.Direction direction) {
         boolean buyOffer = isBuyOffer(direction);
-        Coin needed = buyOffer ? buyerSecurityDeposit : Restrictions.getSellerSecurityDeposit();
+        Coin needed = buyOffer ? buyerSecurityDeposit : Restrictions.getMinSellerSecurityDepositAsCoin();
         if (!buyOffer)
             needed = needed.add(tradeAmount);
 

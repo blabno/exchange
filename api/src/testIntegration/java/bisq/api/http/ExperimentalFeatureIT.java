@@ -90,7 +90,7 @@ public class ExperimentalFeatureIT {
     @InSequence(1)
     @Test
     public void getOrCreateAvailableUnusedWalletAddresses_always_returns501() {
-        expect501(given().port(getAlicePort()).when().post("/api/v1/addresses"));
+        expect501(given().port(getAlicePort()).when().post("/api/v1/wallet/addresses"));
     }
 
     @InSequence(3)

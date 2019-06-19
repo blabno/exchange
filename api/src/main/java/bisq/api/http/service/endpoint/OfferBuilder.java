@@ -125,7 +125,7 @@ public class OfferBuilder {
 
         // Handle optional data and set default values if not set
         if (buyerSecurityDeposit == null)
-            buyerSecurityDeposit = preferences.getBuyerSecurityDepositAsCoin().value;
+            buyerSecurityDeposit = preferences.getBuyerSecurityDepositAsLong();
 
         if (marketPriceMargin == null)
             marketPriceMargin = 0d;
@@ -167,10 +167,10 @@ public class OfferBuilder {
         }
         // Throws runtime exception if data are invalid
         Coin buyerSecurityDepositAsCoin = Coin.valueOf(buyerSecurityDeposit);
-        OfferUtil.validateOfferData(filterManager, p2PService, buyerSecurityDepositAsCoin, paymentAccount, currencyCode, makerFeeAsCoin);
+        OfferUtil.validateOfferData(filterManager, p2PService, buyerSecurityDeposit, paymentAccount, currencyCode, makerFeeAsCoin);
 
         boolean isCurrencyForMakerFeeBtc = OfferUtil.isCurrencyForMakerFeeBtc(preferences, bsqWalletService, amountAsCoin);
-        long sellerSecurityDeposit = Restrictions.getSellerSecurityDeposit().value;
+        long sellerSecurityDeposit = Restrictions.getMinSellerSecurityDepositAsCoin().value;
 
         Coin fundsNeededForMaker = OfferUtil.getFundsNeededForOffer(amountAsCoin, buyerSecurityDepositAsCoin, direction);
         Coin makerFee = OfferUtil.getMakerFee(bsqWalletService, preferences, amountAsCoin);

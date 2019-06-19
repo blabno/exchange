@@ -39,6 +39,14 @@ import javax.annotation.Nullable;
 @Slf4j
 public class PaymentAccountUtil {
 
+    public static boolean isAnyPaymentAccountValidForOffer(Offer offer, Collection<PaymentAccount> paymentAccounts) {
+        for (PaymentAccount paymentAccount : paymentAccounts) {
+            if (isPaymentAccountValidForOffer(offer, paymentAccount))
+                return true;
+        }
+        return false;
+    }
+
     public static boolean isRiskyBuyOfferWithImmatureAccountAge(Offer offer, AccountAgeWitnessService accountAgeWitnessService) {
         return OfferRestrictions.isOfferRisky(offer) &&
                 AccountAgeRestrictions.isMakersAccountAgeImmature(accountAgeWitnessService, offer);
@@ -67,7 +75,7 @@ public class PaymentAccountUtil {
                                                         AccountAgeWitnessService accountAgeWitnessService) {
         return !PaymentMethod.hasChargebackRisk(offer.getPaymentMethod()) ||
                 !OfferRestrictions.isMinTradeAmountRisky(offer) ||
-                (isTakerPaymentAccountValidForOffer(offer, takerPaymentAccount) &&
+                (isPaymentAccountValidForOffer(offer, takerPaymentAccount) &&
                         !AccountAgeRestrictions.isMyAccountAgeImmature(accountAgeWitnessService, takerPaymentAccount));
     }
 
@@ -88,7 +96,7 @@ public class PaymentAccountUtil {
 
     public static boolean isAnyTakerPaymentAccountValidForOffer(Offer offer, Collection<PaymentAccount> takerPaymentAccounts) {
         for (PaymentAccount takerPaymentAccount : takerPaymentAccounts) {
-            if (isTakerPaymentAccountValidForOffer(offer, takerPaymentAccount))
+            if (isPaymentAccountValidForOffer(offer, takerPaymentAccount))
                 return true;
         }
         return false;
@@ -99,7 +107,7 @@ public class PaymentAccountUtil {
                                                                             AccountAgeWitnessService accountAgeWitnessService) {
         ObservableList<PaymentAccount> result = FXCollections.observableArrayList();
         result.addAll(paymentAccounts.stream()
-                .filter(paymentAccount -> isTakerPaymentAccountValidForOffer(offer, paymentAccount))
+                .filter(paymentAccount -> isPaymentAccountValidForOffer(offer, paymentAccount))
                 .filter(paymentAccount -> offer.isBuyOffer() || isTakerAccountForOfferMature(offer, paymentAccount, accountAgeWitnessService))
                 .collect(Collectors.toList()));
         return result;
@@ -113,7 +121,7 @@ public class PaymentAccountUtil {
                 "Payment method from offer: " + offer.getPaymentMethod().toString();
     }
 
-    public static boolean isTakerPaymentAccountValidForOffer(Offer offer, PaymentAccount paymentAccount) {
+    public static boolean isPaymentAccountValidForOffer(Offer offer, PaymentAccount paymentAccount) {
         return new ReceiptValidator(offer, paymentAccount).isValid();
     }
 

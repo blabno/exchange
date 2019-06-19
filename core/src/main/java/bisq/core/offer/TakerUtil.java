@@ -62,8 +62,9 @@ public class TakerUtil {
 
     public static boolean isBsqForFeeAvailable(Coin amount, BsqWalletService bsqWalletService) {
         Coin takerFee = getTakerFee(false, amount);
+        Coin availableConfirmedBalance = bsqWalletService.getAvailableConfirmedBalance();
         return takerFee != null &&
-                bsqWalletService.getAvailableBalance() != null &&
-                !bsqWalletService.getAvailableBalance().subtract(takerFee).isNegative();
+                availableConfirmedBalance != null &&
+                !availableConfirmedBalance.subtract(takerFee).isNegative();
     }
 }
