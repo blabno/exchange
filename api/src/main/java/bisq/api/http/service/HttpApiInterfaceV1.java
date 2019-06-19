@@ -1,9 +1,11 @@
 package bisq.api.http.service;
 
 import bisq.api.http.service.endpoint.ArbitratorEndpoint;
+import bisq.api.http.service.endpoint.OfferEndpoint;
 import bisq.api.http.service.endpoint.PaymentAccountEndpoint;
 import bisq.api.http.service.endpoint.UserEndpoint;
 import bisq.api.http.service.endpoint.VersionEndpoint;
+import bisq.api.http.service.endpoint.WalletEndpoint;
 
 import javax.inject.Inject;
 
@@ -29,29 +31,40 @@ import javax.ws.rs.Path;
         security = @SecurityRequirement(name = "authorization"),
         tags = {
                 @Tag(name = "arbitrators"),
+                @Tag(name = "offers"),
                 @Tag(name = "payment-accounts"),
                 @Tag(name = "user"),
-                @Tag(name = "version")
+                @Tag(name = "version"),
+                @Tag(name = "wallet")
         }
 )
 @Path("/api/v1")
 public class HttpApiInterfaceV1 {
     private final ArbitratorEndpoint arbitratorEndpoint;
     private final PaymentAccountEndpoint paymentAccountEndpoint;
+    private final OfferEndpoint offerEndpoint;
     private final UserEndpoint userEndpoint;
     private final VersionEndpoint versionEndpoint;
+    private final WalletEndpoint walletEndpoint;
 
     @Inject
-    public HttpApiInterfaceV1(ArbitratorEndpoint arbitratorEndpoint, PaymentAccountEndpoint paymentAccountEndpoint, UserEndpoint userEndpoint, VersionEndpoint versionEndpoint) {
+    public HttpApiInterfaceV1(ArbitratorEndpoint arbitratorEndpoint, PaymentAccountEndpoint paymentAccountEndpoint, OfferEndpoint offerEndpoint, UserEndpoint userEndpoint, VersionEndpoint versionEndpoint, WalletEndpoint walletEndpoint) {
         this.arbitratorEndpoint = arbitratorEndpoint;
         this.paymentAccountEndpoint = paymentAccountEndpoint;
+        this.offerEndpoint = offerEndpoint;
         this.userEndpoint = userEndpoint;
         this.versionEndpoint = versionEndpoint;
+        this.walletEndpoint = walletEndpoint;
     }
 
     @Path("arbitrators")
     public ArbitratorEndpoint getArbitratorEndpoint() {
         return arbitratorEndpoint;
+    }
+
+    @Path("offers")
+    public OfferEndpoint getOfferEndpoint() {
+        return offerEndpoint;
     }
 
     @Path("payment-accounts")
@@ -67,5 +80,10 @@ public class HttpApiInterfaceV1 {
     @Path("version")
     public VersionEndpoint getVersionEndpoint() {
         return versionEndpoint;
+    }
+
+    @Path("wallet")
+    public WalletEndpoint getWalletEndpoint() {
+        return walletEndpoint;
     }
 }

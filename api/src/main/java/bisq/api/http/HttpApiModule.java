@@ -21,9 +21,11 @@ import bisq.api.http.service.HttpApiServer;
 import bisq.api.http.service.auth.ApiPasswordManager;
 import bisq.api.http.service.auth.TokenRegistry;
 import bisq.api.http.service.endpoint.ArbitratorEndpoint;
+import bisq.api.http.service.endpoint.OfferEndpoint;
 import bisq.api.http.service.endpoint.PaymentAccountEndpoint;
 import bisq.api.http.service.endpoint.UserEndpoint;
 import bisq.api.http.service.endpoint.VersionEndpoint;
+import bisq.api.http.service.endpoint.WalletEndpoint;
 
 import bisq.core.app.AppOptionKeys;
 
@@ -46,9 +48,11 @@ public class HttpApiModule extends AppModule {
         bind(TokenRegistry.class).in(Singleton.class);
         bind(ApiPasswordManager.class).in(Singleton.class);
         bind(ArbitratorEndpoint.class).in(Singleton.class);
+        bind(OfferEndpoint.class).in(Singleton.class);
         bind(PaymentAccountEndpoint.class).in(Singleton.class);
         bind(UserEndpoint.class).in(Singleton.class);
         bind(VersionEndpoint.class).in(Singleton.class);
+        bind(WalletEndpoint.class).in(Singleton.class);
 
         String httpApiHost = environment.getProperty(AppOptionKeys.HTTP_API_HOST, String.class, "127.0.0.1");
         bind(String.class).annotatedWith(Names.named(AppOptionKeys.HTTP_API_HOST)).toInstance(httpApiHost);

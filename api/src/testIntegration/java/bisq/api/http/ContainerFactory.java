@@ -25,7 +25,7 @@ public final class ContainerFactory {
     public static final String ENV_BASE_CURRENCY_NETWORK_KEY = "BASE_CURRENCY_NETWORK";
     public static final String ENV_BASE_CURRENCY_NETWORK_VALUE = "BTC_REGTEST";
     public static final String ENV_BITCOIN_REGTEST_HOST_KEY = "BITCOIN_REGTEST_HOST";
-    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "LOCALHOST";
+    public static final String ENV_BITCOIN_REGTEST_HOST_VALUE = "bitcoin";
     public static final String ENV_BTC_NODES_KEY = "BTC_NODES";
     public static final String ENV_BTC_NODES_VALUE = "bitcoin:18444";
     public static final String ENV_SEED_NODES_KEY = "SEED_NODES";
@@ -69,6 +69,20 @@ public final class ContainerFactory {
 
     public static Container createApiContainer(String nameSuffix, String portBinding, int nodePort, boolean linkToSeedNode, boolean linkToBitcoin) {
         return createApiContainer(nameSuffix, portBinding, nodePort, linkToSeedNode, linkToBitcoin, true);
+    }
+
+    public static Container createBitcoinContainer() {
+        /* it takes a moment for bitcoind to initiate and become ready to receive commands */
+        Await awaitStrategy = new Await();
+        awaitStrategy.setStrategy("sleeping");
+        awaitStrategy.setSleepTime("2s");
+
+        return Container.withContainerName(BITCOIN_NODE_CONTAINER_NAME)
+                .fromImage("kylemanna/bitcoind:1.0.0")
+                .withCommand("bitcoind -printtoconsole -rpcallowip=::/0 -regtest")
+                .withPortBinding("8332/tcp")
+                .withAwaitStrategy(awaitStrategy)
+                .build();
     }
 
     public static ContainerBuilder.ContainerOptionsBuilder withRegtestEnv(ContainerBuilder.ContainerOptionsBuilder builder) {

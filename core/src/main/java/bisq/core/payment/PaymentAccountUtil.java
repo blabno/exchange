@@ -125,7 +125,7 @@ public class PaymentAccountUtil {
     }
 
     @Nullable
-    public static ArrayList<String> getAcceptedCountryCodes(PaymentAccount paymentAccount) {
+    public static List<String> getAcceptedCountryCodes(PaymentAccount paymentAccount) {
         ArrayList<String> acceptedCountryCodes = null;
         if (paymentAccount instanceof SepaAccount) {
             acceptedCountryCodes = new ArrayList<>(((SepaAccount) paymentAccount).getAcceptedCountryCodes());

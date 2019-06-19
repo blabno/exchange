@@ -365,13 +365,12 @@ public class OfferUtil {
                 Res.get("offerbook.warning.paymentMethodBanned"));
     }
 
-    // TODO no code duplication found in UI code (added for API)
-   /* public static Coin getFundsNeededForOffer(Coin tradeAmount, Coin buyerSecurityDeposit, OfferPayload.Direction direction) {
+    public static Coin getFundsNeededForOffer(Coin tradeAmount, Coin buyerSecurityDeposit, OfferPayload.Direction direction) {
         boolean buyOffer = isBuyOffer(direction);
         Coin needed = buyOffer ? buyerSecurityDeposit : Restrictions.getSellerSecurityDeposit();
         if (!buyOffer)
             needed = needed.add(tradeAmount);
 
         return needed;
-    }*/
+    }
 }

@@ -87,6 +87,12 @@ public class ExperimentalFeatureIT {
         given().port(getAlicePort()).when().get("/api/v1/payment-accounts").then().statusCode(200);
     }
 
+    @InSequence(1)
+    @Test
+    public void getOrCreateAvailableUnusedWalletAddresses_always_returns501() {
+        expect501(given().port(getAlicePort()).when().post("/api/v1/addresses"));
+    }
+
     @InSequence(3)
     @Test
     public void authenticate_always_returns501() {
