@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -61,7 +62,7 @@ public class PaymentAccountEndpoint {
 
     @Operation(summary = "Create payment account", description = ExperimentalFeature.NOTE + "\nInspect models section at the bottom of the page for valid PaymentAccount sub-types schemas", responses = @ApiResponse(content = @Content(schema = @Schema(implementation = PaymentAccount.class))))
     @POST
-    public void create(@Suspended AsyncResponse asyncResponse, @Valid PaymentAccount account) {
+    public void create(@Suspended AsyncResponse asyncResponse, @Valid @NotNull PaymentAccount account) {
         UserThread.execute(() -> {
             try {
                 experimentalFeature.assertEnabled();
